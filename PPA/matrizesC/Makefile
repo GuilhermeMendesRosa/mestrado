@@ -1,7 +1,7 @@
 # GNU Makefile
 
 CC = gcc 
-CCFLAGS = -Wall 
+CCFLAGS = -Wall -lpthread
 LDFLAGS = 
 TARGET = main
 
