@@ -61,7 +61,7 @@ matriz_t *matriz_multiplicar(matriz_t *A, matriz_t *B) {
     // Paraleliza o loop externo (linhas da matriz resultado)
     // Cada thread terá sua própria variável sum, i, j, k
     // O agendamento (schedule) pode ser definido em tempo de execução (runtime)
-    #pragma omp parallel for private(i, j, k, sum) schedule(runtime)
+    #pragma omp parallel for private(i, j, k, sum) schedule(static)
     for (i = 0; i < m->linhas; i++) {
         for (j = 0; j < m->colunas; j++) {
             sum = 0.0;
