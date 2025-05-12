@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "matriz.h"
+#include <omp.h>
 #include <pthread.h>
 
 matriz_t *matriz_criar(int linhas, int colunas)
@@ -90,6 +91,111 @@ matriz_t *matriz_multiplicar(matriz_t *A, matriz_t *B)
       }
    }
     return m;
+}
+
+matriz_t *matriz_multiplicar_static(matriz_t *A, matriz_t *B) {
+   int i, j, k;
+   double sum;
+   matriz_t *m = matriz_criar(A->linhas, B->colunas);
+
+   // Paraleliza o loop externo (linhas da matriz resultado)
+   // Cada thread terá sua própria variável sum, i, j, k
+   // O agendamento (schedule) pode ser definido em tempo de execução (runtime)
+   #pragma omp parallel for private(i, j, k, sum) schedule(static)
+   for (i = 0; i < m->linhas; i++) {
+       for (j = 0; j < m->colunas; j++) {
+           sum = 0.0;
+           for (k = 0; k < A->colunas; k++) { // Corrigido: deve ser A->colunas
+               sum += A->dados[i][k] * B->dados[k][j];
+           }
+           m->dados[i][j] = sum;
+       }
+   }
+   return m;
+}
+
+matriz_t *matriz_multiplicar_dynamic(matriz_t *A, matriz_t *B) {
+   int i, j, k;
+   double sum;
+   matriz_t *m = matriz_criar(A->linhas, B->colunas);
+
+   // Paraleliza o loop externo (linhas da matriz resultado)
+   // Cada thread terá sua própria variável sum, i, j, k
+   // O agendamento (schedule) pode ser definido em tempo de execução (runtime)
+   #pragma omp parallel for private(i, j, k, sum) schedule(dynamic)
+   for (i = 0; i < m->linhas; i++) {
+       for (j = 0; j < m->colunas; j++) {
+           sum = 0.0;
+           for (k = 0; k < A->colunas; k++) { // Corrigido: deve ser A->colunas
+               sum += A->dados[i][k] * B->dados[k][j];
+           }
+           m->dados[i][j] = sum;
+       }
+   }
+   return m;
+}
+
+matriz_t *matriz_multiplicar_guided(matriz_t *A, matriz_t *B) {
+   int i, j, k;
+   double sum;
+   matriz_t *m = matriz_criar(A->linhas, B->colunas);
+
+   // Paraleliza o loop externo (linhas da matriz resultado)
+   // Cada thread terá sua própria variável sum, i, j, k
+   // O agendamento (schedule) pode ser definido em tempo de execução (runtime)
+   #pragma omp parallel for private(i, j, k, sum) schedule(guided)
+   for (i = 0; i < m->linhas; i++) {
+       for (j = 0; j < m->colunas; j++) {
+           sum = 0.0;
+           for (k = 0; k < A->colunas; k++) { // Corrigido: deve ser A->colunas
+               sum += A->dados[i][k] * B->dados[k][j];
+           }
+           m->dados[i][j] = sum;
+       }
+   }
+   return m;
+}
+
+matriz_t *matriz_multiplicar_runtime(matriz_t *A, matriz_t *B) {
+   int i, j, k;
+   double sum;
+   matriz_t *m = matriz_criar(A->linhas, B->colunas);
+
+   // Paraleliza o loop externo (linhas da matriz resultado)
+   // Cada thread terá sua própria variável sum, i, j, k
+   // O agendamento (schedule) pode ser definido em tempo de execução (runtime)
+   #pragma omp parallel for private(i, j, k, sum) schedule(runtime)
+   for (i = 0; i < m->linhas; i++) {
+       for (j = 0; j < m->colunas; j++) {
+           sum = 0.0;
+           for (k = 0; k < A->colunas; k++) { // Corrigido: deve ser A->colunas
+               sum += A->dados[i][k] * B->dados[k][j];
+           }
+           m->dados[i][j] = sum;
+       }
+   }
+   return m;
+}
+
+matriz_t *matriz_multiplicar_auto(matriz_t *A, matriz_t *B) {
+   int i, j, k;
+   double sum;
+   matriz_t *m = matriz_criar(A->linhas, B->colunas);
+
+   // Paraleliza o loop externo (linhas da matriz resultado)
+   // Cada thread terá sua própria variável sum, i, j, k
+   // O agendamento (schedule) pode ser definido em tempo de execução (runtime)
+   #pragma omp parallel for private(i, j, k, sum) schedule(auto)
+   for (i = 0; i < m->linhas; i++) {
+       for (j = 0; j < m->colunas; j++) {
+           sum = 0.0;
+           for (k = 0; k < A->colunas; k++) { // Corrigido: deve ser A->colunas
+               sum += A->dados[i][k] * B->dados[k][j];
+           }
+           m->dados[i][j] = sum;
+       }
+   }
+   return m;
 }
 
 void matriz_imprimir(matriz_t *m)

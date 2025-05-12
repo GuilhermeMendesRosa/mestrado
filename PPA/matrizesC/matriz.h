@@ -29,6 +29,16 @@ void *matriz_multiplicar_paralelo(void *args);
 
 matriz_t *matriz_multiplicar(matriz_t *A, matriz_t *B);
 
+matriz_t *matriz_multiplicar_static(matriz_t *A, matriz_t *B);
+
+matriz_t *matriz_multiplicar_dynamic(matriz_t *A, matriz_t *B);
+
+matriz_t *matriz_multiplicar_guided(matriz_t *A, matriz_t *B);
+
+matriz_t *matriz_multiplicar_runtime(matriz_t *A, matriz_t *B);
+
+matriz_t *matriz_multiplicar_auto(matriz_t *A, matriz_t *B);
+
 void *matriz_somar_paralelo(void *args);
 
 matriz_t *matriz_somar(matriz_t *A, matriz_t *B);
