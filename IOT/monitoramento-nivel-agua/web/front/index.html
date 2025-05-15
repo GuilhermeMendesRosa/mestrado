@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento de Nível de Água</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f8ff;
+        }
+        
+        .container {
+            text-align: center;
+        }
+        
+        .reservoir {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            margin: 20px auto;
+            border: 10px solid #555;
+            border-top: none;
+            border-radius: 0 0 30px 30px;
+            overflow: hidden;
+            background-color: #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .water {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to bottom, #4fc3f7, #0288d1);
+            transition: height 2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border-radius: 0 0 20px 20px;
+        }
+        
+        .water-wave {
+            position: absolute;
+            top: -15px;
+            left: 0;
+            width: 200%;
+            height: 20px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 20" preserveAspectRatio="none"><path fill="%234fc3f7" d="M0,0 Q43.75,20 87.5,0 Q131.25,20 175,0 Q218.75,20 262.5,0 Q306.25,20 350,0 L350,20 L0,20 Z"/></svg>');
+            background-size: 350px 20px;
+            animation: wave 3s linear infinite;
+        }
+        
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-175px); }
+        }
+        
+        .status {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            transition: all 0.5s ease;
+        }
+        
+        .status.low {
+            background-color: #ffebee;
+            color: #d32f2f;
+            border: 2px solid #d32f2f;
+        }
+        
+        .status.adequate {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 2px solid #2e7d32;
+        }
+        
+        .measurement {
+            position: absolute;
+            left: -40px;
+            width: 30px;
+            height: 100%;
+        }
+        
+        .mark {
+            position: absolute;
+            right: 0;
+            width: 10px;
+            height: 1px;
+            background-color: #555;
+        }
+        
+        .mark:after {
+            content: attr(data-level);
+            position: absolute;
+            left: -30px;
+            top: -10px;
+            font-size: 12px;
+        }
+        
+        .bubbles {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+        
+        .bubble {
+            position: absolute;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: rise linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Monitoramento de Nível de Água</h1>
+        <div class="reservoir">
+            <div class="measurement">
+                <div class="mark" style="bottom: 25%;" data-level="25%"></div>
+                <div class="mark" style="bottom: 50%;" data-level="50%"></div>
+                <div class="mark" style="bottom: 75%;" data-level="75%"></div>
+                <div class="mark" style="bottom: 100%;" data-level="100%"></div>
+            </div>
+            <div class="water">
+                <div class="water-wave"></div>
+            </div>
+            <div class="bubbles" id="bubbles"></div>
+        </div>
+        <div class="status" id="status">Nível Adequado</div>
+    </div>
+
+    <script>
+        const water = document.querySelector('.water');
+        const status = document.getElementById('status');
+        const bubbles = document.getElementById('bubbles');
+        
+        let isLow = false;
+        
+        // Criar bolhas aleatórias
+        function createBubbles() {
+            bubbles.innerHTML = '';
+            const bubbleCount = 15;
+            
+            for (let i = 0; i < bubbleCount; i++) {
+                const bubble = document.createElement('div');
+                bubble.classList.add('bubble');
+                
+                const size = Math.random() * 15 + 5;
+                const left = Math.random() * 100;
+                const delay = Math.random() * 5;
+                const duration = Math.random() * 5 + 5;
+                
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${left}%`;
+                bubble.style.animationDelay = `${delay}s`;
+                bubble.style.animationDuration = `${duration}s`;
+                
+                bubbles.appendChild(bubble);
+            }
+        }
+        
+        // Definir estilo de animação das bolhas
+        const styleSheet = document.styleSheets[0];
+        styleSheet.insertRule(`
+            @keyframes rise {
+                0% {
+                    transform: translateY(0) scale(0.5);
+                    opacity: 0;
+                }
+                20% {
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(-350px) scale(1);
+                    opacity: 0;
+                }
+            }
+        `, styleSheet.cssRules.length);
+        
+        // Alternar níveis
+        function toggleLevel() {
+            isLow = !isLow;
+            
+            if (isLow) {
+                water.style.height = '20%';
+                status.textContent = 'Nível Baixo';
+                status.className = 'status low';
+                bubbles.style.opacity = '0';
+            } else {
+                water.style.height = '75%';
+                status.textContent = 'Nível Adequado';
+                status.className = 'status adequate';
+                bubbles.style.opacity = '1';
+            }
+        }
+        
+        // Inicializar
+        createBubbles();
+        water.style.height = '75%';
+        bubbles.style.opacity = '1';
+        
+        // Alternar automaticamente a cada 5 segundos
+        setInterval(toggleLevel, 5000);
+    </script>
+</body>
+</html>
