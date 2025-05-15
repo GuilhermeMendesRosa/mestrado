@@ -10,4 +10,9 @@ public class WaterLevel {
     public void setLowLevel(Boolean lowLevel) {
         this.lowLevel = lowLevel;
     }
+
+    public void toggleWaterLevel() {
+        this.lowLevel = !lowLevel;
+    }
+
 }

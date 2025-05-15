@@ -1,5 +1,6 @@
 package br.com.roselabs.monitoramente_nivel_agua_backend.water_level;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,5 +20,7 @@ public class WaterLevelController {
         return ResponseEntity.ok(waterLevel);
     }
 
-
+    public void toggleWaterLevel() {
+        this.waterLevel.toggleWaterLevel();
+    }
 }

@@ -1,5 +1,6 @@
 package br.com.roselabs.monitoramente_nivel_agua_backend.coap;
 
+import br.com.roselabs.monitoramente_nivel_agua_backend.water_level.WaterLevelController;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.eclipse.californium.core.CoapResource;
@@ -7,10 +8,14 @@ import org.eclipse.californium.core.CoapServer;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.elements.config.Configuration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class CoAPService {
+
+    @Autowired
+    private WaterLevelController waterLevelController;
 
     private CoapServer server;
 
@@ -20,7 +25,7 @@ public class CoAPService {
 
         server = new CoapServer(config);
 
-        server.add(new WaterLevelResource());
+        server.add(new WaterLevelResource(waterLevelController));
 
         server.start();
 
@@ -36,13 +41,16 @@ public class CoAPService {
     }
 
     static class WaterLevelResource extends CoapResource {
+        private final WaterLevelController waterLevelController;
 
-        public WaterLevelResource() {
-            super("hello");
+        public WaterLevelResource(WaterLevelController waterLevelController) {
+            super("water-level");
+            this.waterLevelController = waterLevelController;
         }
 
         @Override
         public void handleGET(CoapExchange exchange) {
+            waterLevelController.toggleWaterLevel();
             exchange.respond(ResponseCode.CONTENT, "Olá do servidor CoAP!");
         }
 
