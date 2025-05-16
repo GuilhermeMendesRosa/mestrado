@@ -1,6 +1,5 @@
-package br.com.roselabs.monitoramente_nivel_agua_backend.water_level;
+package br.com.roselabs.monitoramente_nivel_agua_web.water_level;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

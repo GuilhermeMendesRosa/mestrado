@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.com.roselabs</groupId>
-	<artifactId>monitoramente-nivel-agua-backend</artifactId>
+	<artifactId>monitoramente-nivel-agua-web</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>monitoramente-nivel-agua-backend</name>
-	<description>Backend no Sistema de Monitoramento e Controle de Água Automático</description>
+	<name>monitoramente-nivel-agua-web</name>
+	<description>Web no Sistema de Monitoramento e Controle de Água Automático</description>
 	<url/>
 	<licenses>
 		<license/>

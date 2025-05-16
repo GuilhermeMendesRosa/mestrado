@@ -1,4 +1,4 @@
-package br.com.roselabs.monitoramente_nivel_agua_backend.water_level;
+package br.com.roselabs.monitoramente_nivel_agua_web.water_level;
 
 public class WaterLevel {
     private Boolean lowLevel = true;

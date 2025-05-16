@@ -1,4 +1,4 @@
-package br.com.roselabs.monitoramente_nivel_agua_backend.config;
+package br.com.roselabs.monitoramente_nivel_agua_web.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

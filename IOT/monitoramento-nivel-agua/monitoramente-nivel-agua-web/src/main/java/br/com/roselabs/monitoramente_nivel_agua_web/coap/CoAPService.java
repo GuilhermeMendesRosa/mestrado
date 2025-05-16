@@ -1,6 +1,6 @@
-package br.com.roselabs.monitoramente_nivel_agua_backend.coap;
+package br.com.roselabs.monitoramente_nivel_agua_web.coap;
 
-import br.com.roselabs.monitoramente_nivel_agua_backend.water_level.WaterLevelController;
+import br.com.roselabs.monitoramente_nivel_agua_web.water_level.WaterLevelController;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.eclipse.californium.core.CoapResource;
