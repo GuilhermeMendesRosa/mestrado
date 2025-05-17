@@ -3,8 +3,8 @@
 #include <coap-simple.h>
 
 // Configurações da rede WiFi
-const char* ssid = "REDE_WIFI";
-const char* password = "SENHA_WIFI";
+const char* ssid = "BRINQUEDOS SCHULTZE";
+const char* password = "20012001";
 
 // Servidor CoAP original
 IPAddress servidorIP(192, 168, 0, 200);
@@ -21,7 +21,7 @@ const int pinoLED = 2;
 int estadoAnteriorBoia = -1;
 
 // Instâncias UDP e CoAP
-WiFiUDP udp;  // Corrigido de WiFiUdp para WiFiUDP
+WiFiUDP udp;
 Coap coap(udp);
 
 // Callback para respostas
@@ -76,7 +76,8 @@ void loop() {
     }
     
     // Converte o estado para o formato esperado pelo WaterLevel
-    bool nivelBaixo = (estadoBoia == 1); // Ajuste conforme a lógica do seu sensor
+    // LÓGICA INVERTIDA: estadoBoia == 0 agora significa tanque cheio
+    bool nivelBaixo = (estadoBoia == 0);
     
     // Cria string JSON simples manualmente
     String jsonStr = "{\"lowLevel\":" + String(nivelBaixo ? "true" : "false") + "}";
