@@ -188,7 +188,7 @@
     
     // Função para buscar o nível de água do servidor
     function fetchWaterLevel() {
-        fetch('http://localhost:8080/water-level')
+        fetch('http://192.168.0.123:8080/water-level')
             .then(response => response.json())
             .then(data => {
                 // Atualizar nível de água com base na resposta

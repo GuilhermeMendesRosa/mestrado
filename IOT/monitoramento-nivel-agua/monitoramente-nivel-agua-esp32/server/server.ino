@@ -3,8 +3,8 @@
 #include <coap-simple.h>
 
 // Configurações da rede WiFi
-const char* ssid = "REDE_WIFI";
-const char* password = "SENHA_WIFI";
+const char* ssid = "BRINQUEDOS SCHULTZE";
+const char* password = "20012001";
 
 // Configuração do IP fixo
 IPAddress local_IP(192, 168, 0, 200);
