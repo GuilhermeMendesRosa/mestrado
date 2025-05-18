@@ -1,6 +1,8 @@
 package br.com.roselabs.monitoramente_nivel_agua_web.coap;
 
+import br.com.roselabs.monitoramente_nivel_agua_web.water_level.WaterLevel;
 import br.com.roselabs.monitoramente_nivel_agua_web.water_level.WaterLevelController;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.eclipse.californium.core.CoapResource;
@@ -55,11 +57,23 @@ public class CoAPService {
         }
 
         @Override
-        public void handlePOST(CoapExchange exchange) {
+        public void handlePUT(CoapExchange exchange) {
             String content = exchange.getRequestText();
             System.out.println("Recebido: " + content);
 
-            exchange.respond(ResponseCode.CREATED, "Dados recebidos com sucesso");
+            try {
+                // Usar ObjectMapper para deserializar o JSON
+                ObjectMapper objectMapper = new ObjectMapper();
+                WaterLevel receivedWaterLevel = objectMapper.readValue(content, WaterLevel.class);
+
+                // Atualizar o nível de água
+                waterLevelController.setWaterLevel(receivedWaterLevel);
+
+                exchange.respond(ResponseCode.CREATED, "Dados processados com sucesso");
+            } catch (Exception e) {
+                System.err.println("Erro ao processar JSON: " + e.getMessage());
+                exchange.respond(ResponseCode.BAD_REQUEST, "Erro: " + e.getMessage());
+            }
         }
     }
 }
