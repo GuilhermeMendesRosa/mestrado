@@ -1,0 +1,16 @@
+RESUMO DOS RESULTADOS DO BENCHMARK
+========================================
+
+MPI APENAS:
+  Speedup: 1.43x
+  Processos: 4.0
+  Tempo: 0.511s
+  Eficiência: 0.36
+
+MPI + OPENMP:
+  Speedup: 1.65x
+  Configuração: 4.0 proc × 4.0 threads
+  Tempo: 0.477s
+  Eficiência: 0.10
+
+Melhoria: +15.8%

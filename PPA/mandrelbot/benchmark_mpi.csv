@@ -1,0 +1,4 @@
+processes,threads,avg_time_seconds,std_dev_seconds,speedup,efficiency
+1,1,.729747,.024083,1.0000,1.0000
+2,1,.542802,.016763,1.3444,.6722
+4,1,.511187,.027568,1.4275,.3568
