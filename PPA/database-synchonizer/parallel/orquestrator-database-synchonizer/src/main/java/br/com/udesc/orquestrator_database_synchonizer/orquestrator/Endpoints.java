@@ -5,16 +5,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/connect")
-public class Connector {
+public class Endpoints {
 
     private final WorkersPool workersPool;
 
-    public Connector(WorkersPool workersPool) {
+    public Endpoints(WorkersPool workersPool) {
         this.workersPool = workersPool;
     }
 
-    @PostMapping
+    @PostMapping("/connect")
     public ResponseEntity<Void> connect(@RequestBody Worker worker) {
         workersPool.connect(worker);
         return ResponseEntity.ok().build();
