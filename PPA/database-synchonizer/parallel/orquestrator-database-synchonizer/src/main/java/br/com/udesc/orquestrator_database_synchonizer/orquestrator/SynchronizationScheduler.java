@@ -1,57 +1,43 @@
 package br.com.udesc.orquestrator_database_synchonizer.orquestrator;
 
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto.Worker;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto.WorkerDTO;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Set;
 
 @Component
 public class SynchronizationScheduler {
 
     private final WorkersPool workersPool;
+    private final Tables tables;
+    private final Connector connector;
 
-    private final HttpClient httpClient = HttpClient.newHttpClient();
+    public static final int SECOND = 1000;
+    public static final int MINUTE = 60 * SECOND;
 
-    public static final int MINUTE = 60000;
-
-    public SynchronizationScheduler(WorkersPool workersPool) {
+    public SynchronizationScheduler(WorkersPool workersPool, Tables tables, Connector connector) {
         this.workersPool = workersPool;
+        this.tables = tables;
+        this.connector = connector;
     }
 
-    @Scheduled(initialDelay = MINUTE, fixedRate = 2 * MINUTE)
+    @Scheduled(initialDelay = MINUTE / 6, fixedRate = 2 * MINUTE)
     public void performSync() {
         try {
-            Set<Worker> workers = workersPool.getWorkers();
-
-            for (Worker worker : workers) {
-                sendSignalToStartSync(worker);
-            }
-
+            tables.startSynchronization();
+            workersPool.startSynchonization();
+            startWorkers();
+            workersPool.waitWorkers();
+            System.out.println("Synchronization completed.");
         } catch (Exception e) {
             System.err.println("Erro na sincronização: " + e.getMessage());
         }
     }
 
-    private void sendSignalToStartSync(Worker worker) {
-        try {
-            String url = worker.host + ":8081/start-sync";
-            System.out.println("Enviando requisição para: " + url);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .GET()
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Resposta do worker " + worker.host + ": " + response.body());
-        } catch (Exception e) {
-            System.err.println("Erro ao conectar com worker " + worker.host + ": " + e.getMessage());
+    private void startWorkers() {
+        for (WorkerDTO workerDTO : workersPool.getWorkers()) {
+            connector.sendSignalToStartSync(workerDTO);
         }
     }
+
+
 }
