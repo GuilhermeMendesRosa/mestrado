@@ -1,6 +1,6 @@
-package br.com.udesc.orquestrator_database_synchonizer.orquestrator;
+package br.com.udesc.orchestrator_database_synchonizer.orchestrator;
 
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto.WorkerDTO;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto.WorkerDTO;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;

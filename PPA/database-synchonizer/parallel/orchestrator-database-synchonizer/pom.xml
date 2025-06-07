@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>br.com.udesc</groupId>
-	<artifactId>orquestrator-database-synchonizer</artifactId>
+	<artifactId>orchestrator-database-synchonizer</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>orquestrator-database-synchonizer</name>
+	<name>orchestrator-database-synchonizer</name>
 	<description>Orquestrador do sincronizador de banco de dados em paralelo</description>
 	<url/>
 	<licenses>

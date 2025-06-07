@@ -1,10 +1,10 @@
-package br.com.udesc.orquestrator_database_synchonizer.orquestrator.endpoints;
+package br.com.udesc.orchestrator_database_synchonizer.orchestrator.endpoints;
 
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.SynchronizationScheduler;
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.Tables;
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.WorkersPool;
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto.TableDTO;
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto.WorkerDTO;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.SynchronizationScheduler;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.Tables;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.WorkersPool;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto.TableDTO;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto.WorkerDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,4 +1,4 @@
-package br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto;
+package br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto;
 
 public class WorkerDTO {
 

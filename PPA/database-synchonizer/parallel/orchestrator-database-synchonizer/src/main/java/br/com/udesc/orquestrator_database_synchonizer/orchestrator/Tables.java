@@ -1,6 +1,6 @@
-package br.com.udesc.orquestrator_database_synchonizer.orquestrator;
+package br.com.udesc.orchestrator_database_synchonizer.orchestrator;
 
-import br.com.udesc.orquestrator_database_synchonizer.orquestrator.dto.TableDTO;
+import br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto.TableDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.Stack;

@@ -1,10 +1,10 @@
-package br.com.udesc.orquestrator_database_synchonizer;
+package br.com.udesc.orchestrator_database_synchonizer;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class OrquestratorDatabaseSynchonizerApplicationTests {
+class OrchestratorDatabaseSynchonizerApplicationTests {
 
 	@Test
 	void contextLoads() {
