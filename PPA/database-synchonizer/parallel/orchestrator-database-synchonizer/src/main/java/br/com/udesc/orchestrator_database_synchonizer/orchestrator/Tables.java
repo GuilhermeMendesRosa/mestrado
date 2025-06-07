@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class Tables {
 
     private static final Logger logger = LoggerFactory.getLogger(Tables.class);
-    private static final int DEFAULT_TABLE_COUNT = 9;
+    private static final int DEFAULT_TABLE_COUNT = 90;
 
     private final Stack<TableDTO> defaultStack;
     private final ConcurrentLinkedDeque<TableDTO> threadSafeStack;

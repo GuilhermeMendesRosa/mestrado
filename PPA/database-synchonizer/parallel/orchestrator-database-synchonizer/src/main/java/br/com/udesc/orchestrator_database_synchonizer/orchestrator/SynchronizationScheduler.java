@@ -44,6 +44,7 @@ public class SynchronizationScheduler {
             workersPool.waitWorkers();
 
             logger.info("Sincronização concluída com sucesso");
+            tables.finalizeSynchronization();
 
         } catch (Exception e) {
             logger.error("Erro durante ciclo de sincronização: {}", e.getMessage(), e);

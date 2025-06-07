@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,14 +18,15 @@ public class SynchronizerHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SynchronizerHandler.class);
     private static final int THREAD_POOL_SIZE = 3;
-    private static final long PROCESSING_DELAY_MS = 3000;
 
     private final Connector connector;
+    private final DatabaseSynchronizationService databaseService;
     private final AtomicBoolean synchronizationRunning = new AtomicBoolean(false);
 
-    public SynchronizerHandler(Connector connector) {
+    public SynchronizerHandler(Connector connector, DatabaseSynchronizationService databaseService) {
         this.connector = connector;
-        logger.info("SynchronizerHandler inicializado");
+        this.databaseService = databaseService;
+        logger.info("SynchronizerHandler inicializado com serviço de banco de dados");
     }
 
     public void invokeSynchronization() {
@@ -94,7 +96,7 @@ public class SynchronizerHandler {
                 break;
             }
 
-            logger.debug("Thread {} processando tabela: {}", threadId, tableDTO);
+            logger.debug("Thread {} processando tabela: {}", threadId, tableDTO.getName());
             processTable(tableDTO, threadId);
         }
 
@@ -102,16 +104,23 @@ public class SynchronizerHandler {
     }
 
     private void processTable(TableDTO tableDTO, int threadId) {
-        logger.debug("Thread {} iniciando processamento da tabela", threadId);
+        String tableName = tableDTO.getName();
+        logger.info("Thread {} iniciando sincronização da tabela: {}", threadId, tableName);
+
+        long startTime = System.currentTimeMillis();
 
         try {
-            Thread.sleep(PROCESSING_DELAY_MS);
-            logger.debug("Thread {} finalizou processamento da tabela", threadId);
+            databaseService.synchronizeTable(tableName);
 
-        } catch (InterruptedException e) {
-            logger.error("Thread {} interrompida durante processamento: {}", threadId, e.getMessage());
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Processamento interrompido", e);
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("Thread {} finalizou sincronização da tabela {} em {}ms", threadId, tableName, duration);
+
+        } catch (SQLException e) {
+            logger.error("Thread {} - Erro SQL ao sincronizar tabela {}: {}", threadId, tableName, e.getMessage(), e);
+            throw new RuntimeException("Falha na sincronização da tabela: " + tableName, e);
+        } catch (Exception e) {
+            logger.error("Thread {} - Erro geral ao sincronizar tabela {}: {}", threadId, tableName, e.getMessage(), e);
+            throw new RuntimeException("Erro inesperado na sincronização da tabela: " + tableName, e);
         }
     }
 }
