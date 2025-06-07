@@ -4,6 +4,8 @@ import br.com.udesc.worker_database_synchonizer.dto.TableDTO;
 import br.com.udesc.worker_database_synchonizer.dto.WorkerDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,11 @@ import static java.net.http.HttpResponse.BodyHandlers;
 @Component
 public class Connector {
 
+    private static final Logger logger = LoggerFactory.getLogger(Connector.class);
+    private static final String CONTENT_TYPE_JSON = "application/json";
+    private static final int HTTP_OK = 200;
+    private static final int ORCHESTRATOR_PORT = 8080;
+
     @Value("${orchestrator.host}")
     private String orchestratorHost;
 
@@ -25,68 +32,87 @@ public class Connector {
 
     @PostConstruct
     public void connectToOrchestrator() {
-        WorkerDTO me = new WorkerDTO("localhost");
-        try {
-            String url = "http://" + orchestratorHost + ":8080/connect";
-            System.out.println("Enviando requisição para: " + url);
+        logger.info("Iniciando conexão com orchestrator: {}", orchestratorHost);
 
-            String workerJson = objectMapper.writeValueAsString(me);
+        WorkerDTO workerInfo = new WorkerDTO("localhost");
+
+        try {
+            String connectionUrl = buildUrl("/connect");
+            logger.debug("Enviando requisição de conexão para: {}", connectionUrl);
+
+            String workerJson = objectMapper.writeValueAsString(workerInfo);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
+                    .uri(URI.create(connectionUrl))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
                     .POST(HttpRequest.BodyPublishers.ofString(workerJson))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
-            System.out.println("Resposta do worker " + orchestratorHost + ": " + response.body());
+
+            logger.info("Conexão estabelecida com orchestrator. Status: {}, Resposta: {}",
+                    response.statusCode(), response.body());
+
         } catch (Exception e) {
-            System.err.println("Erro ao conectar com worker " + orchestratorHost + ": " + e.getMessage());
+            logger.error("Erro ao conectar com orchestrator {}: {}", orchestratorHost, e.getMessage(), e);
         }
     }
 
     public TableDTO nextTable() {
+        logger.debug("Solicitando próxima tabela do orchestrator");
+
         try {
-            String url = "http://" + orchestratorHost + ":8080/next-table";
-            System.out.println("Requisitando próxima tabela de: " + url);
+            String nextTableUrl = buildUrl("/next-table");
+            logger.debug("Requisitando próxima tabela de: {}", nextTableUrl);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
+                    .uri(URI.create(nextTableUrl))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
                     .GET()
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
-            if (response.statusCode() == 200) {
+            if (response.statusCode() == HTTP_OK) {
                 TableDTO tableDTO = objectMapper.readValue(response.body(), TableDTO.class);
-                System.out.println("Tabela recebida: " + tableDTO);
+                logger.info("Tabela recebida com sucesso: {}", tableDTO);
                 return tableDTO;
             } else {
-                System.err.println("Erro na requisição. Status: " + response.statusCode() + ", Body: " + response.body());
+                logger.warn("Falha ao obter próxima tabela. Status: {}, Body: {}",
+                        response.statusCode(), response.body());
                 return null;
             }
+
         } catch (Exception e) {
-            System.err.println("Erro ao requisitar próxima tabela: " + e.getMessage());
+            logger.error("Erro ao requisitar próxima tabela: {}", e.getMessage(), e);
             return null;
         }
     }
 
     public void synchronizationFinished() {
+        logger.info("Notificando orchestrator sobre finalização da sincronização");
+
         try {
-            String url = "http://" + orchestratorHost + ":8080/finish";
-            System.out.println("Requisitando próxima tabela de: " + url);
+            String finishUrl = buildUrl("/finish");
+            logger.debug("Enviando notificação de finalização para: {}", finishUrl);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .header("Content-Type", "application/json")
+                    .uri(URI.create(finishUrl))
+                    .header("Content-Type", CONTENT_TYPE_JSON)
                     .GET()
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, BodyHandlers.ofString());
 
+            logger.info("Notificação de finalização enviada. Status: {}", response.statusCode());
+
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error("Erro ao notificar finalização da sincronização: {}", e.getMessage(), e);
+            throw new RuntimeException("Falha ao notificar finalização", e);
         }
+    }
+
+    private String buildUrl(String endpoint) {
+        return String.format("http://%s:%d%s", orchestratorHost, ORCHESTRATOR_PORT, endpoint);
     }
 }

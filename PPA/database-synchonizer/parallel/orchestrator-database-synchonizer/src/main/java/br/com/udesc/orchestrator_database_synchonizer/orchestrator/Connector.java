@@ -1,6 +1,8 @@
 package br.com.udesc.orchestrator_database_synchonizer.orchestrator;
 
 import br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto.WorkerDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -11,23 +13,36 @@ import java.net.http.HttpResponse;
 @Component
 public class Connector {
 
+    private static final Logger logger = LoggerFactory.getLogger(Connector.class);
+    private static final int WORKER_PORT = 8081;
+    private static final String START_SYNC_ENDPOINT = "/start-sync";
+
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     public void sendSignalToStartSync(WorkerDTO workerDTO) {
+        logger.info("Enviando sinal de início de sincronização para worker: {}", workerDTO.getHost());
+
         try {
-            String url = "http://" +  workerDTO.getHost() + ":8081/start-sync";
-            System.out.println("Enviando requisição para: " + url);
+            String syncUrl = buildWorkerUrl(workerDTO.getHost(), START_SYNC_ENDPOINT);
+            logger.debug("Enviando requisição para: {}", syncUrl);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
+                    .uri(URI.create(syncUrl))
                     .GET()
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Resposta do worker " + workerDTO.getHost() + ": " + response.body());
+
+            logger.info("Sinal enviado com sucesso para worker {}. Status: {}, Resposta: {}",
+                    workerDTO.getHost(), response.statusCode(), response.body());
+
         } catch (Exception e) {
-            System.err.println("Erro ao conectar com worker " + workerDTO.getHost() + ": " + e.getMessage());
+            logger.error("Erro ao enviar sinal de sincronização para worker {}: {}",
+                    workerDTO.getHost(), e.getMessage(), e);
         }
     }
 
+    private String buildWorkerUrl(String host, String endpoint) {
+        return String.format("http://%s:%d%s", host, WORKER_PORT, endpoint);
+    }
 }

@@ -1,6 +1,8 @@
 package br.com.udesc.orchestrator_database_synchonizer.orchestrator;
 
 import br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto.TableDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Stack;
@@ -8,6 +10,9 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Component
 public class Tables {
+
+    private static final Logger logger = LoggerFactory.getLogger(Tables.class);
+    private static final int DEFAULT_TABLE_COUNT = 9;
 
     private final Stack<TableDTO> defaultStack;
     private final ConcurrentLinkedDeque<TableDTO> threadSafeStack;
@@ -18,64 +23,66 @@ public class Tables {
         this.threadSafeStack = new ConcurrentLinkedDeque<>();
         this.synchronizationActive = false;
 
-        // Inicializa a pilha padrão com 90 tabelas
-        for (int i = 1; i <= 9  ; i++) {
-            defaultStack.push(new TableDTO("tabela" + i));
-        }
+        initializeDefaultTables();
+        logger.info("Tables inicializado com {} tabelas padrão", DEFAULT_TABLE_COUNT);
     }
 
-    /**
-     * Inicia a sincronização copiando da pilha padrão para a thread-safe
-     */
+    private void initializeDefaultTables() {
+        for (int i = 1; i <= DEFAULT_TABLE_COUNT; i++) {
+            defaultStack.push(new TableDTO("tabela" + i));
+        }
+        logger.debug("Inicializadas {} tabelas na pilha padrão", DEFAULT_TABLE_COUNT);
+    }
+
     public synchronized void startSynchronization() {
+        logger.info("Iniciando sincronização de tabelas");
+
         if (synchronizationActive) {
+            logger.warn("Tentativa de iniciar sincronização já ativa");
             throw new IllegalStateException("Sincronização já está ativa");
         }
 
-        // Copia todas as tabelas da pilha padrão para a thread-safe
         threadSafeStack.clear();
         for (TableDTO table : defaultStack) {
-            threadSafeStack.addFirst(table); // Mantém a ordem da pilha
+            threadSafeStack.addFirst(table);
         }
 
         synchronizationActive = true;
+        logger.info("Sincronização iniciada com {} tabelas disponíveis", threadSafeStack.size());
     }
 
-    /**
-     * Retorna a próxima tabela da pilha thread-safe
-     */
     public TableDTO nextTable() {
         if (!synchronizationActive) {
+            logger.error("Tentativa de obter tabela sem sincronização ativa");
             throw new IllegalStateException("Sincronização não está ativa. Chame startSynchronization() primeiro.");
         }
 
         TableDTO table = threadSafeStack.pollFirst();
+
         if (table == null) {
+            logger.info("Todas as tabelas foram processadas, retornando sinal de finalização");
             table = new TableDTO();
             table.setFinished(true);
+        } else {
+            logger.debug("Fornecendo tabela: {}. Restantes: {}", table.getName(), threadSafeStack.size());
         }
 
         return table;
     }
 
-    /**
-     * Finaliza a sincronização limpando a pilha thread-safe
-     */
     public synchronized void finalizeSynchronization() {
+        logger.info("Finalizando sincronização de tabelas");
+
         threadSafeStack.clear();
         synchronizationActive = false;
+
+        logger.info("Sincronização finalizada");
     }
 
-    /**
-     * Verifica se a sincronização está ativa
-     */
     public boolean isSynchronizationActive() {
         return synchronizationActive;
     }
 
-    /**
-     * Retorna o número de tabelas restantes na pilha thread-safe
-     */
     public int getRemainingTables() {
         return threadSafeStack.size();
     }
