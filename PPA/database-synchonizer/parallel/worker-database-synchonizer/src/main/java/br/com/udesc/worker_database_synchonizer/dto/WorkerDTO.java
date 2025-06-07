@@ -2,7 +2,7 @@ package br.com.udesc.worker_database_synchonizer.dto;
 
 public class WorkerDTO {
 
-    public String host;
+    private String host;
 
     public WorkerDTO() {}
 
@@ -10,4 +10,11 @@ public class WorkerDTO {
         this.host = host;
     }
 
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 }

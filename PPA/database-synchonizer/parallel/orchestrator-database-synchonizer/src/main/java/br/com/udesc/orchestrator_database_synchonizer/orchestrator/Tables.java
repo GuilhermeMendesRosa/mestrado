@@ -52,7 +52,7 @@ public class Tables {
         TableDTO table = threadSafeStack.pollFirst();
         if (table == null) {
             table = new TableDTO();
-            table.isFinished = true;
+            table.setFinished(true);
         }
 
         return table;

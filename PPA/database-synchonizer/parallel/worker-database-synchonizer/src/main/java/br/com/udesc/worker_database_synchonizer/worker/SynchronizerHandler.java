@@ -37,7 +37,7 @@ public class SynchronizerHandler {
                         while (true) {
                             TableDTO tableDTO = connector.nextTable();
 
-                            if (Boolean.TRUE.equals(tableDTO.isFinished)) {
+                            if (Boolean.TRUE.equals(tableDTO.getFinished())) {
                                 break;
                             }
 

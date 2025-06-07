@@ -15,7 +15,7 @@ public class Connector {
 
     public void sendSignalToStartSync(WorkerDTO workerDTO) {
         try {
-            String url = "http://" +  workerDTO.host + ":8081/start-sync";
+            String url = "http://" +  workerDTO.getHost() + ":8081/start-sync";
             System.out.println("Enviando requisição para: " + url);
 
             HttpRequest request = HttpRequest.newBuilder()
@@ -24,9 +24,9 @@ public class Connector {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            System.out.println("Resposta do worker " + workerDTO.host + ": " + response.body());
+            System.out.println("Resposta do worker " + workerDTO.getHost() + ": " + response.body());
         } catch (Exception e) {
-            System.err.println("Erro ao conectar com worker " + workerDTO.host + ": " + e.getMessage());
+            System.err.println("Erro ao conectar com worker " + workerDTO.getHost() + ": " + e.getMessage());
         }
     }
 

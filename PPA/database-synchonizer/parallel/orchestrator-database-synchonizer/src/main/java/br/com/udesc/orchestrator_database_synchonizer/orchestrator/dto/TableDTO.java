@@ -1,4 +1,4 @@
-package br.com.udesc.worker_database_synchonizer.dto;
+package br.com.udesc.orchestrator_database_synchonizer.orchestrator.dto;
 
 public class TableDTO {
     private String name;
