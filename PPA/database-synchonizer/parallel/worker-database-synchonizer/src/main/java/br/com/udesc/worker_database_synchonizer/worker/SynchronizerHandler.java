@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SynchronizerHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SynchronizerHandler.class);
-    private static final int THREAD_POOL_SIZE = 3;
+    private static final int THREAD_POOL_SIZE = 12;
 
     private final Connector connector;
     private final DatabaseSynchronizationService databaseService;

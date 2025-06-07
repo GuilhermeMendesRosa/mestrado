@@ -32,18 +32,12 @@ public class DatabaseSynchronizationService {
 
             long startTime = System.currentTimeMillis();
 
-            // 1. Limpar tabela target
-            clearTargetTable(targetConn, tableName);
-
-            // 2. Contar registros na tabela source
             int sourceCount = countRecords(sourceConn, tableName);
             logger.info("Tabela {} possui {} registros no banco source", tableName, sourceCount);
 
             if (sourceCount > 0) {
-                // 3. Copiar dados do source para target
                 copyTableData(sourceConn, targetConn, tableName);
 
-                // 4. Verificar sincronização
                 int targetCount = countRecords(targetConn, tableName);
                 logger.info("Sincronização da tabela {} concluída: {} registros copiados", tableName, targetCount);
 
@@ -71,17 +65,6 @@ public class DatabaseSynchronizationService {
         return DriverManager.getConnection(targetUrl, username, password);
     }
 
-    private void clearTargetTable(Connection targetConn, String tableName) throws SQLException {
-        logger.debug("Limpando tabela target: {}", tableName);
-
-        String truncateSQL = "TRUNCATE TABLE " + tableName + " RESTART IDENTITY CASCADE";
-
-        try (Statement stmt = targetConn.createStatement()) {
-            stmt.executeUpdate(truncateSQL);
-            logger.debug("Tabela {} limpa com sucesso", tableName);
-        }
-    }
-
     private int countRecords(Connection conn, String tableName) throws SQLException {
         String countSQL = "SELECT COUNT(*) FROM " + tableName;
 
@@ -98,7 +81,6 @@ public class DatabaseSynchronizationService {
     private void copyTableData(Connection sourceConn, Connection targetConn, String tableName) throws SQLException {
         logger.debug("Iniciando cópia de dados da tabela: {}", tableName);
 
-        // Obter metadados da tabela para construir query dinamicamente
         String selectSQL = buildSelectQuery(sourceConn, tableName);
         String insertSQL = buildInsertQuery(sourceConn, tableName);
 
@@ -116,7 +98,6 @@ public class DatabaseSynchronizationService {
             targetConn.setAutoCommit(false);
 
             while (rs.next()) {
-                // Copiar dados do ResultSet para PreparedStatement
                 copyRowData(rs, insertStmt, sourceConn, tableName);
                 insertStmt.addBatch();
                 batchCount++;
@@ -130,7 +111,6 @@ public class DatabaseSynchronizationService {
                 }
             }
 
-            // Inserir lote final
             if (batchCount > 0) {
                 insertStmt.executeBatch();
                 targetConn.commit();
