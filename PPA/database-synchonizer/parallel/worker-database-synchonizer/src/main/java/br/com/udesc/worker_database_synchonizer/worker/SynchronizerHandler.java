@@ -3,6 +3,7 @@ package br.com.udesc.worker_database_synchonizer.worker;
 import br.com.udesc.worker_database_synchonizer.dto.TableDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SynchronizerHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(SynchronizerHandler.class);
-    private static final int THREAD_POOL_SIZE = 12;
+
+    @Value("${thread.pool.size}")
+    private Integer threadPoolSize;
 
     private final Connector connector;
     private final DatabaseSynchronizationService databaseService;
@@ -46,10 +49,10 @@ public class SynchronizerHandler {
             logger.info("Iniciando processo de sincronização assíncrona");
 
             try {
-                ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
-                logger.debug("Thread pool criado com {} threads", THREAD_POOL_SIZE);
+                ExecutorService threadPool = Executors.newFixedThreadPool(threadPoolSize);
+                logger.debug("Thread pool criado com {} threads", threadPoolSize);
 
-                for (int i = 0; i < THREAD_POOL_SIZE; i++) {
+                for (int i = 0; i < threadPoolSize; i++) {
                     final int threadId = i + 1;
                     threadPool.submit(() -> {
                         logger.debug("Thread {} iniciada para processamento de tabelas", threadId);
