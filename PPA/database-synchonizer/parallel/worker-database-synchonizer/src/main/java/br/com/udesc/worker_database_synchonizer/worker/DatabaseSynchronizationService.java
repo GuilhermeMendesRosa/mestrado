@@ -24,6 +24,16 @@ public class DatabaseSynchronizationService {
     @Value("${database.password:postgres}")
     private String password;
 
+    static {
+        try {
+            Class.forName("org.postgresql.Driver");
+            System.out.println("Driver PostgreSQL carregado com sucesso");
+        } catch (ClassNotFoundException e) {
+            System.err.println("Erro ao carregar driver PostgreSQL: " + e.getMessage());
+            throw new RuntimeException("Driver PostgreSQL não encontrado", e);
+        }
+    }
+
     public void synchronizeTable(String tableName) throws SQLException {
         logger.info("Iniciando sincronização da tabela: {}", tableName);
 
