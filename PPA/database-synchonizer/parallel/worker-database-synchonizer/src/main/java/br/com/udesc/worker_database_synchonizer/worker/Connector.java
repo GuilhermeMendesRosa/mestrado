@@ -27,6 +27,9 @@ public class Connector {
     @Value("${orchestrator.host}")
     private String orchestratorHost;
 
+    @Value("${worker.host}")
+    private String workerHost;
+
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
