@@ -37,7 +37,7 @@ public class Connector {
     public void connectToOrchestrator() {
         logger.info("Iniciando conexão com orchestrator: {}", orchestratorHost);
 
-        WorkerDTO workerInfo = new WorkerDTO("localhost");
+        WorkerDTO workerInfo = new WorkerDTO(workerHost);
 
         try {
             String connectionUrl = buildUrl("/connect");
