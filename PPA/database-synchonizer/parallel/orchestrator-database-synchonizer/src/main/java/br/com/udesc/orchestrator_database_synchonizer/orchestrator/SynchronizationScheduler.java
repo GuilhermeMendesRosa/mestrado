@@ -17,7 +17,7 @@ public class SynchronizationScheduler {
     private static final int SECOND = 1000;
     private static final int MINUTE = 60 * SECOND;
     private static final int INITIAL_DELAY = MINUTE / 6;
-    private static final int SYNC_INTERVAL = 2 * MINUTE;
+    private static final int SYNC_INTERVAL = 10 * MINUTE;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
     private final WorkersPool workersPool;
