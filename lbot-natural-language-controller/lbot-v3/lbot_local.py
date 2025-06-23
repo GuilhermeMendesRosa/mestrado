@@ -206,23 +206,7 @@ def interactive_translator():
 
 if __name__ == "__main__":
     # Testar algumas traduções
-    print("🧪 Testando tradutor...")
-
     try:
-        model, encode, decode, stoi, itos = load_lbot_model()
-
-        test_commands = [
-            "vá 20 centímetros para frente",
-            "ande 15 para trás e 30 para direita",
-            "mova-se 50 à esquerda"
-        ]
-
-        print("\n📋 Resultados:")
-        for cmd in test_commands:
-            result = lbot_translator(cmd, model, encode, decode)
-            print(f"  '{cmd}' → '{result}'")
-
-        print("\n" + "="*50)
         interactive_translator()
 
     except FileNotFoundError:
