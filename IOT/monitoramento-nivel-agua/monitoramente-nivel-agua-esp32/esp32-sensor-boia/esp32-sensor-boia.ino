@@ -64,9 +64,9 @@ void loop() {
   if (estadoBoia != estadoAnteriorBoia) {
     estadoAnteriorBoia = estadoBoia;
     
-    // Envio para servidor original
+    // Envio para o outro ESP32
     String mensagem = "estado_boia:" + String(estadoBoia);
-    Serial.printf("Enviando para servidor original: %s\n", mensagem.c_str());
+    Serial.printf("Enviando para o outro ESP32: %s\n", mensagem.c_str());
     coap.put(servidorIP, servidorPorta, "message", mensagem.c_str(), mensagem.length());
     
     // Processa algumas respostas
@@ -75,8 +75,6 @@ void loop() {
       delay(50);
     }
     
-    // Converte o estado para o formato esperado pelo WaterLevel
-    // LÓGICA INVERTIDA: estadoBoia == 0 agora significa tanque cheio
     bool nivelBaixo = (estadoBoia == 0);
     
     // Cria string JSON simples manualmente
@@ -84,7 +82,6 @@ void loop() {
     
     Serial.printf("Enviando para Spring Boot: %s\n", jsonStr.c_str());
     
-    // Usando put em vez de post, já que a biblioteca coap-simple não tem o método post
     coap.put(springIP, springPorta, springResource, jsonStr.c_str(), jsonStr.length());
     
     // Processa respostas
