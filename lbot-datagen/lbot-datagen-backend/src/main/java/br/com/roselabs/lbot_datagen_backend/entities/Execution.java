@@ -1,0 +1,39 @@
+package br.com.roselabs.lbot_datagen_backend.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.GenericGenerator;
+
+import java.util.UUID;
+
+@Entity
+@Table(name = "executions")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Execution {
+
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    @Column(name = "id", updatable = false, nullable = false)
+    private UUID id;
+
+    @Column(name = "prompt", columnDefinition = "TEXT")
+    private String prompt;
+
+    @Column(name = "output", columnDefinition = "TEXT")
+    private String output;
+
+    @Column(name = "grade")
+    private Integer grade;
+
+    @Column(name = "observation", columnDefinition = "TEXT")
+    private String observation;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "session_id", nullable = false)
+    private Session session;
+}
