@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "sessions")
+@Table(name = "chats")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Session {
+public class Chat {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -28,17 +28,17 @@ public class Session {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "chat", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Execution> executions = new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
 
-    public void addExecution(Execution execution) {
-        executions.add(execution);
-        execution.setSession(this);
+    public void addMessage(Message message) {
+        messages.add(message);
+        message.setChat(this);
     }
 
-    public void removeExecution(Execution execution) {
-        executions.remove(execution);
-        execution.setSession(null);
+    public void removeMessage(Message message) {
+        messages.remove(message);
+        message.setChat(null);
     }
 }

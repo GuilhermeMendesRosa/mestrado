@@ -7,13 +7,13 @@ import org.hibernate.annotations.GenericGenerator;
 import java.util.UUID;
 
 @Entity
-@Table(name = "executions")
+@Table(name = "messages")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Execution {
+public class Message {
 
     @Id
     @GeneratedValue(generator = "UUID")
@@ -34,6 +34,6 @@ public class Execution {
     private String observation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "session_id", nullable = false)
-    private Session session;
+    @JoinColumn(name = "chat_id", nullable = false)
+    private Chat chat;
 }
