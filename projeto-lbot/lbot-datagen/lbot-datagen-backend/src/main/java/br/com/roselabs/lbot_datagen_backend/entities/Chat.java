@@ -32,6 +32,10 @@ public class Chat {
     @Builder.Default
     private List<Message> messages = new ArrayList<>();
 
+    @Column(name = "observation", columnDefinition = "TEXT")
+    @Builder.Default
+    private String observation = null;
+
     public void addMessage(Message message) {
         messages.add(message);
         message.setChat(this);

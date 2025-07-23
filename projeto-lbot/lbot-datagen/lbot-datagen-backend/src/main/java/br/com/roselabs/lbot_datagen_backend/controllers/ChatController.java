@@ -5,21 +5,19 @@ import br.com.roselabs.lbot_datagen_backend.services.ChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/chats")
+@RequestMapping("chats")
 @RequiredArgsConstructor
 public class ChatController {
 
     private final ChatService chatService;
 
-    @PostMapping
-    public ResponseEntity<Chat> createChat(@RequestBody Chat chat) {
+    @GetMapping
+    public ResponseEntity<Chat> createChat() {
         Chat createdChat = chatService.createChat();
         return ResponseEntity.status(HttpStatus.CREATED).body(createdChat);
     }

@@ -30,9 +30,6 @@ public class Message {
     @Column(name = "grade")
     private Integer grade;
 
-    @Column(name = "observation", columnDefinition = "TEXT")
-    private String observation;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_id", nullable = false)
     private Chat chat;
