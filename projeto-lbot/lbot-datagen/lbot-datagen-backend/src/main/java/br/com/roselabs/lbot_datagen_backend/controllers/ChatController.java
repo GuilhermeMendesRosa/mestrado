@@ -24,35 +24,4 @@ public class ChatController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdChat);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Chat> getChat(@PathVariable UUID id) {
-        Optional<Chat> Chat = chatService.findById(id);
-        return Chat.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping
-    public ResponseEntity<List<Chat>> getAllChats() {
-        List<Chat> chats = chatService.findAll();
-        return ResponseEntity.ok(chats);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Chat> updateChat(@PathVariable UUID id, @RequestBody Chat chat) {
-        if (!chatService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        chat.setId(id);
-        Chat updatedChat = chatService.updateChat(chat);
-        return ResponseEntity.ok(updatedChat);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteChat(@PathVariable UUID id) {
-        if (!chatService.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        chatService.deleteChat(id);
-        return ResponseEntity.noContent().build();
-    }
 }
