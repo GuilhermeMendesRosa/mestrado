@@ -24,6 +24,9 @@ public class Message {
     @Column(name = "prompt", columnDefinition = "TEXT")
     private String prompt;
 
+    @Column(name = "normalized_prompt", columnDefinition = "TEXT")
+    private String normalizedPrompt;
+
     @Column(name = "output", columnDefinition = "TEXT")
     private String output;
 

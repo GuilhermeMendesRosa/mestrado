@@ -16,14 +16,17 @@ public class MessageDto {
 
     private UUID id;
     private String prompt;
+    private String normalizedPrompt;
     private String output;
     private Integer grade;
     private UUID chatId;
 
     public MessageDto(Message message) {
         this.id = message.getId();
+        this.normalizedPrompt = message.getNormalizedPrompt();
         this.prompt = message.getPrompt();
         this.output = message.getOutput();
+        this.grade = message.getGrade();
         this.chatId = message.getChat().getId();
     }
 }

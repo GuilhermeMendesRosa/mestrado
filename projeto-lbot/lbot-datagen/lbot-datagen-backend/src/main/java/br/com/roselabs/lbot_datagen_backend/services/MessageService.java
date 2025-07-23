@@ -28,10 +28,12 @@ public class MessageService {
                 .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId));
 
         String prompt = sendMessageDto.getPrompt();
-        String output = aiService.convertToLML(prompt);
+        String normalizedPrompt = aiService.normalizePromptImCm(prompt);
+        String output = aiService.convertToLML(normalizedPrompt);
 
         Message message = Message.builder()
                 .prompt(prompt)
+                .normalizedPrompt(normalizedPrompt)
                 .chat(chat)
                 .output(output)
                 .build();
