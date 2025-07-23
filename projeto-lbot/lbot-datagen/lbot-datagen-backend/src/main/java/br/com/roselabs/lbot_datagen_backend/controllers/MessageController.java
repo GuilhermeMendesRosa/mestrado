@@ -1,8 +1,8 @@
 package br.com.roselabs.lbot_datagen_backend.controllers;
 
 import br.com.roselabs.lbot_datagen_backend.dtos.EvaluateMessageDto;
+import br.com.roselabs.lbot_datagen_backend.dtos.MessageDto;
 import br.com.roselabs.lbot_datagen_backend.dtos.SendMessageDto;
-import br.com.roselabs.lbot_datagen_backend.entities.Message;
 import br.com.roselabs.lbot_datagen_backend.services.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,9 +20,9 @@ public class MessageController {
     private final MessageService messageService;
 
     @PostMapping
-    public ResponseEntity<Message> sendMessage(@RequestBody SendMessageDto sendMessageDto) {
+    public ResponseEntity<MessageDto> sendMessage(@RequestBody SendMessageDto sendMessageDto) {
         try {
-            Message createdMessage = messageService.sendMessage(sendMessageDto);
+            MessageDto createdMessage = messageService.sendMessage(sendMessageDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -30,9 +30,9 @@ public class MessageController {
     }
 
     @PostMapping("evaluate")
-    public ResponseEntity<Message> evaluateMessage(@RequestBody EvaluateMessageDto evaluateMessageDto) {
+    public ResponseEntity<MessageDto> evaluateMessage(@RequestBody EvaluateMessageDto evaluateMessageDto) {
         try {
-            Message createdMessage = messageService.evaluateMessage(evaluateMessageDto);
+            MessageDto createdMessage = messageService.evaluateMessage(evaluateMessageDto);
             return ResponseEntity.status(HttpStatus.ACCEPTED).body(createdMessage);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();

@@ -2,6 +2,7 @@ package br.com.roselabs.lbot_datagen_backend.services;
 
 import br.com.roselabs.lbot_datagen_backend.ai.AIService;
 import br.com.roselabs.lbot_datagen_backend.dtos.EvaluateMessageDto;
+import br.com.roselabs.lbot_datagen_backend.dtos.MessageDto;
 import br.com.roselabs.lbot_datagen_backend.dtos.SendMessageDto;
 import br.com.roselabs.lbot_datagen_backend.entities.Chat;
 import br.com.roselabs.lbot_datagen_backend.entities.Message;
@@ -22,7 +23,7 @@ public class MessageService {
     private final AIService aiService;
     private final MessageRepository messageRepository;
 
-    public Message sendMessage(SendMessageDto sendMessageDto) {
+    public MessageDto sendMessage(SendMessageDto sendMessageDto) {
         UUID chatId = sendMessageDto.getChatId();
         Chat chat = chatService.findById(chatId)
                 .orElseThrow(() -> new EntityNotFoundException("Chat not found with id: " + chatId));
@@ -36,15 +37,19 @@ public class MessageService {
                 .output(output)
                 .build();
 
-        return messageRepository.save(message);
+        messageRepository.save(message);
+
+        return new MessageDto(message);
     }
 
-    public Message evaluateMessage(EvaluateMessageDto evaluateMessageDto) {
+    public MessageDto evaluateMessage(EvaluateMessageDto evaluateMessageDto) {
         UUID messageId = evaluateMessageDto.getMessageId();
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
 
         message.setGrade(evaluateMessageDto.getGrade());
-        return messageRepository.save(message);
+        messageRepository.save(message);
+
+        return new MessageDto(message);
     }
 }
