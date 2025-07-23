@@ -13,11 +13,11 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ChatService {
 
     private final ChatRepository chatRepository;
 
+    @Transactional
     public Chat createChat() {
         Chat chat = Chat.builder()
                 .createdAt(LocalDateTime.now())

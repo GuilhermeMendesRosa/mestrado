@@ -1,6 +1,5 @@
 package br.com.roselabs.lbot_datagen_backend.services;
 
-import br.com.roselabs.lbot_datagen_backend.ai.AIService;
 import br.com.roselabs.lbot_datagen_backend.dtos.EvaluateMessageDto;
 import br.com.roselabs.lbot_datagen_backend.dtos.MessageDto;
 import br.com.roselabs.lbot_datagen_backend.dtos.SendMessageDto;
@@ -16,13 +15,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class MessageService {
 
     private final ChatService chatService;
     private final AIService aiService;
     private final MessageRepository messageRepository;
 
+    @Transactional
     public MessageDto sendMessage(SendMessageDto sendMessageDto) {
         UUID chatId = sendMessageDto.getChatId();
         Chat chat = chatService.findById(chatId)
@@ -42,6 +41,7 @@ public class MessageService {
         return new MessageDto(message);
     }
 
+    @Transactional
     public MessageDto evaluateMessage(EvaluateMessageDto evaluateMessageDto) {
         UUID messageId = evaluateMessageDto.getMessageId();
         Message message = messageRepository.findById(messageId)

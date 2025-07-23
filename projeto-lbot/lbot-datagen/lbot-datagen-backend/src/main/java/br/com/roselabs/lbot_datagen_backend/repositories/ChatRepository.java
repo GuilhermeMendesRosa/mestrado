@@ -12,12 +12,4 @@ import java.util.UUID;
 
 @Repository
 public interface ChatRepository extends JpaRepository<Chat, UUID> {
-
-    List<Chat> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
-
-    @Query("SELECT s FROM Chat s LEFT JOIN FETCH s.messages WHERE s.id = :id")
-    Optional<Chat> findByIdWithExecutions(UUID id);
-
-    @Query("SELECT s FROM Chat s ORDER BY s.createdAt DESC")
-    List<Chat> findAllOrderByCreatedAtDesc();
 }
