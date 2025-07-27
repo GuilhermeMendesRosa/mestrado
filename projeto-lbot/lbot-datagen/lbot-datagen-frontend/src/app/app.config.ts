@@ -2,10 +2,10 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { LbotChat } from './components/lbot-chat/lbot-chat';
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { LbotChat } from './components/lbot-chat/lbot-chat';
 
 export const appConfig: ApplicationConfig = {
   providers: [
