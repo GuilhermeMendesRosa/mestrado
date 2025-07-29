@@ -1,6 +1,9 @@
 <!-- lbot-chat.component.html -->
 <div class="chat-header">
   <h2>🤖 LBot Translator</h2>
+  <button class="end-chat-btn" (click)="showRatingPopup()" title="Finalizar Chat">
+    ✕
+  </button>
 </div>
 
 <div class="chat-container">
@@ -20,5 +23,42 @@
     <button (click)="sendMessage()" [disabled]="isLoading || !messageInput.trim()">
       Enviar
     </button>
+  </div>
+</div>
+
+<!-- Popup de Avaliação -->
+<div *ngIf="showRating" class="rating-overlay" (click)="closeRatingPopup()">
+  <div class="rating-popup" (click)="$event.stopPropagation()">
+    <h3>Avalie sua experiência</h3>
+    <p>Como foi sua experiência com o LBot Translator?</p>
+
+    <div class="stars-container">
+      <span *ngFor="let star of [1,2,3,4,5]; let i = index"
+            class="star"
+            [class.filled]="i < selectedRating"
+            [class.hover]="i < hoverRating"
+            (click)="selectRating(i + 1)"
+            (mouseenter)="hoverRating = i + 1"
+            (mouseleave)="hoverRating = 0">
+        ★
+      </span>
+    </div>
+
+    <div class="observation-area">
+      <label for="observation">Observações (opcional):</label>
+      <textarea
+        id="observation"
+        [(ngModel)]="observation"
+        placeholder="Deixe aqui seus comentários, sugestões ou observações..."
+        rows="4">
+      </textarea>
+    </div>
+
+    <div class="rating-buttons">
+      <button class="cancel-btn" (click)="closeRatingPopup()">Cancelar</button>
+      <button class="submit-btn" (click)="submitRating()" [disabled]="selectedRating === 0">
+        Enviar Avaliação
+      </button>
+    </div>
   </div>
 </div>

@@ -22,6 +22,12 @@ export class LbotChat {
   messageInput = '';
   isLoading = false;
 
+  // Variáveis para o popup de avaliação
+  showRating = false;
+  selectedRating = 0;
+  hoverRating = 0;
+  observation = '';
+
   sendMessage() {
     const command = this.messageInput.trim();
     if (!command || this.isLoading) return;
@@ -40,6 +46,60 @@ export class LbotChat {
       this.isLoading = false;
       this.scrollToBottom();
     }, 1000);
+  }
+
+  showRatingPopup() {
+    this.showRating = true;
+    this.selectedRating = 0;
+    this.hoverRating = 0;
+    this.observation = '';
+  }
+
+  closeRatingPopup() {
+    this.showRating = false;
+    this.selectedRating = 0;
+    this.hoverRating = 0;
+    this.observation = '';
+  }
+
+  selectRating(rating: number) {
+    this.selectedRating = rating;
+  }
+
+  submitRating() {
+    if (this.selectedRating > 0) {
+      // Aqui você pode enviar a avaliação para um servidor
+      const feedback = {
+        rating: this.selectedRating,
+        observation: this.observation.trim()
+      };
+
+      console.log('Avaliação enviada:', feedback);
+
+      // Mostrar mensagem de agradecimento
+      let thankYouMessage = `Obrigado pela sua avaliação de ${this.selectedRating} estrela${this.selectedRating > 1 ? 's' : ''}! 🌟`;
+
+      if (this.observation.trim()) {
+        thankYouMessage += ' Suas observações foram registradas.';
+      }
+
+      this.messages.push({
+        text: thankYouMessage,
+        type: 'bot'
+      });
+
+      this.closeRatingPopup();
+      this.scrollToBottom();
+
+      // Opcional: finalizar o chat após alguns segundos
+      setTimeout(() => {
+        this.messages.push({
+          text: 'Chat finalizado. Até a próxima!',
+          type: 'bot'
+        });
+        this.scrollToBottom();
+      }, 2000);
+    }
   }
 
   onKeyPress(event: KeyboardEvent) {
