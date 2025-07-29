@@ -1,37 +1,23 @@
 <!-- lbot-chat.component.html -->
-<div class="status" [ngClass]="{'online': isOnline, 'offline': !isOnline}">
-  {{ statusText }}
-</div>
-
 <div class="chat-header">
   <h2>🤖 LBot Translator</h2>
 </div>
 
 <div class="chat-container">
   <div class="chat-messages">
-    <div *ngFor="let message of messages"
-         class="message"
-         [ngClass]="message.type">
+    <div *ngFor="let message of messages" class="message" [ngClass]="message.type">
       {{ message.text }}
     </div>
 
     <div *ngIf="isLoading" class="message typing">
-      Traduzindo...
+      Processando...
     </div>
   </div>
 
   <div class="chat-input">
-    <input
-      type="text"
-      [(ngModel)]="messageInput"
-      (keypress)="onKeyPress($event)"
-      placeholder="Digite seu comando..."
-      autocomplete="off"
-      [disabled]="isLoading"
-    >
-    <button
-      (click)="sendMessage()"
-      [disabled]="isLoading || !messageInput.trim()">
+    <input type="text" [(ngModel)]="messageInput" (keypress)="onKeyPress($event)" placeholder="Digite seu comando..."
+      autocomplete="off" [disabled]="isLoading">
+    <button (click)="sendMessage()" [disabled]="isLoading || !messageInput.trim()">
       Enviar
     </button>
   </div>
