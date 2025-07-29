@@ -22,15 +22,26 @@ export class LbotChat {
   messageInput = '';
   isLoading = false;
 
-  // Variáveis para o popup de avaliação
+  // Variáveis para controlar o período de espera
+  isWaitingForRating = false;
+  countdown = 5;
+  countdownInterval: any;
+
+  // Variáveis para o popup de avaliação (após cada mensagem)
   showRating = false;
   selectedRating = 0;
   hoverRating = 0;
+
+  // Variáveis para o popup de observação (ao finalizar)
+  showObservation = false;
   observation = '';
+
+  // Array para armazenar todas as avaliações
+  ratings: number[] = [];
 
   sendMessage() {
     const command = this.messageInput.trim();
-    if (!command || this.isLoading) return;
+    if (!command || this.isLoading || this.isWaitingForRating) return;
 
     // Adicionar mensagem do usuário
     this.messages.push({ text: command, type: 'user' });
@@ -45,6 +56,25 @@ export class LbotChat {
       });
       this.isLoading = false;
       this.scrollToBottom();
+
+      // Iniciar período de espera de 5 segundos
+      this.startWaitingPeriod();
+    }, 1000);
+  }
+
+  startWaitingPeriod() {
+    this.isWaitingForRating = true;
+    this.countdown = 5;
+    this.scrollToBottom();
+
+    this.countdownInterval = setInterval(() => {
+      this.countdown--;
+
+      if (this.countdown <= 0) {
+        clearInterval(this.countdownInterval);
+        this.isWaitingForRating = false;
+        this.showRatingPopup();
+      }
     }, 1000);
   }
 
@@ -52,14 +82,12 @@ export class LbotChat {
     this.showRating = true;
     this.selectedRating = 0;
     this.hoverRating = 0;
-    this.observation = '';
   }
 
   closeRatingPopup() {
     this.showRating = false;
     this.selectedRating = 0;
     this.hoverRating = 0;
-    this.observation = '';
   }
 
   selectRating(rating: number) {
@@ -68,42 +96,74 @@ export class LbotChat {
 
   submitRating() {
     if (this.selectedRating > 0) {
-      // Aqui você pode enviar a avaliação para um servidor
-      const feedback = {
-        rating: this.selectedRating,
-        observation: this.observation.trim()
-      };
-
-      console.log('Avaliação enviada:', feedback);
-
-      // Mostrar mensagem de agradecimento
-      let thankYouMessage = `Obrigado pela sua avaliação de ${this.selectedRating} estrela${this.selectedRating > 1 ? 's' : ''}! 🌟`;
-
-      if (this.observation.trim()) {
-        thankYouMessage += ' Suas observações foram registradas.';
-      }
-
-      this.messages.push({
-        text: thankYouMessage,
-        type: 'bot'
-      });
+      // Armazenar a avaliação
+      this.ratings.push(this.selectedRating);
+      console.log('Avaliação da mensagem:', this.selectedRating);
+      console.log('Todas as avaliações:', this.ratings);
 
       this.closeRatingPopup();
-      this.scrollToBottom();
-
-      // Opcional: finalizar o chat após alguns segundos
-      setTimeout(() => {
-        this.messages.push({
-          text: 'Chat finalizado. Até a próxima!',
-          type: 'bot'
-        });
-        this.scrollToBottom();
-      }, 2000);
     }
   }
 
+  showObservationPopup() {
+    if (this.isWaitingForRating) return; // Não permite finalizar durante a espera
+
+    this.showObservation = true;
+    this.observation = '';
+  }
+
+  closeObservationPopup() {
+    this.showObservation = false;
+    this.observation = '';
+  }
+
+  submitObservation() {
+    // Calcular média das avaliações
+    const averageRating = this.ratings.length > 0
+      ? (this.ratings.reduce((sum, rating) => sum + rating, 0) / this.ratings.length).toFixed(1)
+      : 'N/A';
+
+    // Dados finais para envio
+    const finalFeedback = {
+      individualRatings: this.ratings,
+      averageRating: averageRating,
+      totalMessages: this.ratings.length,
+      observation: this.observation.trim()
+    };
+
+    console.log('Feedback final:', finalFeedback);
+
+    // Mostrar mensagem de agradecimento
+    let thankYouMessage = `Obrigado pelo feedback! `;
+
+    if (this.ratings.length > 0) {
+      thankYouMessage += `Média das avaliações: ${averageRating} estrelas. `;
+    }
+
+    if (this.observation.trim()) {
+      thankYouMessage += 'Suas observações foram registradas.';
+    }
+
+    this.messages.push({
+      text: thankYouMessage,
+      type: 'bot'
+    });
+
+    this.closeObservationPopup();
+    this.scrollToBottom();
+
+    // Finalizar o chat
+    setTimeout(() => {
+      this.messages.push({
+        text: 'Chat finalizado. Até a próxima! 👋',
+        type: 'bot'
+      });
+      this.scrollToBottom();
+    }, 2000);
+  }
+
   onKeyPress(event: KeyboardEvent) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' && !this.isWaitingForRating) {
       this.sendMessage();
     }
   }
@@ -115,5 +175,12 @@ export class LbotChat {
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
     }, 100);
+  }
+
+  ngOnDestroy() {
+    // Limpar interval se o componente for destruído
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
   }
 }
