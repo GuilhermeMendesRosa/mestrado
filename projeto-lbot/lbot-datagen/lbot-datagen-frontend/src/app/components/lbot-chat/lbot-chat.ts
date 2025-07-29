@@ -47,7 +47,7 @@ export class LbotChat implements OnInit, OnDestroy {
   // ID do chat atual
   chatId = '';
 
-  constructor(private messagesService: MessagesService) {}
+  constructor(private messagesService: MessagesService) { }
 
   ngOnInit(): void {
     this.initializeChat();
@@ -89,20 +89,8 @@ export class LbotChat implements OnInit, OnDestroy {
       next: (response: MessageDto) => {
         console.log('Resposta da API:', response);
 
-        // Criar mensagem formatada com as informações da resposta
-        let botMessage = '';
-
-        if (response.normalizedPrompt) {
-          botMessage += `📝 Comando normalizado: ${response.normalizedPrompt}\n\n`;
-        }
-
-        if (response.output) {
-          botMessage += `🤖 Código LBot: ${response.output}`;
-        }
-
-        if (!botMessage) {
-          botMessage = 'Comando processado com sucesso!';
-        }
+        // Mostrar apenas o output, sem formatação adicional
+        const botMessage = response.output || 'Comando processado com sucesso!';
 
         // Adicionar resposta do bot
         this.messages.push({
@@ -249,14 +237,48 @@ export class LbotChat implements OnInit, OnDestroy {
     this.closeObservationPopup();
     this.scrollToBottom();
 
-    // Finalizar o chat
+    // Finalizar o chat após 2 segundos
     setTimeout(() => {
       this.messages.push({
         text: 'Chat finalizado. Até a próxima! 👋',
         type: 'bot'
       });
       this.scrollToBottom();
+
+      // Limpar o chat após mais 2 segundos
+      setTimeout(() => {
+        this.clearChat();
+      }, 2000);
     }, 2000);
+  }
+
+  clearChat(): void {
+    // Limpar todas as variáveis do chat
+    this.messages = [
+      { text: 'Olá! Digite um comando em português e eu traduzo para LBot.', type: 'bot' }
+    ];
+    this.messageInput = '';
+    this.isLoading = false;
+    this.isWaitingForRating = false;
+    this.countdown = 5;
+    this.showRating = false;
+    this.selectedRating = 0;
+    this.hoverRating = 0;
+    this.currentMessageId = '';
+    this.showObservation = false;
+    this.observation = '';
+    this.ratings = [];
+    this.chatId = '';
+
+    // Limpar interval se existir
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
+
+    // Inicializar um novo chat
+    this.initializeChat();
+
+    console.log('Chat limpo e reiniciado');
   }
 
   onKeyPress(event: KeyboardEvent): void {
