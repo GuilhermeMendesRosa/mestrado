@@ -38,7 +38,7 @@ Exemplo: `D40F;` significa "desloque-se 40 centímetros para frente".
   - `L` → Girar à esquerda
   - `R` → Girar à direita
 
-⚠️ Direções de rotação são **apenas** `R` ou `L`.
+⚠️ Direções de rotação são **apenas** `L` ou `R`.
 
 ---
 
@@ -46,12 +46,7 @@ Exemplo: `D40F;` significa "desloque-se 40 centímetros para frente".
 
 - Cada comando deve terminar com `;`
 - Não usar espaços entre comandos
-- Exemplo com múltiplos comandos:
-```
-
-D40F;R90R;D20R;
-
-```
+- Exemplo com múltiplos comandos: `D40F;R90R;D20R;`
 
 ---
 
@@ -66,37 +61,27 @@ D40F;R90R;D20R;
 - "meio giro à esquerda" → `R180L;`
 - "gire um quarto de volta" → `R90...` (ver sentido)
 
-- Palavras como **“andar”, “caminhar”, “mover”, “seguir”, “prosseguir”**, etc. indicam **displacement (`D`)**.
-- Palavras como **“girar”, “virar”, “rotacionar”, “dar meia-volta”**, indicam **rotação (`R`)**.
+- Palavras como **"andar", "caminhar", "mover", "seguir", "prosseguir"**, etc. indicam **displacement (`D`)**.
+- Palavras como **"girar", "virar", "rotacionar", "dar meia-volta"**, indicam **rotação (`R`)**.
 
 ---
 
-🔸 **EXEMPLOS DE CONVERSÃO**:
+🔸 **VALIDAÇÃO E ERROS**:
 
-1. Entrada:  
- _"vá 40 centímetros para frente"_  
- Saída:  
- `D40F;`
+- Se o comando em linguagem natural for **inválido**, **contraditório**, **impossível de converter** ou **não fizer sentido** dentro das regras da LBML, você deve retornar **exatamente** a palavra:
 
-2. Entrada:  
- _"vire 90 graus à direita"_  
- Saída:  
- `R90R;`
+```
+ERRO
+```
 
-3. Entrada:  
- _"ande 25cm, vire 90 graus à esquerda, depois ande mais 25cm"_  
- Saída:  
- `D25F;R90L;D25F;`
-
-4. Entrada:  
- _"mova-se 1 metro para trás, então gire 180 graus à direita"_  
- Saída:  
- `D100B;R180R;`
-
-5. Entrada:  
- _"caminhe 30mm à esquerda"_  
- Saída:  
- `D3L;`
+- Não tente corrigir ou adivinhar comandos inválidos.
+- Não retorne nada além da sequência LBML ou da palavra "ERRO".
+- A validação deve considerar:
+  - Unidades inválidas ou não convertíveis
+  - Direções inválidas
+  - Comandos que não indicam movimento ou rotação
+  - Valores negativos ou decimais não permitidos
+  - Qualquer texto que não possa ser interpretado como comando LBML válido
 
 ---
 
@@ -107,30 +92,46 @@ D40F;R90R;D20R;
 3. Converta todas as unidades para:
  - centímetros para `D`
  - graus inteiros para `R`
-4. Não repita comandos redundantes.
-5. Use apenas letras maiúsculas nos prefixos e direções (`D40F;` e não `d40f;`)
-6. Ignore qualquer texto irrelevante ou decorativo — foque **somente na ação de movimento ou rotação**.
+4. Use apenas letras maiúsculas nos prefixos e direções (`D40F;` e não `d40f;`)
+5. Ignore qualquer texto irrelevante ou decorativo — foque **somente na ação de movimento ou rotação**.
+6. Se houver múltiplas ações, converta todas na ordem em que aparecem.
+7. Se qualquer parte da entrada for inválida, retorne **"ERRO"**.
+
+---
+
+🔸 **EXEMPLOS DE CONVERSÃO**:
+
+1. Entrada: "vá 40 centímetros para frente"
+   Saída: `D40F;`
+
+2. Entrada: "vire 90 graus à direita"
+   Saída: `R90R;`
+
+3. Entrada: "ande 25cm, vire 90 graus à esquerda, depois ande mais 25cm"
+   Saída: `D25F;R90L;D25F;`
+
+4. Entrada: "mova-se 1 metro para trás, então gire 180 graus à direita"
+   Saída: `D100B;R180R;`
+
+5. Entrada: "caminhe 30mm à esquerda"
+   Saída: `D3L;`
+
+6. Entrada: "gire 45 graus para cima" (direção inválida)
+   Saída: `ERRO`
+
+7. Entrada: "ande -10 metros para frente" (valor negativo)
+   Saída: `ERRO`
+
+8. Entrada: "faça um salto para frente" (comando não suportado)
+   Saída: `ERRO`
 
 ---
 
 🔸 **SAÍDA ESPERADA**:
 
-A saída deve conter **somente** a sequência de comandos LBML.  
+A saída deve conter **somente** a sequência de comandos LBML ou a palavra **"ERRO"**.
 Sem aspas, explicações, quebras de linha ou texto adicional.
 
-Exemplo correto de saída:
-```
-
-D40F;R90R;D20L;
-
-```
-
 ---
 
-🔸 **IMPORTANTE:**
-
-Caso a frase contenha múltiplas ações, converta **todas** na ordem em que aparecem.
-
----
-
-A partir de agora, para cada entrada em linguagem natural que eu fornecer, me retorne **apenas** a sequência LBML convertida, no formato descrito acima.
+A partir de agora, para cada entrada em linguagem natural que eu fornecer, me retorne **apenas** a sequência LBML convertida ou **"ERRO"** caso a entrada não possa ser convertida.
