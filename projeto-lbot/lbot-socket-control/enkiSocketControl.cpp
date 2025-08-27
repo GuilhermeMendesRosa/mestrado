@@ -169,104 +169,126 @@ void SocketControlExample::sendRobotStatus()
 
 void SocketControlExample::executeMovementSequence(const QStringList& movements)
 {
+    // Limpar fila anterior e adicionar novos comandos
+    commandQueue.clear();
+    
+    for (const QString& movement : movements) {
+        if (!movement.trimmed().isEmpty()) {
+            commandQueue.enqueue(movement.trimmed());
+        }
+    }
+    
+    // Se já está em movimento, parar primeiro
+    if (isMoving) {
+        stopRobot();
+    }
+    
+    // Começar execução da sequência
+    processNextCommand();
+}
+
+void SocketControlExample::processNextCommand()
+{
+    // Se não há mais comandos na fila, terminar
+    if (commandQueue.isEmpty()) {
+        sendResponse("OK: All movements completed");
+        return;
+    }
+    
+    // Pegar próximo comando da fila
+    QString movement = commandQueue.dequeue();
+    executeSingleMovement(movement);
+}
+
+void SocketControlExample::executeSingleMovement(const QString& movement)
+{
     const double DEFAULT_SPEED = 5.0;
     
-    // Executar cada movimento individualmente, em sequência
-    for (const QString& movement : movements) {
-        if (movement.isEmpty()) continue;
-        
-        // Extrair número e direção (ex: "10F", "30R")
-        QString cleanMove = movement.trimmed().toUpper();
-        if (cleanMove.length() < 2) {
-            sendResponse("ERROR: Invalid movement format: " + movement);
-            return;
-        }
-        
-        QChar direction = cleanMove.right(1)[0];
-        QString numberStr = cleanMove.left(cleanMove.length() - 1);
-        
-        bool ok;
-        double distance = numberStr.toDouble(&ok);
-        if (!ok || distance < 0) {
-            sendResponse("ERROR: Invalid distance in movement: " + movement);
-            return;
-        }
-        
-        // Se já está em movimento, parar primeiro
-        if (isMoving) {
-            stopRobot();
-        }
-        
-        // Executar movimento baseado na direção
-        switch (direction.toLatin1()) {
-            case 'F':
-                // Apenas mover para frente
-                startPosition = robot->pos;
-                targetDistance = distance;
-                currentDistance = 0.0;
-                isMoving = true;
-                currentMovementType = "forward";
-                
-                robot->leftSpeed = DEFAULT_SPEED;
-                robot->rightSpeed = DEFAULT_SPEED;
-                
-                sendResponse(QString("OK: Moving forward for %1 units").arg(distance, 0, 'f', 1));
-                break;
-                
-            case 'B':
-                // Apenas mover para trás
-                startPosition = robot->pos;
-                targetDistance = distance;
-                currentDistance = 0.0;
-                isMoving = true;
-                currentMovementType = "backward";
-                
-                robot->leftSpeed = -DEFAULT_SPEED;
-                robot->rightSpeed = -DEFAULT_SPEED;
-                
-                sendResponse(QString("OK: Moving backward for %1 units").arg(distance, 0, 'f', 1));
-                break;
-                
-            case 'L':
-                // Virar 90° à esquerda E mover nessa direção
-                startAngle = robot->angle;
-                targetDistance = M_PI / 2; // 90 graus em radianos
-                currentDistance = 0.0;
-                isMoving = true;
-                currentMovementType = "turn_left_then_move";
-                pendingMoveDistance = distance; // Armazenar distância para depois
-                
-                // Primeiro virar à esquerda
-                robot->leftSpeed = -DEFAULT_SPEED * 0.6;
-                robot->rightSpeed = DEFAULT_SPEED * 0.6;
-                
-                sendResponse(QString("OK: Turning left 90° then moving %1 units").arg(distance, 0, 'f', 1));
-                break;
-                
-            case 'R':
-                // Virar 90° à direita E mover nessa direção
-                startAngle = robot->angle;
-                targetDistance = M_PI / 2; // 90 graus em radianos
-                currentDistance = 0.0;
-                isMoving = true;
-                currentMovementType = "turn_right_then_move";
-                pendingMoveDistance = distance; // Armazenar distância para depois
-                
-                // Primeiro virar à direita
-                robot->leftSpeed = DEFAULT_SPEED * 0.6;
-                robot->rightSpeed = -DEFAULT_SPEED * 0.6;
-                
-                sendResponse(QString("OK: Turning right 90° then moving %1 units").arg(distance, 0, 'f', 1));
-                break;
-                
-            default:
-                sendResponse("ERROR: Invalid direction '" + QString(direction) + "'. Use F, B, L, R");
-                return;
-        }
-        
-        // Para múltiplos comandos, precisamos esperar cada um terminar
-        // Por simplicidade, vamos executar apenas o primeiro comando por vez
+    // Extrair número e direção (ex: "10F", "30R")
+    QString cleanMove = movement.toUpper();
+    if (cleanMove.length() < 2) {
+        sendResponse("ERROR: Invalid movement format: " + movement);
+        processNextCommand(); // Tentar próximo comando
         return;
+    }
+    
+    QChar direction = cleanMove.right(1)[0];
+    QString numberStr = cleanMove.left(cleanMove.length() - 1);
+    
+    bool ok;
+    double distance = numberStr.toDouble(&ok);
+    if (!ok || distance < 0) {
+        sendResponse("ERROR: Invalid distance in movement: " + movement);
+        processNextCommand(); // Tentar próximo comando
+        return;
+    }
+    
+    // Executar movimento baseado na direção
+    switch (direction.toLatin1()) {
+        case 'F':
+            // Apenas mover para frente
+            startPosition = robot->pos;
+            targetDistance = distance;
+            currentDistance = 0.0;
+            isMoving = true;
+            currentMovementType = "forward";
+            
+            robot->leftSpeed = DEFAULT_SPEED;
+            robot->rightSpeed = DEFAULT_SPEED;
+            
+            sendResponse(QString("OK: Moving forward for %1 units").arg(distance, 0, 'f', 1));
+            break;
+            
+        case 'B':
+            // Apenas mover para trás
+            startPosition = robot->pos;
+            targetDistance = distance;
+            currentDistance = 0.0;
+            isMoving = true;
+            currentMovementType = "backward";
+            
+            robot->leftSpeed = -DEFAULT_SPEED;
+            robot->rightSpeed = -DEFAULT_SPEED;
+            
+            sendResponse(QString("OK: Moving backward for %1 units").arg(distance, 0, 'f', 1));
+            break;
+            
+        case 'L':
+            // Virar 90° à esquerda E mover nessa direção
+            startAngle = robot->angle;
+            targetDistance = M_PI / 2; // 90 graus em radianos
+            currentDistance = 0.0;
+            isMoving = true;
+            currentMovementType = "turn_left_then_move";
+            pendingMoveDistance = distance; // Armazenar distância para depois
+            
+            // Primeiro virar à esquerda
+            robot->leftSpeed = -DEFAULT_SPEED * 0.6;
+            robot->rightSpeed = DEFAULT_SPEED * 0.6;
+            
+            sendResponse(QString("OK: Turning left 90° then moving %1 units").arg(distance, 0, 'f', 1));
+            break;
+            
+        case 'R':
+            // Virar 90° à direita E mover nessa direção
+            startAngle = robot->angle;
+            targetDistance = M_PI / 2; // 90 graus em radianos
+            currentDistance = 0.0;
+            isMoving = true;
+            currentMovementType = "turn_right_then_move";
+            pendingMoveDistance = distance; // Armazenar distância para depois
+            
+            // Primeiro virar à direita
+            robot->leftSpeed = DEFAULT_SPEED * 0.6;
+            robot->rightSpeed = -DEFAULT_SPEED * 0.6;
+            
+            sendResponse(QString("OK: Turning right 90° then moving %1 units").arg(distance, 0, 'f', 1));
+            break;
+            
+        default:
+            sendResponse("ERROR: Invalid direction '" + QString(direction) + "'. Use F, B, L, R");
+            processNextCommand(); // Tentar próximo comando
+            return;
     }
 }
 
@@ -283,10 +305,13 @@ void SocketControlExample::checkMovementProgress()
         currentDistance = sqrt(dx*dx + dy*dy);
         
         if (currentDistance >= targetDistance) {
-            stopRobot();
+            stopCurrentMovement();
             sendResponse(QString("OK: Completed %1 movement of %2 units")
                         .arg(currentMovementType)
                         .arg(targetDistance, 0, 'f', 1));
+            
+            // Processar próximo comando da fila
+            processNextCommand();
         }
     } else if (currentMovementType == "turn_left_then_move" || currentMovementType == "turn_right_then_move") {
         // Calcular ângulo rotacionado
@@ -322,6 +347,19 @@ void SocketControlExample::checkMovementProgress()
 }
 
 void SocketControlExample::stopRobot()
+{
+    robot->leftSpeed = 0.0;
+    robot->rightSpeed = 0.0;
+    isMoving = false;
+    targetDistance = 0.0;
+    currentDistance = 0.0;
+    currentMovementType = "";
+    
+    // Limpar fila de comandos se estiver parando manualmente
+    commandQueue.clear();
+}
+
+void SocketControlExample::stopCurrentMovement()
 {
     robot->leftSpeed = 0.0;
     robot->rightSpeed = 0.0;

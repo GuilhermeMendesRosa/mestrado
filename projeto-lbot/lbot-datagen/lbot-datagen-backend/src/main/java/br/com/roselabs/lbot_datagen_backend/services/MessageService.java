@@ -29,7 +29,7 @@ public class MessageService {
 
         String prompt = sendMessageDto.getPrompt();
         String normalizedPrompt = aiService.normalizePromptImCm(prompt);
-        String output = aiService.convertToLML(normalizedPrompt);
+        String output = aiService.processAndExecuteCommand(sendMessageDto.getPrompt());
 
         Message message = Message.builder()
                 .prompt(prompt)
