@@ -67,10 +67,7 @@ public class AIService {
             String lbmlCommand = convertToLML(normalizedPrompt);
             log.info("Comando LBML gerado: {}", lbmlCommand);
 
-            String robotCommand = convertLBMLToRobotFormat(lbmlCommand);
-            log.info("Comando do robô: {}", robotCommand);
-
-            boolean success = sendCommandToRobot(robotCommand);
+            boolean success = sendCommandToRobot(lbmlCommand);
 
             if (success) {
                 log.info("Comando executado com sucesso no robô!");
@@ -171,36 +168,6 @@ public class AIService {
             }
             connected.set(false);
         });
-    }
-
-    private String convertLBMLToRobotFormat(String lbmlCommand) {
-        if (lbmlCommand == null || lbmlCommand.trim().isEmpty()) {
-            log.warn("LBML vazio ou nulo!");
-            return "";
-        }
-
-        log.info("Convertendo LBML: {} para formato do robô", lbmlCommand);
-
-        StringBuilder robotCommand = new StringBuilder();
-        String[] parts = lbmlCommand.split(";");
-
-        for (String part : parts) {
-            part = part.trim();
-            if (part.isEmpty()) continue;
-
-            if (part.startsWith("D") || part.startsWith("R")) {
-                String converted = part.substring(1);
-                if (!robotCommand.isEmpty()) {
-                    robotCommand.append(";");
-                }
-                robotCommand.append(converted);
-                log.debug("Convertido: '{}' -> '{}'", part, converted);
-            }
-        }
-
-        String result = robotCommand.toString();
-        log.info("Resultado final da conversão: '{}'", result);
-        return result;
     }
 
     private String convertWithValidation(String prompt) {
