@@ -44,7 +44,9 @@ SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
     startAngle(0.0),
     currentMovementType(""),
     pendingMoveDistance(0.0),
-    executingQueue(false)
+    executingQueue(false),
+    accumulatedRotation(0.0),
+    lastAngle(0.0)
 {
     // Criar e configurar o robô E-Puck
     setupRobot(world);
@@ -292,6 +294,9 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
                 sendResponse("ERROR: Invalid rotation direction '" + QString(direction) + "'. Use L or R for rotation");
                 return;
         }
+        
+        // Reset das variáveis estáticas para nova rotação
+        resetRotationTracking();
     } else if (isDisplacementCommand) {
         // Comando de deslocamento (D10F, D10B, D10L, D10R)
         switch (direction.toLatin1()) {
@@ -336,6 +341,9 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
                 robot->leftSpeed = -DEFAULT_SPEED * 0.6;
                 robot->rightSpeed = DEFAULT_SPEED * 0.6;
                 
+                // Reset das variáveis estáticas para nova rotação
+                resetRotationTracking();
+                
                 sendResponse(QString("OK: Turning left 90° then moving %1 units").arg(distance, 0, 'f', 1));
                 break;
                 
@@ -351,6 +359,9 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
                 // Primeiro virar à direita
                 robot->leftSpeed = DEFAULT_SPEED * 0.6;
                 robot->rightSpeed = -DEFAULT_SPEED * 0.6;
+                
+                // Reset das variáveis estáticas para nova rotação
+                resetRotationTracking();
                 
                 sendResponse(QString("OK: Turning right 90° then moving %1 units").arg(distance, 0, 'f', 1));
                 break;
@@ -391,15 +402,40 @@ void SocketControlExample::checkMovementProgress()
             }
         }
     } else if (currentMovementType == "rotate_left" || currentMovementType == "rotate_right") {
-        // Calcular ângulo rotacionado para rotação pura
-        double angleDiff = abs(robot->angle - startAngle);
-        if (angleDiff > M_PI) {
-            angleDiff = 2*M_PI - angleDiff; // Ajustar para ângulo menor
+        // Calcular ângulo rotacionado para rotação pura usando acumulação
+        
+        // Calcular a diferença angular desde a última verificação
+        double angleDiff = robot->angle - lastAngle;
+        
+        // Normalizar a diferença para estar entre -π e π
+        while (angleDiff > M_PI) angleDiff -= 2*M_PI;
+        while (angleDiff < -M_PI) angleDiff += 2*M_PI;
+        
+        // Acumular a rotação baseada na direção esperada
+        if (currentMovementType == "rotate_left") {
+            // Rotação à esquerda (anti-horário) - ângulo aumenta
+            if (angleDiff > 0) {
+                accumulatedRotation += angleDiff;
+            } else if (angleDiff < -M_PI/2) {
+                // Cruzou o limite -π/π, somar a diferença positiva
+                accumulatedRotation += (2*M_PI + angleDiff);
+            }
+        } else {
+            // Rotação à direita (horário) - ângulo diminui
+            if (angleDiff < 0) {
+                accumulatedRotation += abs(angleDiff);
+            } else if (angleDiff > M_PI/2) {
+                // Cruzou o limite -π/π, somar a diferença positiva
+                accumulatedRotation += (2*M_PI - angleDiff);
+            }
         }
-        currentDistance = angleDiff;
+        
+        lastAngle = robot->angle;
+        currentDistance = accumulatedRotation;
         
         if (currentDistance >= targetDistance) {
             stopRobot();
+            accumulatedRotation = 0.0; // Reset para próxima rotação
             sendResponse(QString("OK: Completed %1 rotation of %2 degrees")
                         .arg(currentMovementType)
                         .arg(targetDistance * 180.0 / M_PI, 0, 'f', 1));
@@ -410,15 +446,40 @@ void SocketControlExample::checkMovementProgress()
             }
         }
     } else if (currentMovementType == "turn_left_then_move" || currentMovementType == "turn_right_then_move") {
-        // Calcular ângulo rotacionado
-        double angleDiff = abs(robot->angle - startAngle);
-        if (angleDiff > M_PI) {
-            angleDiff = 2*M_PI - angleDiff; // Ajustar para ângulo menor
+        // Calcular ângulo rotacionado usando acumulação
+        
+        // Calcular a diferença angular desde a última verificação
+        double angleDiff = robot->angle - lastAngle;
+        
+        // Normalizar a diferença para estar entre -π e π
+        while (angleDiff > M_PI) angleDiff -= 2*M_PI;
+        while (angleDiff < -M_PI) angleDiff += 2*M_PI;
+        
+        // Acumular a rotação baseada na direção esperada
+        if (currentMovementType == "turn_left_then_move") {
+            // Rotação à esquerda (anti-horário) - ângulo aumenta
+            if (angleDiff > 0) {
+                accumulatedRotation += angleDiff;
+            } else if (angleDiff < -M_PI/2) {
+                // Cruzou o limite -π/π, somar a diferença positiva
+                accumulatedRotation += (2*M_PI + angleDiff);
+            }
+        } else {
+            // Rotação à direita (horário) - ângulo diminui
+            if (angleDiff < 0) {
+                accumulatedRotation += abs(angleDiff);
+            } else if (angleDiff > M_PI/2) {
+                // Cruzou o limite -π/π, somar a diferença positiva
+                accumulatedRotation += (2*M_PI - angleDiff);
+            }
         }
-        currentDistance = angleDiff;
+        
+        lastAngle = robot->angle;
+        currentDistance = accumulatedRotation;
         
         if (currentDistance >= targetDistance) {
             // Terminou a rotação, agora começar o movimento linear
+            accumulatedRotation = 0.0; // Reset para próxima rotação
             startPosition = robot->pos;
             targetDistance = pendingMoveDistance;
             currentDistance = 0.0;
@@ -454,6 +515,13 @@ void SocketControlExample::stopRobot()
     // Não limpar a fila aqui, pois queremos continuar a execução
     // commandQueue.clear();
     // executingQueue = false;
+}
+
+void SocketControlExample::resetRotationTracking()
+{
+    // Reset das variáveis usadas no tracking de rotação
+    accumulatedRotation = 0.0;
+    lastAngle = startAngle;
 }
 
 void SocketControlExample::onNewConnection()

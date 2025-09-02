@@ -33,6 +33,10 @@ protected:
     QString currentMovementType;
     double pendingMoveDistance; // Para armazenar distância após rotação
     
+    // Variáveis para tracking de rotação
+    double accumulatedRotation;
+    double lastAngle;
+    
     // Fila de comandos para execução sequencial
     QStringList commandQueue;
     bool executingQueue;
@@ -52,6 +56,7 @@ public:
     void executeSingleCommand(const QString& movement);
     void checkMovementProgress();
     void stopRobot();
+    void resetRotationTracking();
     
 public slots:
     void onNewConnection();
