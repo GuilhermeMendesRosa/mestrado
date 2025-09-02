@@ -1,35 +1,34 @@
 /*
-    Controle via Socket com LBML - Enki
+    Exemplo de Con#include <iostream>
+#include <sstream>
+#include <string>
+#include <cmath>
+
+using namespace Enki; via Socket - Enki
     
-    Este exemplo demonstra como controlar um robô E-Puck via socket TCP usando LBML.
+    Este exemplo demonstra como controlar um robô E-Puck via socket TCP.
     O programa cria uma simulação gráfica onde o robô se move em um plano
     e recebe comandos de movimento de um cliente externo via socket.
     
-    Comandos aceitos via socket (formato LBML):
-    - "D<valor><direção>;" - deslocamento em centímetros (D40F; = 40cm frente)
-    - "R<valor><direção>;" - rotação em graus (R90L; = 90° esquerda)
-    Direções para D: F=Frente, B=Trás, L=Esquerda, R=Direita
-    Direções para R: L=Esquerda, R=Direita
+    Comandos aceitos via socket:
+    - "XF;YB;ZL;WR" - sequência de movimentos (ex: "10F;5R" = 10 unidades frente + 5 unidades direita)
+        F = Forward (frente), B = Backward (trás), L = Left (esquerda), R = Right (direita)
     - "stop" - para o robô
     - "status" - retorna posição e orientação atual
     - "quit" - encerra o programa
     
-    Exemplos LBML:
-    - "D40F;" - desloca 40cm para frente
-    - "D100B;" - desloca 100cm (1 metro) para trás
-    - "R90R;" - gira 90 graus à direita
-    - "R180L;" - gira 180 graus à esquerda
-    - "D25F;R90L;D25F;" - sequência de comandos
+    Exemplos:
+    - "10F" - move 10 unidades para frente
+    - "5B;3L" - move 5 para trás e 3 para esquerda
+    - "10F;30R" - move 10 para frente e 30 para direita
 */
 
 #include "enkiSocketControl.h"
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cmath>
 
 using namespace std;
-using namespace Enki;
 
 SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
     ViewerWidget(world, parent),
@@ -44,7 +43,8 @@ SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
     startPosition(0, 0),
     startAngle(0.0),
     currentMovementType(""),
-    pendingMoveDistance(0.0)
+    pendingMoveDistance(0.0),
+    executingQueue(false)
 {
     // Criar e configurar o robô E-Puck
     setupRobot(world);
@@ -57,10 +57,10 @@ SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
     connect(statusTimer, &QTimer::timeout, this, &SocketControlExample::sendStatus);
     statusTimer->start(1000); // Enviar status a cada 1 segundo
     
-    cout << "=== Controle via Socket com LBML - Enki ===" << endl;
+    cout << "=== Controle via Socket - Enki ===" << endl;
     cout << "Servidor TCP rodando na porta 9999" << endl;
     cout << "Conecte um cliente para controlar o robô" << endl;
-    cout << "Comandos LBML: D40F; (deslocamento), R90L; (rotação), stop, status, quit" << endl;
+    cout << "Comandos: XF;YB;ZL;WR (ex: 10F;5R), stop, status, quit" << endl;
 }
 
 void SocketControlExample::setupRobot(World* world)
@@ -111,7 +111,7 @@ void SocketControlExample::timerEvent(QTimerEvent * event)
     if (verbose && stepCounter % 500 == 0) {
         cout << "Passo " << stepCounter << " - Posição: (" 
              << robot->pos.x << ", " << robot->pos.y 
-             << ") Ângulo: " << robot->angle * 180.0 / M_PI << "°" << endl;
+             << ") Ângulo: " << robot->angle << endl;
     }
     
     ViewerWidget::timerEvent(event);
@@ -131,21 +131,23 @@ void SocketControlExample::processCommand(const QString& command)
         return;
     } else if (cmd.toLower() == "stop") {
         stopRobot();
-        sendResponse("OK: Robot stopped");
+        commandQueue.clear();
+        executingQueue = false;
+        sendResponse("OK: Robot stopped and command queue cleared");
         return;
     }
     
-    // Processar comandos de movimento LBML
+    // Processar comandos de movimento (formato: 10F;30R;23B;7L)
     QStringList movements = cmd.split(';', Qt::SkipEmptyParts);
     if (movements.isEmpty()) {
-        sendResponse("ERROR: Invalid command format. Use LBML: D<value><dir>; or R<value><dir>; (e.g., D40F;R90L;)");
+        sendResponse("ERROR: Invalid command format. Use: XF;YB;ZL;WR (e.g., 10F;5R)");
         return;
     }
     
     executeMovementSequence(movements);
     
     if (verbose) {
-        cout << "Comando LBML executado: " << command.toStdString() << endl;
+        cout << "Comando executado: " << command.toStdString() << endl;
     }
 }
 
@@ -159,10 +161,10 @@ void SocketControlExample::sendResponse(const QString& message)
 
 void SocketControlExample::sendRobotStatus()
 {
-    QString status = QString("STATUS: pos=(%1,%2) angle=%3° left_speed=%4 right_speed=%5")
+    QString status = QString("STATUS: pos=(%1,%2) angle=%3 left_speed=%4 right_speed=%5")
                     .arg(robot->pos.x, 0, 'f', 2)
                     .arg(robot->pos.y, 0, 'f', 2)
-                    .arg(robot->angle * 180.0 / M_PI, 0, 'f', 2)
+                    .arg(robot->angle, 0, 'f', 2)
                     .arg(robot->leftSpeed, 0, 'f', 2)
                     .arg(robot->rightSpeed, 0, 'f', 2);
     sendResponse(status);
@@ -170,13 +172,94 @@ void SocketControlExample::sendRobotStatus()
 
 void SocketControlExample::executeMovementSequence(const QStringList& movements)
 {
-    // Limpar fila anterior e adicionar novos comandos
-    commandQueue.clear();
+    if (movements.isEmpty()) {
+        sendResponse("ERROR: No movements provided");
+        return;
+    }
     
+    // Se já há comandos sendo executados, adicionar à fila
+    if (isMoving) {
+        for (const QString& movement : movements) {
+            if (!movement.trimmed().isEmpty()) {
+                commandQueue.append(movement.trimmed());
+            }
+        }
+        sendResponse(QString("INFO: Added %1 commands to queue").arg(movements.size()));
+        return;
+    }
+    
+    // Iniciar execução da nova sequência
+    commandQueue.clear();
     for (const QString& movement : movements) {
         if (!movement.trimmed().isEmpty()) {
-            commandQueue.enqueue(movement.trimmed());
+            commandQueue.append(movement.trimmed());
         }
+    }
+    
+    executingQueue = true;
+    executeNextCommand();
+}
+
+void SocketControlExample::executeNextCommand()
+{
+    if (commandQueue.isEmpty()) {
+        executingQueue = false;
+        sendResponse("OK: All commands completed");
+        return;
+    }
+    
+    QString movement = commandQueue.takeFirst();
+    executeSingleCommand(movement);
+}
+
+void SocketControlExample::executeSingleCommand(const QString& movement)
+{
+    const double DEFAULT_SPEED = 5.0;
+    
+    if (movement.isEmpty()) {
+        executeNextCommand(); // Pular para o próximo comando
+        return;
+    }
+    
+    // Extrair número e direção (ex: "10F", "30R", "D50F", "R90L")
+    QString cleanMove = movement.trimmed().toUpper();
+    if (cleanMove.length() < 2) {
+        sendResponse("ERROR: Invalid movement format: " + movement);
+        executeNextCommand();
+        return;
+    }
+    
+    // Determinar se é comando de rotação (R) ou deslocamento (D)
+    bool isRotationCommand = false;
+    bool isDisplacementCommand = false;
+    
+    QChar direction = cleanMove.right(1)[0];
+    QString numberStr = cleanMove.left(cleanMove.length() - 1);
+    
+    // Se o comando começa com uma letra (prefixo como "D" ou "R"), remover
+    if (!numberStr.isEmpty() && numberStr[0].isLetter()) {
+        QChar prefix = numberStr[0];
+        if (prefix == 'R') {
+            isRotationCommand = true;
+        } else if (prefix == 'D') {
+            isDisplacementCommand = true;
+        }
+        numberStr = numberStr.mid(1); // Remove o primeiro caractere (prefixo)
+        
+        if (verbose) {
+            cout << "Executando comando - Prefixo: " << prefix.toLatin1() << ", número: " << numberStr.toStdString() << ", direção: " << direction.toLatin1() << endl;
+        }
+    } else {
+        // Sem prefixo, assumir deslocamento por padrão
+        isDisplacementCommand = true;
+    }
+    
+    bool ok;
+    double distance = numberStr.toDouble(&ok);
+    if (!ok || distance < 0) {
+        sendResponse("ERROR: Invalid distance in movement: " + movement + " (parsed: " + numberStr + ")");
+        executeNextCommand();
+        return;
     }
     
     // Se já está em movimento, parar primeiro
@@ -184,121 +267,103 @@ void SocketControlExample::executeMovementSequence(const QStringList& movements)
         stopRobot();
     }
     
-    // Começar execução da sequência
-    processNextCommand();
-}
-
-void SocketControlExample::processNextCommand()
-{
-    // Se não há mais comandos na fila, terminar
-    if (commandQueue.isEmpty()) {
-        sendResponse("OK: All movements completed");
-        return;
-    }
-    
-    // Pegar próximo comando da fila
-    QString movement = commandQueue.dequeue();
-    executeSingleMovement(movement);
-}
-
-void SocketControlExample::executeSingleMovement(const QString& movement)
-{
-    const double DEFAULT_SPEED = 5.0;
-    const double CM_TO_UNITS = 0.3; // Conversão: 1cm = 0.3 unidades do simulador
-    
-    QString cleanMove = movement.toUpper();
-    if (cleanMove.length() < 3) {
-        sendResponse("ERROR: Invalid LBML format: " + movement);
-        processNextCommand();
-        return;
-    }
-    
-    // Extrair prefixo (D ou R)
-    QChar prefix = cleanMove[0];
-    
-    // Extrair direção (último caractere)
-    QChar direction = cleanMove.right(1)[0];
-    
-    // Extrair valor numérico (entre prefixo e direção)
-    QString numberStr = cleanMove.mid(1, cleanMove.length() - 2);
-    
-    bool ok;
-    double value = numberStr.toDouble(&ok);
-    if (!ok || value < 0) {
-        sendResponse("ERROR: Invalid value in LBML command: " + movement);
-        processNextCommand();
-        return;
-    }
-    
-    // Processar comando baseado no prefixo
-    if (prefix == 'D') {
-        // Deslocamento linear em centímetros
-        double distance = value * CM_TO_UNITS;
-        
-        if (direction == 'F' || direction == 'B') {
-            // Movimento linear para frente ou para trás
-            startPosition = robot->pos;
-            targetDistance = distance;
-            currentDistance = 0.0;
-            isMoving = true;
-            currentMovementType = (direction == 'F') ? "forward" : "backward";
-            
-            double speed = (direction == 'F') ? DEFAULT_SPEED : -DEFAULT_SPEED;
-            robot->leftSpeed = speed;
-            robot->rightSpeed = speed;
-            
-            sendResponse(QString("OK: Moving %1 %2 cm")
-                        .arg(direction == 'F' ? "forward" : "backward")
-                        .arg(value, 0, 'f', 1));
-        }
-        else if (direction == 'L' || direction == 'R') {
-            // Virar 90° e depois mover lateralmente
-            startAngle = robot->angle;
-            targetDistance = M_PI / 2; // 90 graus em radianos
-            currentDistance = 0.0;
-            isMoving = true;
-            currentMovementType = (direction == 'L') ? "turn_left_then_move" : "turn_right_then_move";
-            pendingMoveDistance = distance;
-            
-            // Girar primeiro
-            double turnSpeed = (direction == 'L') ? -DEFAULT_SPEED * 0.6 : DEFAULT_SPEED * 0.6;
-            robot->leftSpeed = turnSpeed;
-            robot->rightSpeed = -turnSpeed;
-            
-            sendResponse(QString("OK: Turning %1 90° then moving %2 cm")
-                        .arg(direction == 'L' ? "left" : "right")
-                        .arg(value, 0, 'f', 1));
-        }
-        else {
-            sendResponse("ERROR: Invalid direction for D command. Use F, B, L, or R");
-            processNextCommand();
-        }
-    }
-    else if (prefix == 'R') {
-        // Rotação em graus
-        if (direction != 'L' && direction != 'R') {
-            sendResponse("ERROR: Invalid direction for R command. Use L or R");
-            processNextCommand();
-            return;
-        }
-        
+    // Executar movimento baseado no tipo de comando e direção
+    if (isRotationCommand) {
+        // Comando de rotação pura (R90L, R90R)
         startAngle = robot->angle;
-        targetDistance = value * M_PI / 180.0; // Converter graus para radianos
+        targetDistance = distance * M_PI / 180.0; // Converter graus para radianos
         currentDistance = 0.0;
         isMoving = true;
-        currentMovementType = (direction == 'L') ? "rotation_left" : "rotation_right";
         
-        double turnSpeed = (direction == 'L') ? -DEFAULT_SPEED * 0.6 : DEFAULT_SPEED * 0.6;
-        robot->leftSpeed = turnSpeed;
-        robot->rightSpeed = -turnSpeed;
-        
-        sendResponse(QString("OK: Rotating %1 degrees %2")
-                    .arg(value, 0, 'f', 1)
-                    .arg(direction == 'L' ? "left" : "right"));
-    }
-    else {
-        sendResponse("ERROR: Invalid LBML prefix. Use D (displacement) or R (rotation)");
-        processNextCommand();
+        switch (direction.toLatin1()) {
+            case 'L':
+                currentMovementType = "rotate_left";
+                robot->leftSpeed = -DEFAULT_SPEED * 0.6;
+                robot->rightSpeed = DEFAULT_SPEED * 0.6;
+                sendResponse(QString("OK: Rotating left %1 degrees").arg(distance, 0, 'f', 1));
+                break;
+            case 'R':
+                currentMovementType = "rotate_right";
+                robot->leftSpeed = DEFAULT_SPEED * 0.6;
+                robot->rightSpeed = -DEFAULT_SPEED * 0.6;
+                sendResponse(QString("OK: Rotating right %1 degrees").arg(distance, 0, 'f', 1));
+                break;
+            default:
+                sendResponse("ERROR: Invalid rotation direction '" + QString(direction) + "'. Use L or R for rotation");
+                return;
+        }
+    } else if (isDisplacementCommand) {
+        // Comando de deslocamento (D10F, D10B, D10L, D10R)
+        switch (direction.toLatin1()) {
+            case 'F':
+                // Mover para frente
+                startPosition = robot->pos;
+                targetDistance = distance;
+                currentDistance = 0.0;
+                isMoving = true;
+                currentMovementType = "forward";
+                
+                robot->leftSpeed = DEFAULT_SPEED;
+                robot->rightSpeed = DEFAULT_SPEED;
+                
+                sendResponse(QString("OK: Moving forward for %1 units").arg(distance, 0, 'f', 1));
+                break;
+                
+            case 'B':
+                // Mover para trás
+                startPosition = robot->pos;
+                targetDistance = distance;
+                currentDistance = 0.0;
+                isMoving = true;
+                currentMovementType = "backward";
+                
+                robot->leftSpeed = -DEFAULT_SPEED;
+                robot->rightSpeed = -DEFAULT_SPEED;
+                
+                sendResponse(QString("OK: Moving backward for %1 units").arg(distance, 0, 'f', 1));
+                break;
+                
+            case 'L':
+                // Virar 90° à esquerda E mover nessa direção
+                startAngle = robot->angle;
+                targetDistance = M_PI / 2; // 90 graus em radianos
+                currentDistance = 0.0;
+                isMoving = true;
+                currentMovementType = "turn_left_then_move";
+                pendingMoveDistance = distance; // Armazenar distância para depois
+                
+                // Primeiro virar à esquerda
+                robot->leftSpeed = -DEFAULT_SPEED * 0.6;
+                robot->rightSpeed = DEFAULT_SPEED * 0.6;
+                
+                sendResponse(QString("OK: Turning left 90° then moving %1 units").arg(distance, 0, 'f', 1));
+                break;
+                
+            case 'R':
+                // Virar 90° à direita E mover nessa direção
+                startAngle = robot->angle;
+                targetDistance = M_PI / 2; // 90 graus em radianos
+                currentDistance = 0.0;
+                isMoving = true;
+                currentMovementType = "turn_right_then_move";
+                pendingMoveDistance = distance; // Armazenar distância para depois
+                
+                // Primeiro virar à direita
+                robot->leftSpeed = DEFAULT_SPEED * 0.6;
+                robot->rightSpeed = -DEFAULT_SPEED * 0.6;
+                
+                sendResponse(QString("OK: Turning right 90° then moving %1 units").arg(distance, 0, 'f', 1));
+                break;
+                
+            default:
+                sendResponse("ERROR: Invalid displacement direction '" + QString(direction) + "'. Use F, B, L, R");
+                executeNextCommand();
+                return;
+        }
+    } else {
+        sendResponse("ERROR: Unknown command type for: " + movement);
+        executeNextCommand();
+        return;
     }
 }
 
@@ -315,35 +380,40 @@ void SocketControlExample::checkMovementProgress()
         currentDistance = sqrt(dx*dx + dy*dy);
         
         if (currentDistance >= targetDistance) {
-            stopCurrentMovement();
-            sendResponse(QString("OK: Completed %1 movement of %2 cm")
+            stopRobot();
+            sendResponse(QString("OK: Completed %1 movement of %2 units")
                         .arg(currentMovementType)
-                        .arg(targetDistance / 0.3, 0, 'f', 1)); // Converter de volta para cm
+                        .arg(targetDistance, 0, 'f', 1));
             
-            // Processar próximo comando da fila
-            processNextCommand();
+            // Se estamos executando uma fila de comandos, executar o próximo
+            if (executingQueue) {
+                executeNextCommand();
+            }
         }
-    } 
-    else if (currentMovementType == "rotation_left" || currentMovementType == "rotation_right") {
-        // Rotação pura (comando R)
+    } else if (currentMovementType == "rotate_left" || currentMovementType == "rotate_right") {
+        // Calcular ângulo rotacionado para rotação pura
         double angleDiff = abs(robot->angle - startAngle);
         if (angleDiff > M_PI) {
-            angleDiff = 2*M_PI - angleDiff;
+            angleDiff = 2*M_PI - angleDiff; // Ajustar para ângulo menor
         }
         currentDistance = angleDiff;
         
         if (currentDistance >= targetDistance) {
-            stopCurrentMovement();
-            sendResponse(QString("OK: Completed rotation of %1 degrees")
+            stopRobot();
+            sendResponse(QString("OK: Completed %1 rotation of %2 degrees")
+                        .arg(currentMovementType)
                         .arg(targetDistance * 180.0 / M_PI, 0, 'f', 1));
-            processNextCommand();
+            
+            // Se estamos executando uma fila de comandos, executar o próximo
+            if (executingQueue) {
+                executeNextCommand();
+            }
         }
-    }
-    else if (currentMovementType == "turn_left_then_move" || currentMovementType == "turn_right_then_move") {
-        // Comando D com direção L ou R: primeiro girar, depois mover
+    } else if (currentMovementType == "turn_left_then_move" || currentMovementType == "turn_right_then_move") {
+        // Calcular ângulo rotacionado
         double angleDiff = abs(robot->angle - startAngle);
         if (angleDiff > M_PI) {
-            angleDiff = 2*M_PI - angleDiff;
+            angleDiff = 2*M_PI - angleDiff; // Ajustar para ângulo menor
         }
         currentDistance = angleDiff;
         
@@ -352,16 +422,22 @@ void SocketControlExample::checkMovementProgress()
             startPosition = robot->pos;
             targetDistance = pendingMoveDistance;
             currentDistance = 0.0;
-            currentMovementType = "forward";
+            
+            // Determinar novo tipo de movimento
+            if (currentMovementType == "turn_left_then_move") {
+                currentMovementType = "forward";
+            } else {
+                currentMovementType = "forward";
+            }
             
             // Começar movimento para frente
             robot->leftSpeed = DEFAULT_SPEED;
             robot->rightSpeed = DEFAULT_SPEED;
             
-            sendResponse(QString("OK: Rotation complete, now moving forward %1 cm")
-                        .arg(pendingMoveDistance / 0.3, 0, 'f', 1));
+            sendResponse(QString("OK: Rotation complete, now moving forward %1 units")
+                        .arg(pendingMoveDistance, 0, 'f', 1));
             
-            pendingMoveDistance = 0.0;
+            pendingMoveDistance = 0.0; // Limpar
         }
     }
 }
@@ -375,18 +451,9 @@ void SocketControlExample::stopRobot()
     currentDistance = 0.0;
     currentMovementType = "";
     
-    // Limpar fila de comandos se estiver parando manualmente
-    commandQueue.clear();
-}
-
-void SocketControlExample::stopCurrentMovement()
-{
-    robot->leftSpeed = 0.0;
-    robot->rightSpeed = 0.0;
-    isMoving = false;
-    targetDistance = 0.0;
-    currentDistance = 0.0;
-    currentMovementType = "";
+    // Não limpar a fila aqui, pois queremos continuar a execução
+    // commandQueue.clear();
+    // executingQueue = false;
 }
 
 void SocketControlExample::onNewConnection()
@@ -397,9 +464,8 @@ void SocketControlExample::onNewConnection()
     connect(clientSocket, &QTcpSocket::disconnected, this, &SocketControlExample::onClientDisconnected);
     
     cout << "Cliente conectado!" << endl;
-    sendResponse("HELLO: Connected to Enki Robot Controller (LBML)");
-    sendResponse("COMMANDS: Use LBML format - D40F; (move 40cm forward), R90L; (turn 90° left)");
-    sendResponse("COMMANDS: Multiple commands: D25F;R90L;D25F; or use stop, status, quit");
+    sendResponse("HELLO: Connected to Enki Robot Controller");
+    sendResponse("COMMANDS: Use format XF;YB;ZL;WR (e.g., 10F;5R) or stop, status, quit");
 }
 
 void SocketControlExample::onDataReceived()
@@ -410,7 +476,7 @@ void SocketControlExample::onDataReceived()
     QString command = QString::fromUtf8(data).trimmed();
     
     if (!command.isEmpty()) {
-        cout << "Comando LBML recebido: " << command.toStdString() << endl;
+        cout << "Comando recebido: " << command.toStdString() << endl;
         processCommand(command);
     }
 }
@@ -447,12 +513,12 @@ int main(int argc, char *argv[])
     
     // Criar o visualizador com controle via socket
     SocketControlExample viewer(&world);
-    viewer.setWindowTitle("Controle via Socket com LBML - Enki Robotics");
+    viewer.setWindowTitle("Controle via Socket - Enki Robotics");
     viewer.resize(800, 600);
     viewer.show();
     
     cout << "\nFeche a janela ou envie 'quit' via socket para sair." << endl;
-    cout << "Exemplo de comando LBML: D40F;R90L;D25F; (40cm frente, gira 90° esquerda, 25cm frente)" << endl;
+    cout << "Exemplo de comando: 10F;5R (10 unidades frente + 5 unidades direita)" << endl;
     
     return app.exec();
 }

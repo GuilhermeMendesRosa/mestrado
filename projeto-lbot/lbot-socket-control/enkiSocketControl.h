@@ -9,7 +9,6 @@
 #include <QTcpSocket>
 #include <QTimer>
 #include <QtGui>
-#include <QQueue>
 
 using namespace Enki;
 
@@ -34,8 +33,9 @@ protected:
     QString currentMovementType;
     double pendingMoveDistance; // Para armazenar distância após rotação
     
-    // Fila de comandos para executar em sequência
-    QQueue<QString> commandQueue;
+    // Fila de comandos para execução sequencial
+    QStringList commandQueue;
+    bool executingQueue;
     
 public:
     SocketControlExample(World *world, QWidget *parent = 0);
@@ -48,11 +48,10 @@ public:
     void sendResponse(const QString& message);
     void sendRobotStatus();
     void executeMovementSequence(const QStringList& movements);
-    void executeSingleMovement(const QString& movement);
-    void processNextCommand();
+    void executeNextCommand();
+    void executeSingleCommand(const QString& movement);
     void checkMovementProgress();
     void stopRobot();
-    void stopCurrentMovement();
     
 public slots:
     void onNewConnection();
