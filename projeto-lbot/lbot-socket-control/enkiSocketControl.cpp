@@ -3,6 +3,34 @@
 #include <sstream>
 #include <string>
 
+/*
+    Arquivo: enkiSocketControl.cpp
+
+    Objetivo: Este arquivo implementa uma pequena aplicação de visualização
+    e controle de um robô (EPuck) usando a biblioteca Enki e um servidor TCP
+    (QTcpServer). O programa aceita comandos via socket para mover o robô.
+
+    Comentários gerais (explicação para quem não conhece C++ / Enki):
+    - A classe principal é `SocketControlExample`, que herda de `ViewerWidget`
+        (um componente gráfico da Enki). Essa classe cria o robô no mundo,
+        inicia um servidor TCP e escuta por comandos de controle.
+    - Comandos recebidos são strings simples (ex: "10F;5R") e a lógica faz
+        parsing dessas strings e enfileira/execulta movimentos sequenciais.
+    - O controle de movimento é feito ajustando `leftSpeed` e `rightSpeed`
+        do objeto `EPuck` e monitorando a posição/ângulo para parar quando
+        o alvo foi alcançado.
+
+    Como usar (resumo):
+    - Compile o projeto via CMake (o repositório já possui CMakeLists.txt).
+    - Rode o executável. Uma janela gráfica aparecerá e o servidor TCP
+        escutará na porta 9999.
+    - Conecte-se via telnet/nc e envie comandos do tipo: "10F;90R;5B" ou
+        comandos literais: "stop", "status", "quit".
+
+    Observação: Os comentários neste arquivo foram adicionados para ajudar
+    na apresentação oral do funcionamento do código.
+*/
+
 using namespace std;
 
 SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
@@ -23,14 +51,18 @@ SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
     accumulatedRotation(0.0),
     lastAngle(0.0)
 {
+    // Inicializa e posiciona o robô no mundo da simulação
     setupRobot(world);
-    
+
+    // Configura o servidor TCP que receberá comandos externos
     setupTcpServer();
-    
+
+    // Timer periódico usado para enviar status (a cada 1 segundo)
     statusTimer = new QTimer(this);
     connect(statusTimer, &QTimer::timeout, this, &SocketControlExample::sendStatus);
     statusTimer->start(1000);
-    
+
+    // Mensagens informativas para terminal (úteis durante demonstração)
     cout << "=== Controle via Socket - Enki ===" << endl;
     cout << "Servidor TCP rodando na porta 9999" << endl;
     cout << "Conecte um cliente para controlar o robô" << endl;
@@ -39,16 +71,19 @@ SocketControlExample::SocketControlExample(World *world, QWidget *parent) :
 
 void SocketControlExample::setupRobot(World* world)
 {
+    // Cria uma instância do robô (EPuck) e define posição inicial e cor
     robot = new EPuck;
-    robot->pos = Point(60, 60);
-    robot->angle = 0;
+    robot->pos = Point(60, 60); // posição inicial no mundo (x, y)
+    robot->angle = 0; // orientação inicial (radianos)
     robot->setColor(Color(0.2, 0.7, 0.2));
-    
+
+    // Velocidades iniciais das rodas (simulação)
     robot->leftSpeed = 0.0;
     robot->rightSpeed = 0.0;
-    
+
+    // Adiciona o robô ao mundo para que ele seja renderizado e simulado
     world->addObject(robot);
-    
+
     if (verbose) {
         cout << "Robô criado em (" << robot->pos.x << ", " << robot->pos.y << ")" << endl;
     }
@@ -57,9 +92,10 @@ void SocketControlExample::setupRobot(World* world)
 void SocketControlExample::setupTcpServer()
 {
     server = new QTcpServer(this);
-    
+    // Quando um cliente novo conectar, onNewConnection() será chamado
     connect(server, &QTcpServer::newConnection, this, &SocketControlExample::onNewConnection);
-    
+
+    // Tenta começar a escutar na porta 9999 em todas as interfaces
     if (!server->listen(QHostAddress::Any, 9999)) {
         cout << "Erro: Não foi possível iniciar o servidor TCP: " 
              << server->errorString().toStdString() << endl;
@@ -71,17 +107,20 @@ void SocketControlExample::setupTcpServer()
 void SocketControlExample::timerEvent(QTimerEvent * event)
 {
     stepCounter++;
-    
+    // Chamado a cada 'tick' do framework (atualiza simulação/visualização)
     if (isMoving) {
+        // Verifica se o movimento atual já atingiu o alvo
         checkMovementProgress();
     }
-    
+
+    // Mensagem informativa periódica para debug (cada 500 passos)
     if (verbose && stepCounter % 500 == 0) {
         cout << "Passo " << stepCounter << " - Posição: (" 
              << robot->pos.x << ", " << robot->pos.y 
              << ") Ângulo: " << robot->angle << endl;
     }
-    
+
+    // Chama a implementação base para manter comportamento padrão do ViewerWidget
     ViewerWidget::timerEvent(event);
 }
 
@@ -89,6 +128,7 @@ void SocketControlExample::processCommand(const QString& command)
 {
     QString cmd = command.trimmed();
     
+    // Comandos literais simples: status, quit, stop
     if (cmd.toLower() == "status") {
         sendRobotStatus();
         return;
@@ -97,21 +137,24 @@ void SocketControlExample::processCommand(const QString& command)
         QApplication::quit();
         return;
     } else if (cmd.toLower() == "stop") {
+        // Para o robô imediatamente e limpa fila de comandos
         stopRobot();
         commandQueue.clear();
         executingQueue = false;
         sendResponse("OK: Robot stopped and command queue cleared");
         return;
     }
-    
+
+    // Comandos compostos (sequência), separados por ';'
     QStringList movements = cmd.split(';', Qt::SkipEmptyParts);
     if (movements.isEmpty()) {
         sendResponse("ERROR: Invalid command format. Use: XF;YB;ZL;WR (e.g., 10F;5R)");
         return;
     }
-    
+
+    // Enfileira e executa a sequência de movimentos (ver executeMovementSequence)
     executeMovementSequence(movements);
-    
+
     if (verbose) {
         cout << "Comando executado: " << command.toStdString() << endl;
     }
@@ -192,12 +235,16 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
         return;
     }
     
+    // Determina se é comando de rotação (prefixo 'R') ou deslocamento ('D' ou sem prefixo)
     bool isRotationCommand = false;
     bool isDisplacementCommand = false;
-    
+
+    // Último caractere indica a direção (ex: F, B, L, R)
     QChar direction = cleanMove.right(1)[0];
+    // O restante contém número e possivelmente um prefixo (R ou D)
     QString numberStr = cleanMove.left(cleanMove.length() - 1);
-    
+
+    // Verifica se há um prefixo (letra) antes do número
     if (!numberStr.isEmpty() && numberStr[0].isLetter()) {
         QChar prefix = numberStr[0];
         if (prefix == 'R') {
@@ -205,15 +252,18 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
         } else if (prefix == 'D') {
             isDisplacementCommand = true;
         }
+        // Remove o prefixo para obter apenas o valor numérico
         numberStr = numberStr.mid(1);
-        
+
         if (verbose) {
             cout << "Executando comando - Prefixo: " << prefix.toLatin1() << ", número: " << numberStr.toStdString() << ", direção: " << direction.toLatin1() << endl;
         }
     } else {
+        // Se não há prefixo explícito, assumimos deslocamento (ex: 10F)
         isDisplacementCommand = true;
     }
-    
+
+    // Converte número para double (distância em unidades da simulação ou graus)
     bool ok;
     double distance = numberStr.toDouble(&ok);
     if (!ok || distance < 0) {
@@ -221,20 +271,24 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
         executeNextCommand();
         return;
     }
-    
+
+    // Se já existe um movimento em execução, pare-o antes de iniciar outro
     if (isMoving) {
         stopRobot();
     }
-    
+
+    // --- Tratamento de rotação ---
     if (isRotationCommand) {
+        // Guardamos o ângulo inicial e convertemos graus para radianos
         startAngle = robot->angle;
-        targetDistance = distance * M_PI / 180.0;
+        targetDistance = distance * M_PI / 180.0; // alvo em radianos
         currentDistance = 0.0;
         isMoving = true;
-        
+
         switch (direction.toLatin1()) {
             case 'L':
                 currentMovementType = "rotate_left";
+                // Rotação no sentido anti-horário: ajusta velocidades das rodas
                 robot->leftSpeed = -DEFAULT_SPEED * 0.6;
                 robot->rightSpeed = DEFAULT_SPEED * 0.6;
                 sendResponse(QString("OK: Rotating left %1 degrees").arg(distance, 0, 'f', 1));
@@ -249,68 +303,71 @@ void SocketControlExample::executeSingleCommand(const QString& movement)
                 sendResponse("ERROR: Invalid rotation direction '" + QString(direction) + "'. Use L or R for rotation");
                 return;
         }
-        
+
+        // Reinicia variáveis usadas para rastrear a rotação acumulada
         resetRotationTracking();
+
+    // --- Tratamento de deslocamento ---
     } else if (isDisplacementCommand) {
         switch (direction.toLatin1()) {
-            case 'F':
+            case 'F': // andar para frente
                 startPosition = robot->pos;
-                targetDistance = distance;
+                targetDistance = distance; // usa a mesma unidade que a simulação
                 currentDistance = 0.0;
                 isMoving = true;
                 currentMovementType = "forward";
-                
+
                 robot->leftSpeed = DEFAULT_SPEED;
                 robot->rightSpeed = DEFAULT_SPEED;
-                
+
                 sendResponse(QString("OK: Moving forward for %1 units").arg(distance, 0, 'f', 1));
                 break;
-                
-            case 'B':
+
+            case 'B': // andar para trás
                 startPosition = robot->pos;
                 targetDistance = distance;
                 currentDistance = 0.0;
                 isMoving = true;
                 currentMovementType = "backward";
-                
+
                 robot->leftSpeed = -DEFAULT_SPEED;
                 robot->rightSpeed = -DEFAULT_SPEED;
-                
+
                 sendResponse(QString("OK: Moving backward for %1 units").arg(distance, 0, 'f', 1));
                 break;
-                
-            case 'L':
+
+            case 'L': // virar 90° à esquerda e depois mover (padrão do código)
                 startAngle = robot->angle;
-                targetDistance = M_PI / 2;
+                targetDistance = M_PI / 2; // 90 graus em radianos
                 currentDistance = 0.0;
                 isMoving = true;
                 currentMovementType = "turn_left_then_move";
-                pendingMoveDistance = distance;
-                
+                pendingMoveDistance = distance; // distância a percorrer após giro
+
                 robot->leftSpeed = -DEFAULT_SPEED * 0.6;
                 robot->rightSpeed = DEFAULT_SPEED * 0.6;
-                
+
                 resetRotationTracking();
-                
+
                 sendResponse(QString("OK: Turning left 90° then moving %1 units").arg(distance, 0, 'f', 1));
                 break;
-                
-            case 'R':
+
+            case 'R': // virar 90° à direita e depois mover
                 startAngle = robot->angle;
                 targetDistance = M_PI / 2;
                 currentDistance = 0.0;
                 isMoving = true;
                 currentMovementType = "turn_right_then_move";
                 pendingMoveDistance = distance;
-                
+
                 robot->leftSpeed = DEFAULT_SPEED * 0.6;
                 robot->rightSpeed = -DEFAULT_SPEED * 0.6;
-                
+
                 resetRotationTracking();
-                
+
                 sendResponse(QString("OK: Turning right 90° then moving %1 units").arg(distance, 0, 'f', 1));
                 break;
-                
+
             default:
                 sendResponse("ERROR: Invalid displacement direction '" + QString(direction) + "'. Use F, B, L, R");
                 executeNextCommand();
@@ -329,32 +386,39 @@ void SocketControlExample::checkMovementProgress()
     
     const double DEFAULT_SPEED = 5.0;
     
+    // Verifica conclusão de deslocamento (distância euclidiana)
     if (currentMovementType == "forward" || currentMovementType == "backward") {
         double dx = robot->pos.x - startPosition.x;
         double dy = robot->pos.y - startPosition.y;
         currentDistance = sqrt(dx*dx + dy*dy);
-        
+
         if (currentDistance >= targetDistance) {
+            // Alvo atingido: para o robô e avisa cliente
             stopRobot();
             sendResponse(QString("OK: Completed %1 movement of %2 units")
                         .arg(currentMovementType)
                         .arg(targetDistance, 0, 'f', 1));
-            
+
             if (executingQueue) {
                 executeNextCommand();
             }
         }
+
+    // Verifica conclusão de rotação simples (acumula variação angular)
     } else if (currentMovementType == "rotate_left" || currentMovementType == "rotate_right") {
-        
+
         double angleDiff = robot->angle - lastAngle;
-        
+
+        // Normaliza diferença para o intervalo [-pi, pi]
         while (angleDiff > M_PI) angleDiff -= 2*M_PI;
         while (angleDiff < -M_PI) angleDiff += 2*M_PI;
-        
+
+        // Acumula a rotação observada — o código tenta lidar com wrap-around
         if (currentMovementType == "rotate_left") {
             if (angleDiff > 0) {
                 accumulatedRotation += angleDiff;
             } else if (angleDiff < -M_PI/2) {
+                // Caso a diferença tenha dado volta (wrap-around), corrige
                 accumulatedRotation += (2*M_PI + angleDiff);
             }
         } else {
@@ -364,21 +428,23 @@ void SocketControlExample::checkMovementProgress()
                 accumulatedRotation += (2*M_PI - angleDiff);
             }
         }
-        
+
         lastAngle = robot->angle;
         currentDistance = accumulatedRotation;
-        
+
         if (currentDistance >= targetDistance) {
             stopRobot();
             accumulatedRotation = 0.0;
             sendResponse(QString("OK: Completed %1 rotation of %2 degrees")
                         .arg(currentMovementType)
                         .arg(targetDistance * 180.0 / M_PI, 0, 'f', 1));
-            
+
             if (executingQueue) {
                 executeNextCommand();
             }
         }
+
+    // Caso: giro de 90° seguido por deslocamento (o código usa um estado intermediário)
     } else if (currentMovementType == "turn_left_then_move" || currentMovementType == "turn_right_then_move") {
         double angleDiff = robot->angle - lastAngle;
 
@@ -398,21 +464,19 @@ void SocketControlExample::checkMovementProgress()
                 accumulatedRotation += (2*M_PI - angleDiff);
             }
         }
-        
+
         lastAngle = robot->angle;
         currentDistance = accumulatedRotation;
-        
+
         if (currentDistance >= targetDistance) {
+            // Ao terminar o giro, fixa novo alvo: deslocamento pendente
             accumulatedRotation = 0.0;
             startPosition = robot->pos;
             targetDistance = pendingMoveDistance;
             currentDistance = 0.0;
 
-            if (currentMovementType == "turn_left_then_move") {
-                currentMovementType = "forward";
-            } else {
-                currentMovementType = "forward";
-            }
+            // Depois do giro o comportamento passa a ser mover para frente
+            currentMovementType = "forward";
 
             robot->leftSpeed = DEFAULT_SPEED;
             robot->rightSpeed = DEFAULT_SPEED;
@@ -433,9 +497,9 @@ void SocketControlExample::stopRobot()
     targetDistance = 0.0;
     currentDistance = 0.0;
     currentMovementType = "";
-    
-    
 }
+
+    // Função utilitária para parar quaisquer movimentos e limpar estados
 
 void SocketControlExample::resetRotationTracking()
 {
@@ -477,7 +541,8 @@ void SocketControlExample::onClientDisconnected()
 void SocketControlExample::sendStatus()
 {
     if (clientSocket && clientSocket->state() == QTcpSocket::ConnectedState) {
-        
+    // Esta função poderia enviar periodicamente o status do robô ao cliente.
+    // Atualmente o corpo está vazio porque o envio é feito por demanda via comando 'status'.
     }
 }
 
