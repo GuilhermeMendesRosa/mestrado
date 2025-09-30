@@ -1,0 +1,59 @@
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage{graphicx,url}
+\usepackage[utf8]{inputenc}
+% citações autor-ano
+\usepackage[authoryear]{natbib}
+
+\sloppy
+
+\title{Controle de um Robô com Linguagem Natural usando LBML e Aprendizado de Máquina}
+
+\author{Guilherme Rosa\inst{1} }
+
+\address{Programa de Pós-Graduação em Computação Aplicada -- UDESC\\
+  Joinville, SC -- Brasil
+  \email{guilherme.mr@udesc.br}
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Este trabalho apresenta um sistema para controlar o robô LBot por meio de comandos em linguagem natural. A solução utiliza a linguagem de domínio específico LBML e um modelo de aprendizado de máquina para traduzir comandos em português.
+\end{abstract}
+
+\begin{resumo}
+O artigo descreve um sistema que permite controlar o robô LBot usando comandos em linguagem natural. A abordagem emprega a linguagem LBML e um modelo de aprendizado de máquina para traduzir comandos em português, com avaliação de desempenho por métricas de tradução automática.
+\end{resumo}
+
+\section{Introdução}
+Atualmente, dois campos que despertam grande interesse tanto na academia quanto na indústria são a Robótica e a Inteligência Artificial. O avanço nessas áreas tem proporcionado impactos significativos na sociedade, permitindo a criação de soluções inovadoras que já fazem parte do cotidiano.
+
+O projeto apresentado neste artigo integra os campos de Robótica e Inteligência Artificial. Para isso, foi desenvolvido o robô LBot, cuja principal funcionalidade é a movimentação no espaço físico. A fim de possibilitar que esses movimentos sejam descritos de forma padronizada, foi criada uma linguagem de domínio específico (DSL), denominada LBot Movement Language (LBML).
+
+Entretanto, um desafio recorrente em aplicações de robótica é a necessidade de que o usuário aprenda comandos técnicos ou linguagens específicas para interagir com o robô. Para contornar esse problema, este trabalho propõe o uso de um modelo de aprendizado de máquina capaz de traduzir comandos em português para a LBML, permitindo que usuários interajam com o LBot por meio de linguagem natural.
+
+Diante desse contexto, este artigo apresenta a criação da LBML, o desenvolvimento do conjunto de dados de treinamento e a implementação de um modelo baseado em arquiteturas de transformers utilizando a biblioteca PyTorch, permitindo a tradução de comandos em português para a LBML. A combinação de linguagens de domínio e aprendizado de máquina demonstra como a interação entre humanos e robôs pode ser simplificada. Além disso, a utilização de comandos em linguagem natural torna o LBot mais acessível a usuários sem conhecimento técnico, potencializando aplicações práticas em educação, entretenimento e pesquisa em robótica.
+
+\section{Revisão de Conceitos e Trabalhos Relacionados}
+
+O uso de \textbf{Linguagens de Domínio Específico (DSLs)} tem se consolidado como uma abordagem eficiente para simplificar a interação entre humanos e sistemas complexos, oferecendo uma alternativa à programação tradicional que exige conhecimento técnico aprofundado. DSLs são projetadas para resolver problemas de forma específica dentro de um domínio particular, possibilitando que usuários expressem suas intenções de maneira intuitiva e reduzindo a ocorrência de erros de implementação. A criação de DSLs envolve geralmente a definição de \textbf{sintaxe, semântica e regras de mapeamento} para uma linguagem formal ou plataforma de execução, permitindo que instruções de alto nível sejam traduzidas automaticamente em comandos executáveis.
+
+No contexto de robótica, é desejável que comandos de linguagem natural possam ser convertidos para uma DSL que represente \textbf{movimentos e ações do robô} de forma precisa. A linguagem \textbf{LBot Movement Language (LBML)}, desenvolvida para o robô LBot, atende exatamente a essa necessidade, servindo como camada intermediária entre a linguagem natural do usuário e os comandos executáveis pelo sistema robótico. LBML é uma \textbf{DSL textual} que descreve movimentos no espaço físico, como avançar, girar ou manipular objetos, de maneira padronizada, garantindo que instruções complexas possam ser executadas de forma correta pelo robô.
+
+A aplicação de DSLs em diferentes domínios já foi extensivamente estudada na literatura. \citet{ouaddi2024} propuseram uma DSL gráfica para acelerar o desenvolvimento de \emph{chatbots}, permitindo que elementos como \texttt{Intents}, \texttt{Rules}, \texttt{Stories} e \texttt{Actions} fossem definidos por meio de uma interface intuitiva de \emph{drag-and-drop}. Essa abordagem demonstrou simplificação do processo de design e codificação, reduzindo erros e custos associados à dependência de APIs externas de NLP. De forma complementar, \citet{widyani2024} exploraram o uso do modelo \textbf{GPT-3.5} para gerar DSLs de gerenciamento de dados em plataformas \emph{low-code}, mostrando que uma DSL intermediária reduziu em cerca de 77\% o uso de \texttt{tokens} em operações complexas, além de permitir tradução eficiente de instruções de linguagem natural para comandos executáveis. \citet{wu2025} aplicaram DSLs como camada intermediária na formulação de estratégias financeiras, utilizando \textbf{In-Context Learning (ICL)} para converter instruções de linguagem natural em comandos executáveis em linguagens de programação de propósito geral, destacando a importância de DSLs para aumentar interpretabilidade e reduzir redundância ou imprecisão em domínios sensíveis.
+
+Um paralelo relevante pode ser traçado com a área de \textbf{tradução de linguagem natural para SQL (NL-to-SQL)}, que busca permitir que usuários não técnicos interajam com bancos de dados complexos. Estudos como \citet{sharma2024} compararam diferentes LLMs de código aberto em benchmarks como \textbf{SPIDER, WikiSQL e BIRD}, mostrando que modelos bem ajustados podem gerar consultas corretas mesmo em esquemas complexos e dados ruidosos. \citet{banerji2025} adaptaram LLMs para consultas em ambientes IoT industriais, utilizando mapeamento baseado em \emph{tags}, obtendo precisão e recall superiores a 0,87. De forma semelhante, \citet{chinta2025} implementaram um sistema de IA generativa para gerar consultas SQL executáveis em nuvem, alcançando até 96\% de precisão em \emph{benchmarks}, reforçando a eficácia de DSLs como intermediárias em tarefas de tradução de linguagem natural.
+
+Além de facilitar o mapeamento de linguagem natural para comandos formais, os trabalhos relacionados também demonstram o papel de \textbf{modelos de aprendizado de máquina} na automação desse processo. O uso de \textbf{Transformers}, em especial arquiteturas \textbf{seq2seq}, tem se mostrado eficaz na tradução de sequências de texto, oferecendo capacidade de aprendizado de padrões complexos de linguagem e generalização para novos comandos. Essa abordagem permite que um modelo treinado, mesmo com um \textbf{conjunto de dados relativamente pequeno}, seja capaz de mapear instruções em linguagem natural para a representação formal na DSL, preservando o significado semântico e a correção sintática. Técnicas como \textbf{tokenização especializada} e \textbf{uso de tokens reservados} para elementos da DSL ajudam a aumentar a precisão da tradução, reduzindo ambiguidades comuns em tarefas de NL $\rightarrow$ DSL.
+
+
+Apesar dos avanços em NL-to-SQL e em DSLs para chatbots, finanças e IoT, \textbf{a aplicação direta em robótica ainda é limitada}. A tradução de comandos de linguagem natural para movimentos robóticos exige precisão temporal e espacial, o que torna a construção de um modelo confiável mais desafiadora. Nesse contexto, o desenvolvimento do \textbf{LBML} e do modelo baseado em \textbf{Transformers seq2seq} apresentado neste trabalho representa uma contribuição significativa: ao criar uma linguagem intermediária padronizada e um modelo capaz de traduzir português para comandos executáveis pelo robô, este estudo avança na simplificação da interação humano-robô e amplia a acessibilidade de sistemas robóticos para usuários sem conhecimento técnico, possibilitando aplicações práticas em \textbf{educação, entretenimento e pesquisa em robótica}.
+% Bibliografia
+\bibliographystyle{sbc}
+\bibliography{sbc-template}
+
+\end{document}
