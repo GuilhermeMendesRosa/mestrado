@@ -60,7 +60,7 @@ Essa necessidade de vincular elementos da linguagem natural à estrutura formal 
 
 \subsection{Técnicas de Treinamento e Adaptação de Domínio}
 
-A adaptação de modelos de linguagem para domínios específicos é um tema recorrente, com a maioria dos trabalhos utilizando Large Language Models (LLMs) pré-treinados, seguidos por Fine-Tuning (Ajuste Fino) ou In-Context Learning (ICL).
+A adaptação de modelos de linguagem para domínios específicos é um tema recorrente. As abordagens mais comuns incluem o uso de Large Language Models (LLMs) pré-treinados, seguidos por Fine-Tuning (Ajuste Fino) ou In-Context Learning (ICL). Alternativamente, alguns trabalhos optam por treinar modelos do zero, permitindo maior controle sobre a arquitetura e o comportamento do modelo, embora isso demande mais recursos computacionais e dados de treinamento.
 
 \subsubsection{Fine-Tuning e ICL}
 
@@ -68,7 +68,9 @@ O Fine-Tuning de LLMs (como o proposto no trabalho de NL2SQL para painéis de Io
 
 \subsubsection{A Escolha do Treinamento do Zero e o Controle da Saída}
 
-Este trabalho se distingue dessas abordagens por optar por treinar um modelo pequeno do zero em um conjunto de dados exclusivo (Português-para-LBML). Esta escolha, embora represente um desafio maior em termos de convergência e desempenho, é um experimento válido que:
+Embora a maioria dos trabalhos recentes utilize LLMs pré-treinados, algumas abordagens optam por treinar modelos do zero. O RAT-SQL \citep{Wang2021}, por exemplo, treinou um modelo baseado em relation-aware self-attention especificamente para a tarefa de NL-to-SQL, alcançando resultados competitivos ao capturar as relações estruturais do esquema de banco de dados desde o início do treinamento.
+
+Este trabalho adota uma estratégia semelhante ao optar por treinar um modelo pequeno do zero em um conjunto de dados exclusivo (Português-para-LBML). Esta escolha, embora represente um desafio maior em termos de convergência e desempenho, é um experimento válido que:
 
 \begin{enumerate}
 \item \textbf{Reduz a dependência de LLMs pré-treinados}: Elimina a necessidade de recursos computacionais massivos para carregar e ajustar modelos gigantes.
