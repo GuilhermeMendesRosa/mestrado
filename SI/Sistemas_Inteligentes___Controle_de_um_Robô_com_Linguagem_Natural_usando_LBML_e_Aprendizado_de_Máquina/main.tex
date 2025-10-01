@@ -46,17 +46,17 @@ A interface entre a linguagem natural e as máquinas é um campo de pesquisa fun
 
 O Semantic Parsing é a tarefa de traduzir frases em linguagem natural (LN) em representações formais e executáveis, como código de programação, expressões lógicas ou queries de banco de dados \citep{Sharma2025}. Embora o foco tradicional recaia sobre a conversão de perguntas para Structured Query Language (SQL) (o chamado NL-to-SQL), o conceito se estende a qualquer linguagem de máquina que defina ações em um domínio restrito, como é o caso do LBot.
 
-A escolha de uma Linguagem de Domínio Específico (DSL), como a proposta LBML, em vez de uma linguagem de propósito geral, tem se mostrado crucial para aumentar a precisão e a interpretabilidade. A DSL restringe o vocabulário e a sintaxe a comandos específicos de movimento (e.g., mover para frente, girar 90 graus), eliminando a ambiguidade inerente à linguagem humana.
+A escolha de uma Linguagem de Domínio Específico (DSL), como a proposta LBML, em vez de uma linguagem de propósito geral, tem se mostrado crucial para aumentar a precisão e a interpretabilidade. A DSL restringe o vocabulário e a sintaxe a comandos específicos de movimento (e.g., mover 20cm para frente, girar 90 graus para a direit), eliminando a ambiguidade inerente à linguagem humana.
 
 Trabalhos recentes têm enfatizado que o uso de uma DSL como intermediário melhora a confiabilidade dos sistemas. A abordagem mediada por DSL (DSL-Mediated Approach), por exemplo, é defendida para evitar a alucinação e a redundância geradas por modelos de linguagem grandes (LLMs) ao traduzir diretamente para linguagens de propósito geral \citep{Wu2025}. Este estudo, focado em estratégias financeiras, demonstrou que a conversão em duas etapas (LN $\rightarrow$ DSL $\rightarrow$ Linguagem de Programação) alcança uma alta taxa de correspondência exata, reforçando o valor da DSL como uma barreira de segurança.
 
-Esta filosofia é implementada diretamente na LBML. Quando o usuário expressa a intenção em português ("LBot, ande devagar em direção ao alvo"), o modelo deve mapear essa intenção para a sintaxe rigorosa da LBML (e.g., MOVE\_FORWARD(100, 50), onde 100 é distância e 50 é velocidade). O Semantic Parsing para LBML, portanto, não apenas executa uma tarefa, mas garante que o comando gerado seja sintaticamente correto e fisicamente seguro para o robô, um fator crítico em aplicações de robótica.
+Esta filosofia é implementada diretamente na LBML. Quando o usuário expressa a intenção em português ("LBot, ande 1 metro para a esquerda"), o modelo deve mapear essa intenção para a sintaxe rigorosa da LBML (e.g., M100L;, onde 100 é distância em centímetros). O Semantic Parsing para LBML, portanto, não apenas executa uma tarefa, mas garante que o comando gerado seja sintaticamente correto e fisicamente seguro para o robô, um fator crítico em aplicações de robótica.
 
 \subsection{Arquiteturas de Modelos e Mecanismos de Atenção}
 
-O avanço na precisão do Semantic Parsing está intrinsecamente ligado à evolução das arquiteturas de modelos, especialmente os Transformers \citep{Wang2021,Banerji2025}. O trabalho de \citet{Banerji2025} propôs um framework unificado baseado em um mecanismo de autoatenção com consciência de relações (relation-aware self-attention). Essa técnica representa o esquema como um grafo, onde as arestas codificam relações explícitas (e.g., chave primária), permitindo que o modelo incorpore a estrutura relacional do domínio na sua representação interna.
+O avanço na precisão do Semantic Parsing está intrinsecamente ligado à evolução das arquiteturas de modelos, especialmente os Transformers \citep{Wang2021,Banerji2025}. O trabalho de Banerji et al. \citep{Banerji2025} propôs um framework unificado baseado em um mecanismo de autoatenção com consciência de relações (relation-aware self-attention). Essa técnica representa o esquema como um grafo, onde as arestas codificam relações explícitas (e.g., chave primária), permitindo que o modelo incorpore a estrutura relacional do domínio na sua representação interna.
 
-Essa necessidade de vincular elementos da linguagem natural à estrutura formal se aplica diretamente ao LBot: embora o domínio não seja um banco de dados, o robô opera em um espaço físico com estados e parâmetros. A correta "ligação" (linking) entre substantivos e verbos em português (e.g., "esquerda" ou "virar") e os parâmetros numéricos corretos na LBML (e.g., ROTATE(-90)) é análoga ao Schema Linking tradicional. Portanto, modelos baseados em mecanismos de atenção são ideais para codificar essa estrutura de domínio, mesmo que simplificada para a topologia do robô.
+Essa necessidade de vincular elementos da linguagem natural à estrutura formal se aplica diretamente ao LBot: embora o domínio não seja um banco de dados, o robô opera em um espaço físico com estados e parâmetros. A correta "ligação" (linking) entre substantivos e verbos em português (e.g., "esquerda" ou "virar") e os parâmetros numéricos corretos na LBML é análoga ao Schema Linking tradicional. Portanto, modelos baseados em mecanismos de atenção são ideais para codificar essa estrutura de domínio, mesmo que simplificada para a topologia do robô.
 
 \subsection{Técnicas de Treinamento e Adaptação de Domínio}
 
@@ -68,7 +68,7 @@ O Fine-Tuning de LLMs (como o proposto no trabalho de NL2SQL para painéis de Io
 
 \subsubsection{A Escolha do Treinamento do Zero e o Controle da Saída}
 
-O seu trabalho se distingue dessas abordagens por optar por treinar um modelo pequeno do zero em um conjunto de dados exclusivo (Português-para-LBML). Esta escolha, embora represente um desafio maior em termos de convergência e desempenho, é um experimento válido que:
+Este trabalho se distingue dessas abordagens por optar por treinar um modelo pequeno do zero em um conjunto de dados exclusivo (Português-para-LBML). Esta escolha, embora represente um desafio maior em termos de convergência e desempenho, é um experimento válido que:
 
 \begin{enumerate}
 \item \textbf{Reduz a dependência de LLMs pré-treinados}: Elimina a necessidade de recursos computacionais massivos para carregar e ajustar modelos gigantes.
@@ -77,7 +77,7 @@ O seu trabalho se distingue dessas abordagens por optar por treinar um modelo pe
 
 \subsubsection{Garantia de Estrutura e Sintaxe}
 
-Para garantir que a saída gerada seja sempre um comando LBML sintaticamente válido, o controle da estrutura da DSL é essencial. O conceito de Grammar Prompting \citep{Wang2023} utiliza métricas como a Taxa de Correspondência Exata (Exact Match Rate) em datasets desafiadores como o SPIDER. De forma semelhante, o trabalho de estratégias financeiras \citep{Wu2025} prioriza esta métrica, por ser a única que garante que o comando gerado é 100\% correto. A aplicação dessa métrica é essencial para o LBot, uma vez que, em robótica, \textbf{qualquer erro na sintaxe da LBML pode resultar em falha de execução ou em um movimento perigoso}.
+Para garantir que a saída gerada seja sempre um comando LBML sintaticamente válido, o controle da estrutura da DSL é essencial. O conceito de Grammar Prompting \citep{Wang2023} utiliza métricas como a Taxa de Correspondência Exata (Exact Match Rate) em datasets desafiadores como o SPIDER. De forma semelhante, o trabalho de estratégias financeiras \citep{Wu2025} prioriza esta métrica, por ser a única que garante que o comando gerado é 100\% correto. A aplicação dessa métrica é essencial para o LBot, uma vez que, em robótica, qualquer erro na sintaxe da LBML pode resultar em falha de execução ou em um movimento perigoso.
 
 % Bibliografia
 \bibliographystyle{sbc}
