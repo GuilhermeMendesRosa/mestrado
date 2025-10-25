@@ -79,7 +79,85 @@ Este trabalho adota uma estratégia semelhante ao optar por treinar um modelo pe
 
 \subsubsection{Garantia de Estrutura e Sintaxe}
 
+
 Para garantir que a saída gerada seja sempre um comando LBML sintaticamente válido, o controle da estrutura da DSL é essencial. O conceito de Grammar Prompting \citep{Wang2023} utiliza métricas como a Taxa de Correspondência Exata (Exact Match Rate) em datasets desafiadores como o SPIDER. De forma semelhante, o trabalho de estratégias financeiras \citep{Wu2025} prioriza esta métrica, por ser a única que garante que o comando gerado é 100\% correto. A aplicação dessa métrica é essencial para o LBot, uma vez que, em robótica, qualquer erro na sintaxe da LBML pode resultar em falha de execução ou em um movimento perigoso.
+
+\section{Desenvolvimento da Proposta de Solução}
+
+Esta seção apresenta o planejamento do desenvolvimento do sistema proposto para tradução de comandos em linguagem natural para a LBot Movement Language (LBML). A proposta está organizada em etapas sucessivas, iniciando pela geração do conjunto de dados sintético, seguida da implementação de um modelo base de tradução utilizando arquitetura Transformer, e, posteriormente, do aprimoramento deste modelo com a incorporação do mecanismo de atenção sensível a relações (\textit{Relation-Aware Self-Attention} — RASA). Por fim, será conduzida uma comparação entre as duas versões, de modo a avaliar o impacto da atenção relacional no desempenho do tradutor.
+
+\subsection{Geração do Conjunto de Dados Sintético}
+
+A primeira etapa do projeto consiste na criação de um conjunto de dados sintético para o treinamento inicial do modelo. Pretende-se gerar automaticamente pares de exemplos no formato \textit{Português → LBML}, utilizando um script capaz de combinar diferentes padrões de instruções. Cada amostra representará um comando em linguagem natural e sua respectiva tradução na sintaxe padronizada da LBML.
+
+O dataset abrangerá tanto instruções simples quanto compostas, permitindo ao modelo aprender a estrutura sequencial dos comandos. Serão incluídas variações linguísticas e sinônimos (por exemplo, “ande”, “mova-se”, “siga”) e ruído leve, como variações de acentuação ou ordem dos termos, de modo a aumentar a robustez do modelo diante de entradas reais. Os valores de distância e rotação serão representados em centímetros e graus, respeitando o formato definido pela LBML.
+
+O objetivo dessa etapa é fornecer uma base suficientemente ampla e consistente para que o modelo aprenda os padrões de tradução e a estrutura gramatical da linguagem de domínio antes da introdução de técnicas mais complexas.
+
+\subsection{Modelo Base sem Relações Explícitas}
+
+A segunda etapa prevê o desenvolvimento de um modelo de tradução baseado na arquitetura Transformer, sem a inclusão inicial de mecanismos de atenção relacional. O objetivo é estabelecer uma linha de base de desempenho, que servirá como referência para comparações futuras.
+
+O modelo será configurado como um \textit{Transformer decoder-only}, semelhante a modelos da família GPT, sendo treinado de forma supervisionada para prever a sequência LBML correspondente a um comando em português. O treinamento será realizado utilizando o conjunto de dados sintético gerado na etapa anterior.
+
+A Tabela~\ref{tab:params} resume os principais parâmetros planejados para o modelo.
+
+\begin{table}[h]
+\centering
+\caption{Parâmetros de configuração do modelo base planejado.}
+\label{tab:params}
+\begin{tabular}{l c}
+\hline
+	extbf{Parâmetro} & \textbf{Valor Planejado} \\ \hline
+Número de camadas ($n_{layer}$) & 8 \\
+Número de cabeças de atenção ($n_{head}$) & 8 \\
+Dimensão do embedding ($n_{embd}$) & 512 \\
+Tamanho do contexto ($block\_size$) & 256 \\
+Tamanho do \textit{batch} & 32 \\
+Taxa de aprendizado ($lr$) & $3\times10^{-4}$ \\
+Dropout & 0.15 \\
+Otimizador & AdamW \\
+Função de perda & Cross Entropy \\
+Iterações máximas & 8000 \\ \hline
+\end{tabular}
+\end{table}
+
+O tamanho do contexto de 256 tokens foi definido para permitir o aprendizado de comandos compostos e sequenciais. A redução da taxa de dropout em relação a versões anteriores (de 0.2 para 0.15) visa evitar subajuste, uma vez que o conjunto sintético conterá aproximadamente 150 mil exemplos, reduzindo o risco de \textit{overfitting}. A taxa de aprendizado mais conservadora ($3\times10^{-4}$) foi escolhida para promover estabilidade no treinamento de um modelo de maior capacidade.
+
+O vocabulário será definido a partir dos caracteres únicos presentes no corpus, estimado em cerca de 80 símbolos, incluindo letras, dígitos, acentos e marcadores da LBML. O modelo será avaliado periodicamente a cada 250 iterações, utilizando as métricas de \textit{Exact Match Rate} e \textit{BLEU Score}, que permitirão monitorar a convergência e a coerência sintática das saídas geradas.
+
+\subsection{Aprimoramento com Atenção Relacional (RASA)}
+
+Após a obtenção de um modelo funcional e estável, será implementada uma segunda versão incorporando o mecanismo de atenção sensível a relações (\textit{Relation-Aware Self-Attention} — RASA). Esta etapa visa enriquecer a representação semântica aprendida pelo modelo, permitindo que ele capture explicitamente as dependências entre os elementos de um comando.
+
+Serão definidas relações específicas entre tokens, como:
+\begin{itemize}
+  \item \textbf{Ação–Parâmetro:} vincula verbos de movimento aos valores numéricos correspondentes (ex.: “ande” $\leftrightarrow$ “100”);
+  \item \textbf{Ação–Direção:} associa ações às direções de deslocamento (“vire” $\leftrightarrow$ “esquerda”);
+  \item \textbf{Ação–Unidade:} conecta valores aos termos de medida (“90” $\leftrightarrow$ “graus”);
+  \item \textbf{Sequência temporal:} identifica conectivos que determinam a ordem de execução (“depois”, “então”).
+\end{itemize}
+
+Essas relações serão codificadas em uma matriz relacional utilizada pelo mecanismo de atenção, de forma que o modelo aprenda a ponderar não apenas a relevância contextual dos tokens, mas também a natureza de suas conexões semânticas. Espera-se que essa modificação favoreça a generalização em comandos compostos e reduza erros de associação incorreta entre ações e parâmetros.
+
+\subsection{Comparação entre as Versões}
+
+A etapa final do desenvolvimento consistirá na comparação entre o modelo base e o modelo aprimorado com RASA. Ambos serão treinados com o mesmo conjunto de dados e parâmetros idênticos, de modo que as diferenças observadas no desempenho possam ser atribuídas exclusivamente à introdução da atenção relacional.
+
+As métricas de avaliação incluirão a \textit{Exact Match Rate}, o \textit{BLEU Score} e a taxa de comandos LBML válidos (\textit{valid syntax rate}). Também serão analisadas separadamente instruções simples e compostas, a fim de verificar se o ganho de desempenho é mais significativo em cenários com maior complexidade sintática.
+
+\subsection{Etapas Futuras}
+
+O trabalho encontra-se atualmente na fase de planejamento e especificação técnica. As próximas etapas incluem:
+\begin{enumerate}
+  \item Implementar o script de geração do dataset sintético;
+  \item Treinar o modelo base de tradução;
+  \item Incorporar o mecanismo de atenção relacional;
+  \item Realizar a comparação entre as duas versões do modelo;
+  \item Consolidar os resultados obtidos na seção de avaliação.
+\end{enumerate}
+
+A execução dessas etapas permitirá avaliar, de forma sistemática, a contribuição do \textit{Relation-Aware Self-Attention} na tarefa de tradução de linguagem natural para LBML, estabelecendo um caminho para o desenvolvimento de tradutores mais precisos e interpretáveis em domínios específicos.
 
 % Bibliografia
 \bibliographystyle{sbc}
