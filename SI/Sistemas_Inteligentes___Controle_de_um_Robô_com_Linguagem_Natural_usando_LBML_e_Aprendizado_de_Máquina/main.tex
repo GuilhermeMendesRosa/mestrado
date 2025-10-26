@@ -100,31 +100,14 @@ A segunda etapa prevê o desenvolvimento de um modelo de tradução baseado na a
 
 O modelo será configurado como um \textit{Transformer decoder-only}, semelhante a modelos da família GPT, sendo treinado de forma supervisionada para prever a sequência LBML correspondente a um comando em português. O treinamento será realizado utilizando o conjunto de dados sintético gerado na etapa anterior.
 
-A Tabela~\ref{tab:params} resume os principais parâmetros planejados para o modelo.
 
-\begin{table}[h]
-\centering
-\caption{Parâmetros de configuração do modelo base planejado.}
-\label{tab:params}
-\begin{tabular}{l c}
-\hline
-	extbf{Parâmetro} & \textbf{Valor Planejado} \\ \hline
-Número de camadas ($n_{layer}$) & 8 \\
-Número de cabeças de atenção ($n_{head}$) & 8 \\
-Dimensão do embedding ($n_{embd}$) & 512 \\
-Tamanho do contexto ($block\_size$) & 256 \\
-Tamanho do \textit{batch} & 32 \\
-Taxa de aprendizado ($lr$) & $3\times10^{-4}$ \\
-Dropout & 0.15 \\
-Otimizador & AdamW \\
-Função de perda & Cross Entropy \\
-Iterações máximas & 8000 \\ \hline
-\end{tabular}
-\end{table}
+O modelo base será configurado com uma arquitetura Transformer do tipo \textit{decoder-only}, semelhante à utilizada em modelos da família GPT. Essa escolha se deve à sua eficiência na geração de sequências de saída, característica essencial para a tradução entre linguagem natural e uma linguagem de domínio específico como a LBML.
 
-O tamanho do contexto de 256 tokens foi definido para permitir o aprendizado de comandos compostos e sequenciais. A redução da taxa de dropout em relação a versões anteriores (de 0.2 para 0.15) visa evitar subajuste, uma vez que o conjunto sintético conterá aproximadamente 150 mil exemplos, reduzindo o risco de \textit{overfitting}. A taxa de aprendizado mais conservadora ($3\times10^{-4}$) foi escolhida para promover estabilidade no treinamento de um modelo de maior capacidade.
+De forma geral, o modelo será composto por oito camadas e oito cabeças de atenção, com vetores de representação de 512 dimensões. Essa configuração foi definida para equilibrar capacidade de aprendizado e custo computacional, considerando o volume do conjunto de dados planejado, que contará com aproximadamente 150 mil exemplos sintéticos.
 
-O vocabulário será definido a partir dos caracteres únicos presentes no corpus, estimado em cerca de 80 símbolos, incluindo letras, dígitos, acentos e marcadores da LBML. O modelo será avaliado periodicamente a cada 250 iterações, utilizando as métricas de \textit{Exact Match Rate} e \textit{BLEU Score}, que permitirão monitorar a convergência e a coerência sintática das saídas geradas.
+O contexto de entrada será limitado a 256 tokens, valor suficiente para representar comandos compostos contendo múltiplas ações. A taxa de aprendizado será inicializada em $3\times10^{-4}$, ajustada para garantir estabilidade durante o treinamento de um modelo de maior porte, enquanto a taxa de \textit{dropout} será mantida em 0.15, buscando reduzir o risco de sobreajuste. O otimizador adotado será o AdamW, amplamente utilizado em tarefas de tradução por sua capacidade de convergência estável.
+
+O vocabulário será construído a partir de todos os caracteres presentes no corpus, estimado em cerca de 80 símbolos, incluindo letras, números, acentuação e tokens específicos da LBML. O processo de treinamento será acompanhado por avaliações periódicas, utilizando métricas como \textit{Exact Match Rate} e \textit{BLEU Score}, que permitirão monitorar a evolução do modelo e sua capacidade de gerar comandos sintaticamente válidos.
 
 \subsection{Aprimoramento com Atenção Relacional (RASA)}
 
