@@ -79,7 +79,6 @@ Este trabalho adota uma estratégia semelhante ao optar por treinar um modelo pe
 
 \subsubsection{Garantia de Estrutura e Sintaxe}
 
-
 Para garantir que a saída gerada seja sempre um comando LBML sintaticamente válido, o controle da estrutura da DSL é essencial. O conceito de Grammar Prompting \citep{Wang2023} utiliza métricas como a Taxa de Correspondência Exata (Exact Match Rate) em datasets desafiadores como o SPIDER. De forma semelhante, o trabalho de estratégias financeiras \citep{Wu2025} prioriza esta métrica, por ser a única que garante que o comando gerado é 100\% correto. A aplicação dessa métrica é essencial para o LBot, uma vez que, em robótica, qualquer erro na sintaxe da LBML pode resultar em falha de execução ou em um movimento perigoso.
 
 \section{Desenvolvimento da Proposta de Solução}
@@ -100,10 +99,7 @@ A segunda etapa prevê o desenvolvimento de um modelo de tradução baseado na a
 
 O modelo será configurado como um \textit{Transformer decoder-only}, semelhante a modelos da família GPT, sendo treinado de forma supervisionada para prever a sequência LBML correspondente a um comando em português. O treinamento será realizado utilizando o conjunto de dados sintético gerado na etapa anterior.
 
-
-O modelo base será configurado com uma arquitetura Transformer do tipo \textit{decoder-only}, semelhante à utilizada em modelos da família GPT. Essa escolha se deve à sua eficiência na geração de sequências de saída, característica essencial para a tradução entre linguagem natural e uma linguagem de domínio específico como a LBML.
-
-De forma geral, o modelo será composto por oito camadas e oito cabeças de atenção, com vetores de representação de 512 dimensões. Essa configuração foi definida para equilibrar capacidade de aprendizado e custo computacional, considerando o volume do conjunto de dados planejado, que contará com aproximadamente 150 mil exemplos sintéticos.
+O modelo base será composto por oito camadas e oito cabeças de atenção, com vetores de representação de 512 dimensões. Essa configuração foi definida para equilibrar capacidade de aprendizado e custo computacional, considerando o volume do conjunto de dados planejado, que contará com aproximadamente 150 mil exemplos sintéticos. 
 
 O contexto de entrada será limitado a 256 tokens, valor suficiente para representar comandos compostos contendo múltiplas ações. A taxa de aprendizado será inicializada em $3\times10^{-4}$, ajustada para garantir estabilidade durante o treinamento de um modelo de maior porte, enquanto a taxa de \textit{dropout} será mantida em 0.15, buscando reduzir o risco de sobreajuste. O otimizador adotado será o AdamW, amplamente utilizado em tarefas de tradução por sua capacidade de convergência estável.
 
@@ -111,17 +107,11 @@ O vocabulário será construído a partir de todos os caracteres presentes no co
 
 \subsection{Aprimoramento com Atenção Relacional (RASA)}
 
-Após a obtenção de um modelo funcional e estável, será implementada uma segunda versão incorporando o mecanismo de atenção sensível a relações (\textit{Relation-Aware Self-Attention} — RASA). Esta etapa visa enriquecer a representação semântica aprendida pelo modelo, permitindo que ele capture explicitamente as dependências entre os elementos de um comando.
+Após a obtenção de um modelo funcional e estável, será implementada uma segunda versão incorporando o mecanismo de atenção sensível a relações (\textit{Relation-Aware Self-Attention} — RASA). Diferentemente da formulação tradicional, na qual o RASA modela relações entre tokens dentro da própria sequência de entrada, nesta proposta o mecanismo será adaptado para capturar relações entre os tokens da entrada (em português) e os símbolos correspondentes da LBML na saída. 
 
-Serão definidas relações específicas entre tokens, como:
-\begin{itemize}
-  \item \textbf{Ação–Parâmetro:} vincula verbos de movimento aos valores numéricos correspondentes (ex.: “ande” $\leftrightarrow$ “100”);
-  \item \textbf{Ação–Direção:} associa ações às direções de deslocamento (“vire” $\leftrightarrow$ “esquerda”);
-  \item \textbf{Ação–Unidade:} conecta valores aos termos de medida (“90” $\leftrightarrow$ “graus”);
-  \item \textbf{Sequência temporal:} identifica conectivos que determinam a ordem de execução (“depois”, “então”).
-\end{itemize}
+O objetivo é introduzir um viés de atenção que favoreça o alinhamento semântico direto entre os elementos linguísticos e suas representações simbólicas. Por exemplo, o modelo deverá aprender explicitamente relações do tipo “ande” $\rightarrow$ “D”, “gire” $\rightarrow$ “R”, “frente” $\rightarrow$ “F” e “esquerda” $\rightarrow$ “L”. Esse alinhamento relacional entre domínios distintos busca reduzir ambiguidades de tradução e reforçar a consistência sintática dos comandos gerados.
 
-Essas relações serão codificadas em uma matriz relacional utilizada pelo mecanismo de atenção, de forma que o modelo aprenda a ponderar não apenas a relevância contextual dos tokens, mas também a natureza de suas conexões semânticas. Espera-se que essa modificação favoreça a generalização em comandos compostos e reduza erros de associação incorreta entre ações e parâmetros.
+Essas relações serão representadas em uma matriz relacional utilizada durante o processo de \textit{cross-attention}, permitindo que o modelo pondere a influência de cada token de entrada sobre a geração dos símbolos correspondentes da LBML. Espera-se que essa abordagem melhore a correspondência exata em instruções compostas e reduza erros de associação entre ações, direções e parâmetros numéricos.
 
 \subsection{Comparação entre as Versões}
 
@@ -135,7 +125,7 @@ O trabalho encontra-se atualmente na fase de planejamento e especificação téc
 \begin{enumerate}
   \item Implementar o script de geração do dataset sintético;
   \item Treinar o modelo base de tradução;
-  \item Incorporar o mecanismo de atenção relacional;
+  \item Incorporar o mecanismo de atenção relacional entre entrada e saída;
   \item Realizar a comparação entre as duas versões do modelo;
   \item Consolidar os resultados obtidos na seção de avaliação.
 \end{enumerate}
