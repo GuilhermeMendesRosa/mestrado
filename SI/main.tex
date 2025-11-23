@@ -70,11 +70,11 @@ O Fine-Tuning de LLMs (como o proposto no trabalho de NL2SQL para painéis de Io
 
 Embora a maioria dos trabalhos recentes utilize LLMs pré-treinados, algumas abordagens optam por treinar modelos do zero. O RAT-SQL \citep{Wang2021}, por exemplo, treinou um modelo baseado em relation-aware self-attention especificamente para a tarefa de NL-to-SQL, alcançando resultados competitivos ao capturar as relações estruturais do esquema de banco de dados desde o início do treinamento.
 
-Este trabalho adota uma estratégia semelhante ao optar por treinar um modelo pequeno do zero em um conjunto de dados exclusivo (Português-para-LBML). Esta escolha, embora represente um desafio maior em termos de convergência e desempenho, é um experimento válido que:
+Este trabalho adota uma estratégia semelhante ao optar por treinar um modelo pequeno do zero em um conjunto de dados exclusivo (Português-para-LBML). Esta escolha permite:
 
 \begin{enumerate}
-\item \textbf{Reduz a dependência de LLMs pré-treinados}: Elimina a necessidade de recursos computacionais massivos para carregar e ajustar modelos gigantes.
-\item \textbf{Permite o controle total}: Garante que o modelo aprenda apenas as regras e o vocabulário restrito definidos pela LBML, sem o ruído e a generalidade do conhecimento prévio, que podem ser prejudiciais em um domínio de robótica.
+\item \textbf{Evitar dependência de LLMs pré-treinados};
+\item \textbf{Garantir controle total sobre o vocabulário e as regras da LBML}.
 \end{enumerate}
 
 \subsubsection{Garantia de Estrutura e Sintaxe}
@@ -91,23 +91,17 @@ A primeira etapa do projeto consiste na criação de um conjunto de dados sinté
 
 O dataset abrangerá tanto instruções simples quanto compostas, permitindo ao modelo aprender a estrutura sequencial dos comandos. Serão incluídas variações linguísticas e sinônimos (por exemplo, “ande”, “mova-se”, “siga”) e ruído leve, como variações de acentuação ou ordem dos termos, de modo a aumentar a robustez do modelo diante de entradas reais. Os valores de distância e rotação serão representados em centímetros e graus, respeitando o formato definido pela LBML.
 
-O objetivo dessa etapa é fornecer uma base suficientemente ampla e consistente para que o modelo aprenda os padrões de tradução e a estrutura gramatical da linguagem de domínio antes da introdução de técnicas mais complexas.
-
 \subsection{Modelo Base sem Relações Explícitas}
 
-A segunda etapa prevê o desenvolvimento de um modelo de tradução baseado na arquitetura Transformer, sem a inclusão inicial de mecanismos de atenção relacional. O objetivo é estabelecer uma linha de base de desempenho, que servirá como referência para comparações futuras.
+A segunda etapa prevê o desenvolvimento de um modelo de tradução baseado na arquitetura Transformer, sem a inclusão inicial de mecanismos de atenção relacional. O modelo foi implementado utilizando uma arquitetura do tipo \textit{Transformer decoder-only}, inspirada em modelos da família GPT. A configuração definida para este trabalho consiste em seis camadas (\textit{layers}), seis cabeças de atenção e vetores de representação de 384 dimensões. O tamanho máximo do contexto foi fixado em 128 tokens, valor adequado para representar comandos contendo até três ações encadeadas.
 
-O modelo será configurado como um \textit{Transformer decoder-only}, semelhante a modelos da família GPT, sendo treinado de forma supervisionada para prever a sequência LBML correspondente a um comando em português. O treinamento será realizado utilizando o conjunto de dados sintético gerado na etapa anterior.
+O vocabulário definido para o modelo possui 70 caracteres, contemplando letras, números, pontuação e os símbolos específicos da LBML. O valor de \textit{dropout} adotado é 0{,}2, buscando garantir estabilidade durante o treinamento sobre um conjunto de aproximadamente 40 mil exemplos sintéticos. Essa configuração foi planejada para oferecer um bom equilíbrio entre capacidade de aprendizado, custo computacional e adequação à complexidade da tarefa de tradução.
 
-O modelo base será composto por oito camadas e oito cabeças de atenção, com vetores de representação de 512 dimensões. Essa configuração foi definida para equilibrar capacidade de aprendizado e custo computacional, considerando o volume do conjunto de dados planejado, que contará com aproximadamente 150 mil exemplos sintéticos. 
-
-O contexto de entrada será limitado a 256 tokens, valor suficiente para representar comandos compostos contendo múltiplas ações. A taxa de aprendizado será inicializada em $3\times10^{-4}$, ajustada para garantir estabilidade durante o treinamento de um modelo de maior porte, enquanto a taxa de \textit{dropout} será mantida em 0.15, buscando reduzir o risco de sobreajuste. O otimizador adotado será o AdamW, amplamente utilizado em tarefas de tradução por sua capacidade de convergência estável.
-
-O vocabulário será construído a partir de todos os caracteres presentes no corpus, estimado em cerca de 80 símbolos, incluindo letras, números, acentuação e tokens específicos da LBML. O processo de treinamento será acompanhado por avaliações periódicas, utilizando métricas como \textit{Exact Match Rate} e \textit{BLEU Score}, que permitirão monitorar a evolução do modelo e sua capacidade de gerar comandos sintaticamente válidos.
+O processo de treinamento será acompanhado por avaliações periódicas, utilizando métricas como \textit{Exact Match Rate} e \textit{BLEU Score}, que permitirão monitorar a evolução do modelo e sua capacidade de gerar comandos sintaticamente válidos.
 
 \subsection{Aprimoramento com Atenção Relacional (RASA)}
 
-Após a obtenção de um modelo funcional e estável, será implementada uma segunda versão incorporando o mecanismo de atenção sensível a relações (\textit{Relation-Aware Self-Attention} — RASA). Diferentemente da formulação tradicional, na qual o RASA modela relações entre tokens dentro da própria sequência de entrada, nesta proposta o mecanismo será adaptado para capturar relações entre os tokens da entrada (em português) e os símbolos correspondentes da LBML na saída. 
+Após a obtenção de um modelo funcional e estável, será implementada uma segunda versão incorporando o mecanismo de atenção sensível a relações (\textit{Relation-Aware Self-Attention} — RASA). Diferentemente da formulação tradicional, na qual o RASA modela relações entre tokens dentro da própria sequência de entrada, nesta proposta o mecanismo será adaptado para capturar relações entre os tokens da entrada (em português) e os símbolos correspondentes da LBML na saída.
 
 O objetivo é introduzir um viés de atenção que favoreça o alinhamento semântico direto entre os elementos linguísticos e suas representações simbólicas. Por exemplo, o modelo deverá aprender explicitamente relações do tipo “ande” $\rightarrow$ “D”, “gire” $\rightarrow$ “R”, “frente” $\rightarrow$ “F” e “esquerda” $\rightarrow$ “L”. Esse alinhamento relacional entre domínios distintos busca reduzir ambiguidades de tradução e reforçar a consistência sintática dos comandos gerados.
 
@@ -117,20 +111,7 @@ Essas relações serão representadas em uma matriz relacional utilizada durante
 
 A etapa final do desenvolvimento consistirá na comparação entre o modelo base e o modelo aprimorado com RASA. Ambos serão treinados com o mesmo conjunto de dados e parâmetros idênticos, de modo que as diferenças observadas no desempenho possam ser atribuídas exclusivamente à introdução da atenção relacional.
 
-As métricas de avaliação incluirão a \textit{Exact Match Rate}, o \textit{BLEU Score} e a taxa de comandos LBML válidos (\textit{valid syntax rate}). Também serão analisadas separadamente instruções simples e compostas, a fim de verificar se o ganho de desempenho é mais significativo em cenários com maior complexidade sintática.
-
-\subsection{Etapas Futuras}
-
-O trabalho encontra-se atualmente na fase de planejamento e especificação técnica. As próximas etapas incluem:
-\begin{enumerate}
-  \item Implementar o script de geração do dataset sintético;
-  \item Treinar o modelo base de tradução;
-  \item Incorporar o mecanismo de atenção relacional entre entrada e saída;
-  \item Realizar a comparação entre as duas versões do modelo;
-  \item Consolidar os resultados obtidos na seção de avaliação.
-\end{enumerate}
-
-A execução dessas etapas permitirá avaliar, de forma sistemática, a contribuição do \textit{Relation-Aware Self-Attention} na tarefa de tradução de linguagem natural para LBML, estabelecendo um caminho para o desenvolvimento de tradutores mais precisos e interpretáveis em domínios específicos.
+A métrica de avaliação será a \textit{Exact Match Rate}. Serão analisadas separadamente instruções simples e compostas, a fim de verificar se o ganho de desempenho é mais significativo em cenários com maior complexidade sintática.
 
 % Bibliografia
 \bibliographystyle{sbc}
