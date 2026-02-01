@@ -1,13 +1,13 @@
 # Fdb version 4
-["bibtex main"] 1769987679.46178 "main.aux" "main.bbl" "main" 1769987679.47999 0
-  "./references.bib" 1769987679.28849 2272 26f71d33b1f6c227cc245d0a1af2df67 ""
+["bibtex main"] 1769988175.07668 "main.aux" "main.bbl" "main" 1769988183.85878 0
+  "./references.bib" 1769987690.96728 2272 26f71d33b1f6c227cc245d0a1af2df67 ""
   "/usr/local/texlive/2025basic/texmf-dist/bibtex/bst/natbib/plainnat.bst" 1233624470 26816 ffe5423d2019860bad9f54bc402fac15 ""
-  "main.aux" 1769987448.80182 1633 72b90b0ade0994e56a4431b1286d26a0 "pdflatex"
+  "main.aux" 1769988183.81156 1736 e24cb330995ed6b685fa10b0986e80de "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1769987448.23218 "/Users/guilherme.mendesrosa/code/mestrado/anteprojeto/main.tex" "main.pdf" "main" 1769987679.48003 0
+["pdflatex"] 1769988183.23218 "/Users/guilherme.mendesrosa/code/mestrado/anteprojeto/main.tex" "main.pdf" "main" 1769988183.85891 0
   "/Users/guilherme.mendesrosa/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1200.600pk" 1768565625.56375 31928 afdceb4d799a2e8ab678100545cedc0c ""
   "/Users/guilherme.mendesrosa/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecbx1440.600pk" 1768565625.76954 40112 09b520840bbdc3a1e2f9ce6324ba0268 ""
   "/Users/guilherme.mendesrosa/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm0900.600pk" 1769987423.86089 21332 ca665a25f960956c5485634a1f528855 ""
@@ -15,7 +15,7 @@
   "/Users/guilherme.mendesrosa/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1200.600pk" 1768565626.64346 28416 45a0fc07514092cf1fbea47925bc0924 ""
   "/Users/guilherme.mendesrosa/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecrm1728.600pk" 1769987424.84263 42496 93c543c88968aba5b9aae0ecabb2467a ""
   "/Users/guilherme.mendesrosa/Library/texlive/2025basic/texmf-var/fonts/pk/ljfour/jknappen/ec/ecti1000.600pk" 1769987424.11766 31872 748cfe20cd478b4a7fbc064b45dc48b7 ""
-  "/Users/guilherme.mendesrosa/code/mestrado/anteprojeto/main.tex" 1769987448.06775 9659 add9b473ec9f043afcc731a10d37f912 ""
+  "/Users/guilherme.mendesrosa/code/mestrado/anteprojeto/main.tex" 1769988183.05876 10065 ad55276c3ef4cbd3314424213c9d0552 ""
   "/usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecbx1200.tfm" 1136768653 3584 402da0b29eafbad07963b1224b222f18 ""
   "/usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecbx1440.tfm" 1136768653 3584 13049b61b922a28b158a38aeff75ee9b ""
   "/usr/local/texlive/2025basic/texmf-dist/fonts/tfm/jknappen/ec/ecrm0900.tfm" 1136768653 3584 d3d8ac8b25ca19c0a40b86a5db1e8ccc ""
@@ -137,9 +137,9 @@
   "/usr/local/texlive/2025basic/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1759268175 79517 32292db50fd160f1ad29b35b8b1526b1 ""
   "/usr/local/texlive/2025basic/texmf-var/web2c/pdftex/pdflatex.fmt" 1759267959 2663828 a0d8b438367048e55113a6b4bca016e9 ""
   "/usr/local/texlive/2025basic/texmf.cnf" 1741448314 628 81d1ada0f601fb1ffa62f1323192d946 ""
-  "main.aux" 1769987448.80182 1633 72b90b0ade0994e56a4431b1286d26a0 "pdflatex"
-  "main.bbl" 1769987679.4755 2224 6d80ebcf6b8919fc76a1bdee07a03c48 "bibtex main"
-  "main.tex" 1769987448.06775 9659 add9b473ec9f043afcc731a10d37f912 ""
+  "main.aux" 1769988183.81156 1736 e24cb330995ed6b685fa10b0986e80de "pdflatex"
+  "main.bbl" 1769988175.08816 2529 b68ea3d70d3cda52cc99a09ce0dcbda7 "bibtex main"
+  "main.tex" 1769988183.05876 10065 ad55276c3ef4cbd3314424213c9d0552 ""
   "simulador.png" 1769997116 822552 3ab01eb634e12f69b9983b0fbf787769 ""
   (generated)
   "main.aux"
