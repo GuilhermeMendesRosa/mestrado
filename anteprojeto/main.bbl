@@ -1,0 +1,35 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Jim\'enez and Zeiner(2017)]{Jimenez2017}
+V\'ictor Juan~Exp\'osito Jim\'enez and Herwig Zeiner.
+\newblock A domain specific language for robot programming in the wood industry: A practical example.
+\newblock In \emph{Proceedings of the 14th International Conference on Informatics in Control, Automation and Robotics (ICINCO 2017) - Volume 2}, pages 549--555. SCITEPRESS -- Science and Technology Publications, Lda., 2017.
+
+\bibitem[Sun et~al.(2020)Sun, Yu, Song, Liu, Yang, and Zhou]{Sun2019MobileBERT}
+Zhiqing Sun, Hongkun Yu, Xiaodan Song, Renjie Liu, Yiming Yang, and Denny Zhou.
+\newblock Mobilebert: a compact task-agnostic bert for resource-limited devices.
+\newblock 2020.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, and Polosukhin]{Vaswani2017Attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan~N. Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock \emph{Advances in Neural Information Processing Systems}, 2017.
+\newblock 31st Conference on Neural Information Processing Systems (NIPS 2017).
+
+\bibitem[Yu et~al.(2018)Yu, Zhang, Yang, Yasunaga, Wang, Li, Ma, Li, Yao, Roman, Zhang, and Radev]{yu2018spider}
+Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li, James Ma, Irene Li, Qingning Yao, Shanelle Roman, Zilin Zhang, and Dragomir~R Radev.
+\newblock Spider: A large-scale human-labeled dataset for complex and cross-domain semantic parsing and text-to-sql task.
+\newblock \emph{arXiv preprint arXiv:1809.08887}, 2018.
+
+\bibitem[Zamora et~al.(2025)Zamora, Lozada, Buele, and Avil\'es-Castillo]{Zamora2025Robotics}
+Patrick Zamora, Alan Lozada, Jorge Buele, and F\'atima Avil\'es-Castillo.
+\newblock Robotics in higher education and its impact on digital learning.
+\newblock \emph{Frontiers in Computer Science}, 7:\penalty0 1607766, 2025.
+\newblock \doi{10.3389/fcomp.2025.1607766}.
+
+\end{thebibliography}

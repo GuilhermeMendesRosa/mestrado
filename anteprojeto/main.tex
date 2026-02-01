@@ -72,6 +72,8 @@ Ressalta-se que ajustes no cronograma poderão ocorrer em função dos resultado
 
 \subsection{Gráfico de Cronograma}
 
+Para fins de leitura do gráfico, considera-se que o mês 1 corresponde a março de 2025 e o mês 36 corresponde a fevereiro de 2028. Dessa forma, as disciplinas iniciam sempre em março.
+
 \begin{center}
 \begin{ganttchart}[
     hgrid,
@@ -82,22 +84,27 @@ Ressalta-se que ajustes no cronograma poderão ocorrer em função dos resultado
     title height=1
 ]{1}{36}
 
+\gantttitle{Aluno especial}{12}
 \gantttitle{Ano 1}{12}
-\gantttitle{Ano 2}{12}
-\gantttitle{Ano 3}{12} \\
+\gantttitle{Ano 2}{12} \\
 
-\ganttbar{Disciplinas (aluno especial)}{1}{12} \\
+\ganttbar{Disciplinas (aluno especial)}{3}{12} \\
 \ganttbar{Desenvolvimento inicial do simulador e LBML}{3}{12} \\
 \ganttbar{Experimentos preliminares com LLMs}{6}{12} \\
 
-\ganttbar{Disciplinas (aluno regular)}{13}{24} \\
+\ganttbar{Disciplinas (aluno regular)}{15}{24} \\
+\ganttbar{Estágio de docência}{13}{16} \\
 \ganttbar{Finalização do simulador web}{13}{18} \\
 \ganttbar{Coleta e curadoria do dataset}{17}{22} \\
 \ganttbar{Treinamento inicial do modelo}{21}{24} \\
+\ganttbar{Exame de Inglês}{20}{20} \\
+\ganttbar{Seminário (SIC)}{18}{21} \\
 
-\ganttbar{Redação da dissertação}{18}{36} \\
+\ganttbar{Redação da dissertação}{13}{36} \\
 \ganttbar{Refinamento e compactação do modelo}{25}{30} \\
 \ganttbar{Avaliação quantitativa}{29}{33} \\
+\ganttbar{Qualificação}{29}{29} \\
+\ganttbar{Defesa}{35}{36} \\
 
 \end{ganttchart}
 \end{center}
