@@ -1,0 +1,77 @@
+% SBC Template Style File
+% Based on the official SBC template
+
+\ProvidesPackage{sbc-template}[2023/01/01 SBC Template]
+
+\RequirePackage[portuguese]{babel}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{graphicx}
+\RequirePackage{url}
+\RequirePackage{indentfirst}
+
+% Page layout
+\RequirePackage[a4paper,top=2.54cm,bottom=2.54cm,left=3.17cm,right=3.17cm]{geometry}
+
+% Font size
+\renewcommand{\normalsize}{\fontsize{12}{14}\selectfont}
+
+% Section formatting
+\renewcommand{\section}{\@startsection{section}{1}{0mm}
+  {-2\baselineskip}{0.5\baselineskip}{\normalfont\large\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}
+  {-\baselineskip}{0.3\baselineskip}{\normalfont\normalsize\bfseries}}
+
+% Title formatting
+\renewcommand{\maketitle}{%
+  \begin{center}
+    {\Large\bfseries\@title\par}
+    \vspace{1em}
+    {\normalsize\@author\par}
+    \vspace{0.5em}
+    {\normalsize\@date\par}
+  \end{center}
+  \vspace{2em}
+}
+
+% Author and institution commands
+\newcommand{\inst}[1]{$^{#1}$}
+\newcommand{\address}[1]{\gdef\@address{#1}}
+\newcommand{\email}[1]{\gdef\@email{\texttt{#1}}}
+
+% Title formatting
+\renewcommand{\maketitle}{%
+  \begin{center}
+    {\Large\bfseries\@title\par}
+    \vspace{1em}
+    {\normalsize\@author\par}
+    \vspace{0.5em}
+    \@ifundefined{@address}{}{%
+      {\normalsize\@address\par}
+    }
+  \end{center}
+  \vspace{2em}
+}
+
+% Abstract environment
+\renewenvironment{abstract}{%
+  \small
+  \begin{center}
+    \textbf{Resumo}
+  \end{center}
+  \quotation
+}{\endquotation}
+
+\newenvironment{resumo}{%
+  \small
+  \begin{center}
+    \textbf{Resumo}
+  \end{center}
+  \quotation
+}{\endquotation}
+
+% Paragraph formatting
+\setlength{\parindent}{1.27cm}
+\setlength{\parskip}{0pt}
+
+\endinput
