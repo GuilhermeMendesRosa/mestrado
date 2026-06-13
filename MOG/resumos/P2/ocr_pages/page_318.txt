@@ -1,0 +1,60 @@
+Solids 295
+
+Exercises Section 10.3
+
+1. What effect does reparameterization of a parametric solid have on the pa-
+rameterization of curves or surfaces embedded in it?
+
+2. Write a procedure to compute the coordinates of a point on a curve in a
+tricubic solid. Denote this as PCRSOL(SOL, CI, T, P), where
+
+SOL(4, 4, 4, 3) is the input array of geometric coefficients of the tricubic
+solid
+
+CI(4, 3) is the input array of geometric coefficients of a cubic Hermite curve
+defined in the solid in terms of the u, v, and w parametric variables
+
+T is the input value of the parametric variable ¢ of a point on the curve
+
+P(6) is the output array of x, y, z, u, v, w coordinates.
+
+3. Write a procedure to compute the coordinates of a point on a surface in a
+tricubic solid. Denote this as PSRSOL(SOL, CI, UW, P), where
+
+SOL(4, 4, 4, 3) is the input array of geometric coefficients of a tricubic solid
+
+Cl(4, 4, 3) is the input array of geometric coefficients of a bicubic surface
+defined in the solid in terms of the u, v, and w parametric variables
+
+UW(2) is the input array of variables s and ¢ of a point on the surface
+
+P(6) is the output array of x, y, z, u, v, w coordinates.
+
+10.4 Generalized Notation Scheme and
+Higher-Dimension Elements
+
+To introduce each subject, the preceding sections used a traditional algebraic
+notation scheme. Incorporating vector and matrix notation significantly reduces the
+complexity and awkwardness of these formulations. The next logical step is to intro-
+duce a more generalized summation scheme that extends to the representation of not
+only curves and surfaces, but also to solids and higher-order geometric forms. The
+notation convention we use here (largely attributable to Timmer) has these charac-
+teristics and others. It can extend to spaces of any dimension; it applies to polycubic
+interpolation involving an arbitrary number of independent parametric variables and
+suggests a system that can directly extend to any odd-ordered polynomial form.
+
+We will apply the following general symbol definitions:
+
+A ji jy...jn = Vector elements of the algebraic coefficient array A
+
+ify jy...j, = th component of aj, j,..j,
+
+bj, j...j, = Vector elements of the geometric coefficient array B
+1J2++-Jn
+
+Dify jy...jy = th component of D ji join
+
+P(X1.%95--45Xm) = point vector in object space (dependent variables)
+
+u = parametric variable (independent variable)
+

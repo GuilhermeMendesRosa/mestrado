@@ -1,0 +1,1416 @@
+
+============================================================
+PDF PAGE 341
+============================================================
+1 1 Complex Model
+Construction
+
+In geometric modeling, we combine simple shapes to construct complex models. The
+techniques we use must produce valid models. For example, a completed model must
+be dimensionally homogeneous. If it is a three-dimensional solid, it must have nc
+dangling edges or surfaces. Model connectivity and homogeneity are topological
+properties, so consideration of topology is also an important part of the modeling
+process (Mortenson 1995, 1999).
+
+This chapter discusses two important approaches to representing complex
+models: one approach uses an implicit construction technique called constructive
+solid geometry, or CSG, and the other uses an explicit boundary-based technique
+called boundary representation, or b-rep. The CSG scheme defines complex solids as
+Boolean combinations of simpler solids. The complete representation is sometimes
+referred to as a CSG tree, because it uses a binary tree whose terminal nodes are sim-
+ple solids and whose nonterminal nodes are so-called ‘regularized’ Boolean combin-
+ing operations. The data structure of a b-rep is a graph associating the curves and sur-
+faces that comprise the boundary of a solid.
+
+In the early chapters, we discussed the basic elements of a geometric model:
+The parametric and implicit curves, surfaces, and solids. We then discussed the geo-
+metric properties and transformations of these elements. In the previous chapter, we
+discussed how to generate simple solid shapes using instances of parameterized
+shapes, sweeps, and deformations. All of these form the foundation on which we
+build the complex models that are the subject of this chapter. Here we will discuss
+graph-based models, Boolean models, boundary representations, and space-
+partitioning schemes.
+
+11.1 Topology of Models
+
+Complex models require considerable attention to their topology. We must
+understand how simple elements are connected to form the complex model and how
+its topology is preserved when subjected to a variety of transformations. Topological
+properties are not metrical, but concern such things as connectivity and dimensional
+
+318
+
+
+============================================================
+PDF PAGE 342
+============================================================
+Complex Model Construction 319
+
+continuity. The properties of geometric shapes that are invariant under transforma-
+tions that stretch, bend, twist, or compress a figure, without tearing, puncturing, nor
+inducing self-intersection, are topological properties. The property of being an open
+or closed curve or surface is a topological invariant. One-sidedness and two-
+sidedness are topologically invariant properties of surfaces. Lines, parabolas, and the
+branches of a hyperbola belong to the class of topologically equivalent figures called
+simple arcs. We will address these and other topics here, focusing on the topology of
+polyhedra, piecewise flat surfaces, and closed curved surfaces.
+
+Piecewise Flat Surfaces
+
+Many of the existing and potential future representation schemes for model-
+ing solid objects use polyhedra and their supporting topology, so there are many op-
+portunities for applying the material presented here. The classical polyhedron is an
+excellent example with which to begin a discussion of the topology of polyhedra and
+piecewise flat surfaces. By polyhedron we mean an arrangement of polygons such
+that two and only two polygons meet at an edge, and that it is possible to traverse the
+surface of the polyhedron by crossing its edges and moving from one polygonal face
+to another until all polygons have been traversed by this continuous path.
+
+The simple polyhedra are the most important, since they are historically the
+source of topology's contribution to geometric modeling. The term simple polyhedra
+refers to all polyhedra that can be continuously deformed into a sphere. Regular
+polyhedra are an example and subset of the simple polyhedra. Regular polyhedra
+have no reentrant edges; thus, they are convex. Furthermore, we apply the term con-
+vex to every polyhedron that lies entirely on one side of each of its polygonal faces.
+Although convexity is not a topological property, it does imply one: Every convex
+polyhedron is a simple polyhedron. A toroidal polyhedron is a nonsimple polyhe-
+dron.
+
+Euler's Formula
+
+A well-known relationship between the number of vertices, edges, and faces,
+V, E, and F, respectively, of a simple polyhedron is called Euler's formula. It states
+that
+
+V-E+F=2 (11.1)
+This formula provides a simple proof that there are only five regular polyhedra.
+
+To prove this, let us digress slightly and explore an application of Euler's
+theorem to geometric modeling of a more classical vintage. We will determine all
+possible regular polyhedra, that is, those polyhedra with every face having the same
+number of edges, say, h; every vertex having the same number of edges emanating
+from it, say, k; and every edge having the same length. Since every edge has two
+vertices and belongs to exactly two faces, it follows that Fh = 2E = Vk . Substitute
+this into Euler's formula:
+
+
+
+============================================================
+PDF PAGE 343
+============================================================
+320 Chapter 11
+
+or
+flit a2
+Eh k 2
+
+For a polyhedron, we safely assume that h, k >3. On the other hand, if bott
+hand k were larger than three, then the above equation would imply that
+1 11 1
+ei,i_l. 1 + 11 _
+Ehk2 4 4 2
+which is obviously impossible. Therefore, either A or k equals 3. If h =3, then
+
+11.4
+O<=sa5tT-5 (14
+
+0<
+
+0 (11.3
+
+implies that 32k25. By symmetry, if k=3, then 3<A<5. Thus
+(A, k, E) = (3, 3,6), (4, 3,12), (5, 3,30), and (3,5, 30) are the only possibilities
+They are, in fact, realized by the tetrahedron, the cube, the octahedron, the dodecahe-
+dron, and the icosahedron, respectively. Observe that we did not really use the fac
+that the edges of the polyhedron all have the same length. As long as the numbers /
+and k are constant, we still have only five possibilities (up to stretching or contract-
+ing).
+
+Poincaré generalized Euler's formula to n-dimensional space. Instead of
+points, edges, and faces, he defined 0-, 1-, 2-, ..., n-1-dimensional elements. He de-
+noted the numbers of each of these elements present in a "hyper" polyhedron (01
+polytope) as Ny, Ny, No, ..., Ny, respectively, and expressed Euler's formula as
+
+No — Np +Ny ~--=1~-(-1)” (ILS)
+
+For n = 3, this reduces to Euler's formula.
+
+These regular polyhedra were known to Euclid, and he even claimed that
+there were no others. Euclid's definition of a ‘regular polyhedron’ was, by today's
+standards, rather imprecise, however, and his claim is not quite correct in the general
+sense in which he states it.
+
+This is our cue to investigate nonsimple polyhedra. Nonsimple polyhedra are
+topological equivalents of any solid object with holes in it and are, therefore, of di-
+rect use to us in geometric modeling. In Figure 11.1 are some examples of nonsimple
+polyhedra. The simplest of these is a rectangular parallelepiped with a through hole,
+also in the shape of a parallelepiped whose sides are parallel to the other faces. The
+two end faces are beveled, or faceted, merely to emphasize the properly intercon-
+nected grid of edges, vertices, and faces. The other faces are treated the same way but
+have more holes. None of them can be deformed into a sphere.
+
+
+============================================================
+PDF PAGE 344
+============================================================
+Complex Model Construction 321
+
+Figure 11.1 Examples of nonsimple polyhedra.
+
+A connectivity number N is associated with every polyhedron. If the surface
+of a polyhedron is divided into two separate regions by every closed path (loop) de-
+fined by edges of the polygons making up its faces, we say that the polyhedron has
+connectivity N=0. All simple polyhedra have N =0, because the surface of a
+sphere is divided into two parts by any closed curve lying on it. Conversely, any
+polyhedron with N =0 can be deformed into a sphere.
+
+We can define any orientable unbounded surface, that is, any closed non-
+self-intersecting surface, as a sphere with G handles. Thus, G =0 for a sphere or any
+simply connected surface, G=1 for a torus, and G = 2 for the surface of a solid fig-
+ure eight. The number G is called the genus of the surface. As we see in Figure 11.1,
+there are closed loops of edges that do not divide the surface of a nonsimple polyhe-
+dron into two parts. We assign these polyhedra a connectivity number greater than
+one. We define the connectivity number N as the maximum number of distinct loops
+with or without common points (intersections) to be found on a polyhedron that do
+not divide its surface into two separate regions. We define the genus G of a polyhe-
+dron as the maximum number of nonintersecting loops to be found that do not divide
+its surface into two regions. Furthermore, we can extend Euler's formula to polyhedra
+of any genus and connectivity. Thus,
+
+V-E+F-2(1-G)=0 (11.6)
+
+where 2G = N , the connectivity number. This is the Euler-Poincaré formula.
+
+Conversely, by counting the vertices, edges, and faces, we can determine the
+connectivity and genus
+
+-V+E-F+2
+
+N=-V+E-F+2 and oe (11.7)
+
+Thus, we can deform simple polyhedra into a sphere and the rectangular par-
+allelepiped with a through hole into a torus. We can also replace structures that are
+more complicated by topologically equivalent polyhedra.
+
+
+============================================================
+PDF PAGE 345
+============================================================
+322 _ Chapter 11
+
+Topological Atlas and Orientation
+
+We will now consider in more detail surfaces formed by taking a collection
+of planar pieces and gluing them together along their edges, creating piecewise flat
+surfaces. Any surface formed in this way will obviously be flat everywhere except
+possibly along the edges where the pieces are glued together. In fact, if all the planar
+pieces have straight edges, then the glued surface can have curvature only at the ver-
+tices.
+
+The crucial step in designing a modeling algorithm to explore piecewise flat
+geometry is in deciding how to represent these surfaces. The most straightforward
+representation is simply to describe each face separately and keep track of which
+edges are adjoining. This data structure is called an atlas. Figure 11.2 shows the atlas
+of a truncated pyramid. This topological atlas is similar to an ordinary road atlas,
+which is a collection of separate maps, each containing information directing the user
+to the next map.
+
+Cc
+
+Figure 11.2 Topological atlas of a truncated pyramid.
+
+
+============================================================
+PDF PAGE 346
+============================================================
+Complex Model Construction 323
+
+Figure 11.3 illustrates two ways of joining a pair of edges. The first, shown
+on the left, identifies an orientation-preserving construction, while the other possibil-
+ity, shown on the right, identifies an orientation-reversing construction. In the figure,
+we have numbered each edge, using an arrow to indicate the ascending direction of
+the numbers, and joined opposite edges so that the numbers match and the direction
+of the two arrows is the same. We can use either numbers or arrows alone to identify
+the way the two edges are joined. Orientation-reversing constructions have both ar-
+rows pointing in the same rotational sense—either clockwise or counterclock-
+wise—around their respective faces. However, if one arrow points clockwise and the
+other counterclockwise, the construction is orientation preserving. Including orienta-
+
+_ tion-reversing joints in an atlas enables us to construct new surfaces, including some
+mathematical curiosities called nonorientable surfaces.
+
+i —<$—$— pr
+123 4 123 4
++ +—+—__+—_++
+123 4 43 2 1
+————_ > ——
+(a) (b)
+
+Figure 11.3 Orientation.
+
+In Figure 11.4, we take the collection of matched-edge pairs as the atlas for a
+closed piecewise square surface. We label each edge with a pair of numbers specify-
+ing the face and edge of the face of interest. We number the faces sequentially start-
+ing from 1, numbering the four edges of each face clockwise from 0 to 3. For the
+cube shown, the atlas is
+
+[d,0) (2,0)][G,)) (5,0)][G,2) (4,0)][G,3) (3,0)]
+(2.1) (3,3)][(2,2) (.2)][2.3) O.D[GBD (4,3)
+[(3,2) (63)][(4.) (5,3)][(4,2) (6,0)][,2) ©,1]
+
+We interpret this as edge 0 of face 1 matched with edge 0 of face 2, and so on.
+
+Next, we take a square and identify a pair of opposite sides in an orientation-
+preserving way to produce a cylinder or, instead, identify the edges with the orienta-
+tion reversed. Try this with a strip of paper. This identification amounts to making a
+half twist in the strip before gluing the edges together, resulting in the Mobius strip.
+
+As inhabitants of a Mobius strip, we would observe a curious phenomenon.
+If we start out at some point and take a trip all the way around the strip, when we get
+
+
+
+============================================================
+PDF PAGE 347
+============================================================
+Ce ee et eee
+
+324 . : _ ______ Chapter 11
+
+back to our initial position, we find that left and right are reversed. This happens be-
+cause right and left are not intrinsically defined. Externally, whether a turn appears
+left or right depends on the side of the surface we are looking from. It is an extrinsic
+property of the surface and depends on setting up an external reference. Thus, we
+must specify that the observation be made from the top side or the bottom side.
+
+ry
+vn £
+os)
+NwMo
+
+0
+3 6 1
+2
+
+Figure 11.4 Atlas of a cube.
+
+Right and left are characteristics of the two-dimensional Mébius strip in-
+habitant's motions, not characteristics of the surface. As inhabitants of the Mébius
+strip, we can define right and left on the surface, but the definition works only lo-
+cally. We cannot look at some point on the surface, then decide a priori that one di-
+rection is either right or left. We must first move around on the surface. There is
+nothing to ensure that, as we move around the surface, the commands to go left or
+right will generate the same orientation each time we return to a given point. This
+potential reversal and confusion is exactly what happens on the Mobius strip.
+
+A surface on which left and right are never reversed is orientable, and we are
+able to establish a consistent left and right definition on the surface. If we find a path
+that confuses left and right, the surface is nonorientable. We can easily demonstrate
+the orientability of a surface in terms of another property, too. For example, an ori-
+entable surface is one on which we can define clockwise and counterclockwise rota-
+tions in a consistent way: We choose a point p on the surface S and imagine stand-
+ing at that point. Next, we decide which of the two possible rotations to call clock-
+wise; this is called an orientation at p. Now, we let q be another point on S. (Note: q
+may equal p.) As we walk to g along some path, we keep track of which rotation we
+defined as clockwise. This induces an orientation at g, a sense of clockwise or
+counterclockwise for rotations at q.
+
+
+============================================================
+PDF PAGE 348
+============================================================
+Complex Model Construction 325
+
+There are obviously many paths from p to q. Furthermore, there is not always
+a unique shortest path. Different paths may induce different orientations. If we obtain
+the same orientation no matter which path we take, then the surface is orientable.
+However, if we walk around the meridian of a strip, we will end up with the opposite
+orientation from our original one. Therefore, again we conclude that the Mébius strip
+is nonorientable, and our new definition agrees with the old. We conclude that ori-
+entability is an intrinsic property of surfaces.
+
+Any closed surface that fits into three-dimensional space must be topologi-
+cally the equivalent of a sphere with g handles, where g can equal zero. Now we add
+another condition, namely, that the surface must be orientable. A sphere is orientable,
+and it is not hard to show that adding a handle cannot change that. Note that the
+Mobius strip does fit into three-dimensional space, but it is not closed. To transform
+the MGbius strip into a closed surface, we make an orientation-preserving identifica-
+tion of the top and bottom edges on the atlas exactly as we did when producing a to-
+rus from a cylinder (Figure 11.5). The resulting surface is a Klein bottle, and, like the
+MGbius strip, it is nonorientable.
+
+b
+
+Figure 11.5 Atlas of: (a) a cylinder; (b) a torus;
+(c) a Mobius strip; and (d) a Klein bottle.
+
+Producing the Klein bottle involves sticking the bottle through itself—a
+rather drastic operation, but the best we can do in three dimensions. The Klein bottle
+will not fit into a three-dimensional space without self-intersections.
+
+If we start with a Mébius strip, close it up by making a second orientation-
+reversing identification, we produce a special surface, called the projective plane.
+The projective plane is nonorientable and topologically distinct from a Klein bottle.
+
+
+
+============================================================
+PDF PAGE 349
+============================================================
+326 Chapter 11
+
+The atlas must specify not only which edges are identified, but also whether
+the orientation is reversed. We denote this by including a +1 or -1, the transition
+parity. Figure 11.6 shows several examples of a notation scheme, including the tran-
+sition parity number. It should now be obvious that simple bookkeeping changes
+produce dramatic changes in the topological properties of a surface.
+
+aa
+
+((1,0)(1,3) + 1], [(,1)C,.2) + 1] [(1,0)(1,2) + A . 1)(1,3) + 1]
+
+ao
+
+((1,.0)C1,2) + 1, 14.0.3)- HE 1C,0)04.2) - 1, FU..3) - 1
+(c) (d)
+
+Figure 11.6 Atlas and transition parity of: (a) a sphere; (b) a torus;
+(c) a Klein bottle; and (d) a projective plane.
+
+Curvature of Piecewise Flat Surfaces
+
+We now turn our attention to a seemingly paradoxical subject: the curvature
+of piecewise flat surfaces. It so happens that all of the curvature in a piecewise flat
+surface is concentrated at the vertices, making total curvature easy to compute. We
+need only sum up the angle excesses of small paths around each of the vertices: thus,
+
+Vv
+K=S5; (11.8)
+
+where E; is the excess of a path around the vertex i.
+To transform this expression into the simplest, most meaningful terms, recall
+that excess is equal to 2 minus the total turning, and we rewrite the equation as
+
+Vv
+K=)@n-T;) (11.9)
+i=l
+
+where 7; is the total turning of a path around the vertex 7.
+
+
+============================================================
+PDF PAGE 350
+============================================================
+Complex Model Construction 327
+
+Factoring out the 27 terms (one for each vertex) we obtain
+
+v
+K=2n V-S7; (11.10)
+i=]
+where V is, of course, the number of vertices in the surface.
+
+We can further clarify this expression if we rewrite it using the fact that the
+total turning around a vertex is equal to the sum of all the interior angles meeting at
+that vertex. Summing over all the vertices gives us all the interior angles of all the
+faces in the surface. Regrouping these angles according to the faces they lie in, we
+compute total curvature as
+
+F
+K=2nvV-> fj (11.11)
+i=l
+where j; is the sum of the interior angles of the face i.
+
+This is a surprising result because we compute the second term without
+knowing how the edges are joined together. Therefore, if we have all the individual
+faces of a piecewise flat surface and we know V, we can compute total curvature
+without knowing anything about the atlas.
+
+For piecewise square surfaces, the formula is even simpler, since the sum of
+interior angles of any face is 2m. Therefore, K=2a V-2a F or K=2n(v-F).
+This equation for total curvature does not depend on angles at all! Moreover, we can
+do even better. Curiously enough, we can compute the total curvature of any closed
+piecewise flat surface without knowing any angles. We need only know the total
+number of faces and vertices and the number of edges. For a closed piecewise flat
+surface with V vertices, E edges, and F faces, the total curvature is
+
+K=2n(V-E+F) (11.12)
+F
+Because we already know that K = 27 V-Ddf (Equation 11.11), to prove
+i=l
+Equation 11.12 we must show that the sum yh jf, can be expressed independently
+
+of the particular values of the angles. We do not know much in general about the sum
+of the interior angles of a face, but we do know a closely related quantity —the sum
+of the exterior angles. The boundary of each face is a simple closed path, so we know
+that the sum of the exterior angles is 2x. To relate the exterior angles to the interior
+angles, we notice that each exterior angle pairs off with an interior angle to sum to
+m= = 180°, and there are as many of these pairs as there are edges to a face. Therefore,
+
+f= [sum of (1% — exterior angles)|
+
+= 1X e; — (sum of exterior angles of the face) (11.13)
+
+= Xe, —-20
+
+
+
+============================================================
+PDF PAGE 351
+============================================================
+328 - ; ; - ____ Chapter 11
+
+where e; is the number of edges of the face i.
+Summing this quantity over all the faces gives
+
+F F
+VA= dG -2a F (11.14)
+i=1 i=]
+
+Now we simplify yi , noting that in a closed surface each edge is
+
+shared by precisely two faces, and that summing the number of edges in a face over
+all the separate faces counts each edge exactly twice. This means that
+
+F
+Mg =2E (11.15)
+i=l
+
+Combining Equation 11.15 with 11.14 yields
+
+F
+
+Sf, =2a(E-F) (11.16)
+
+i=]
+
+Substituting Equation 11.16 into 11.11 yields
+F
+
+K=2nV-)> f (11.17)
+i-l
+
+or
+K =2n(V-E+F) (11.18)
+
+The quantity (V-£+F) is the Euler characteristic of a surface and is de-
+noted by the Greek letter y (chi). Using this notation, we rewrite the curvature for-
+mula as
+
+K=27y (11.19)
+
+We can think of this equation as a convenient way to calculate the total cur-
+vature of a piecewise flat surface. However, it also implies much more. As we have
+seen, K has special properties. First, K is defined for all surfaces, not only piecewise
+flat ones. Also, K is a topological invariant. Therefore, this equation leads us to sus-
+pect that the Euler characteristic also has these properties. This suggests the follow-
+ing questions: Can we show (V-—E+F) is a topological invariant? Can we define
+(V-E+F) for all surfaces, not just piecewise flat ones? If we achieve these goals,
+we provide powerful tools for geometric modeling.
+
+Look at topological invariance. What happens to (V- E+F) when we de-
+form a piecewise flat surface? Absolutely nothing! After all, (V-E+F) is just a
+counting algorithm, and unless we cut a face in two, remove an edge, or perform
+some other nontopological transformation, none of the numbers can change
+
+
+============================================================
+PDF PAGE 352
+============================================================
+Complex Model Construction 329
+
+Topology of Closed Curved Surfaces
+
+Let us now see how the sum V—E+F works for an arbitrary surface. The
+image of a distorted piecewise flat surface suggests a new definition for the terms
+vertices, edges, and faces on a general surface. Therefore, we will define faces on the
+surfaces not as flat polygons but as topological disks, and edges not as straight lines
+but as simple arcs with a vertex at either end. We will define a net on a general sur-
+face as an arbitrary collection of simple arcs (terminated at each end by a vertex) that
+divide the surface everywhere into topological disks. For convenience, we will con-
+tinue to call the elements of a net edges, vertices, and faces. Given a net, we define
+the Euler characteristic y by the same formula y=V-E+F.
+
+The definition of the Euler characteristic raises a question: If we can draw an
+infinite number of different nets on a surface, how do we decide which net to use in
+computing the Euler characteristic? The answer is that it does not matter which one
+we choose, because all valid nets on the same closed surface have the same Euler
+characteristic.
+
+To prove this, we could imagine starting with a particular net on a surface,
+then transforming this net into a different one by adding or deleting vertices or edges.
+We can do this in several ways. We single out two elementary net transformations:
+
+1. Adding (or deleting) a face by drawing in (or erasing) an edge between
+existing vertices, or
+
+2. Adding (or deleting) a vertex.
+
+Let us see how these transformations affect the value of 7. If we add an
+edge, then E increases by 1. But F also increases by 1; hence F—E is unchanged.
+And because V is unchanged, y =V-—£+F is unchanged by the first type of trans-
+formation. If we insert a new vertex into an edge, we produce not only a new vertex,
+but also a new edge. Thus, V and E each increase by 1, and F is unchanged; then
+V-—E+F is again unchanged. We conclude that y is invariant under the two net
+transformations just defined. To complete the proof that any two nets on the same
+surface will give the same value of 7, we assert that, given any two nets, we can
+always get from one to the other by some sequence of these transformations.
+
+Every surface has an Euler characteristic 7, and y is a topological invari-
+ant. This means that now we have two topological invariants for surfaces—the Euler
+characteristic 7 and the total curvature K. Furthermore, we know that they are re-
+
+lated by K =2zy for piecewise flat surfaces. But does this hold for any surface? It
+does, and we may now assert the following theorem: For any closed surface, the total
+curvature and the Euler characteristic are related by K =27y. This is the Gauss-
+Bonnet theorem.
+
+There are two proofs of this theorem. The first is because K and y are both
+
+topological invariants. We start with an arbitrary surface and deform it into a piece-
+wise flat surface. Since K and y are both topological invariants, the deformation
+
+leaves them unchanged. Since we know that K =2zy for the piecewise flat surface,
+
+
+
+============================================================
+PDF PAGE 353
+============================================================
+330 7 Chapter 11
+
+then it is true for the original surface as well. The only caveat in this proof is that we
+must show that any surface can be deformed into a piecewise flat surface. Intuitively,
+this seems possible. The approach is to flatten the surface piece by piece, pushing all
+the curvature into the edges between the pieces. Then we flatten and straighten the
+edges piece by piece, pushing all the curvature into the vertices. The details of this
+procedure are difficult to express more rigorously, and they are not necessary here. A
+second proof that K = 27y is based on a direct computation of K for any surface and
+is similar to the way we proved the theorem for piecewise flat surfaces.
+
+The Gauss-Bonnet theorem is important in the geometry of surfaces because
+it produces a relationship between quantities defined purely in terms of topology
+(such as the Euler characteristic) and quantities defined purely in terms of distances
+and angles (such as total curvature).
+
+Euler Operators
+
+A connected network of vertices, edges, and faces that always satisfies
+Euler's formula is sometimes called an Euler object. The processes that add or delete
+
+‘faces, edges, and vertices to create a new Euler object are the Euler operators. These
+
+operators provide a rational method for constructing solid, polyhedra-like objects and
+ensure that they are topologically valid (that is, closed and oriented).
+
+The connectedness of the boundary surface of a solid is a property distinct
+from, and independent of, the enclosed interior points. Connectivity, orientation, and
+the characteristic of being non-self-intersecting are global properties of the surface
+and depend on all of its parts. Euler's formula asserts a quantitative relationship be-
+tween these parts that allows us to assign certain distinctive global characteristics: the
+number of handles or through holes, total curvature, connectivity, and so on.
+
+Since we have just seen that Euler's formula is not restricted to plane-faced
+polyhedra but also applies to any closed surface on which we can construct a proper
+net, the formula becomes a useful check on the topological validity of any solid
+whose surface we can express as a net of patches, curve segments, and vertices. In
+fact, the curved bounding surface of a 3D solid shape is usually approximated by a
+network of polygons (forming a polyhedron), in order to efficiently render the sur-
+face for a computer graphic display. To apply the formula, however, certain other
+conditions must be met:
+
+1. All faces must be simply connected (i.e., they are topological disks), with
+no holes in them, and bounded by a single ring of edges.
+
+2. The solid object must be simply connected (i. e., its complement is con-
+nected) with no holes through it.
+
+3. Each edge must adjoin exactly two faces and end at a vertex at each end.
+
+4. At least three edges must meet at each vertex.
+
+Let us look at some examples of the formula in action in Figure 11.7. It is
+easy to see that the objects in this figure satisfy Euler's formula and the nets are
+proper, that is, a collection of simple arcs (edges), terminated at each end by a vertex,
+
+
+============================================================
+PDF PAGE 354
+============================================================
+Complex Model Construction 331
+
+that divide the surface into topological disks. Distorting these shapes by making the
+straight edges curves and the faces nonplanar surfaces does not change the applica-
+bility or validity of the formula. Figure 11.8 demonstrates this with two examples of
+
+spherical nets.
+Euler’s formula: V— E + F = 2 1G
+
+Figure 11.7 Euler’s formula and simple polyhedra.
+
+So ©
+
+(b)
+
+Figure 11.8 Euler’s formula applied to a spherical net.
+
+Figure 11.9 Euler operations on a cube.
+
+
+
+============================================================
+PDF PAGE 355
+============================================================
+13. 332 Chapter 11
+
+| Vertices, edges, and faces added to a model must produce a result that satis-
+Ua fies both the Euler formula and the four conditions mentioned above. In Figure 11.9a
+| and 11.18b, a cubical polyhedron is legitimately modified. In Figure 11.9c, the for-
+Ch mula is certainly satisfied, but notice that edges (1, 5) and (2, 5) do not adjoin two
+
+i faces. Furthermore, only two edges meet at vertex 5, and edge (1, 2) adjoins three
+1 faces. Therefore, as it stands, the object in Figure 11.9c is not a valid solid. We can
+! \ remedy this situation by adding edges (3, 5) and (4, 5), resulting in a net gain of two
+a edges and two faces. Edges (1, 2), (2, 3), (3, 4), and (4, 1) no longer define a face.
+aa Figure 19.10 shows valid modifications to the spherical nets.
+
+(a) (b)
+Figure 11.10 Modification of an Euler net on a sphere.
+
+An interesting modification of Euler's formula states that for a three-
+dimensional space divided into C polyhedral cells, the vertices, edges, faces, and
+cells are related by
+
+V-E+F-C=1 (11.20)
+
+By adding a vertex, point 9, to the interior of a cube (Figure 11.11) and
+
+joining it to each of the other eight vertices with edges, we create a six-celled poly-
+hedron. It is easy to verify the vertex, edge, face, and cell count.
+
+V-E+F-C=1
+9-20+ 18-6=1
+
+Figure 11.11 Euler’s formula and polyhedral cells.
+
+ii Look at what happens to the polyhedral object with a hole through it in Fig-
+ai ure 11.12. Although the Euler formula is satisfied in Figure 11.12a, two of the faces
+
+
+
+============================================================
+PDF PAGE 356
+============================================================
+Complex Model Construction 333
+
+are inadmissible according to our convention. The faces containing the entrance and
+exit to the hole are not topological disks, and therefore the surface net is not proper.
+We correct this situation in Figure 11.12b by adding the edges shown as dashed lines,
+but look at what happens to the formula. Modifying the formula and deleting condi-
+tions | and 2 accommodates such objects. Thus,
+
+V-E+F-H+2P=2B (11.21)
+
+where V, E, and F retain their usual meaning and denote the number of vertices,
+edges, and faces. H denotes the number of holes in faces; P denotes the number of
+passages (holes through the entire object); and B denotes the number of separate,
+disjoint bodies (objects).
+
+V-E+F=2
+16-—24+10=2
+
+(a) V-E+F-H+2P=2B
+
+16-244+ 10-2+2=2
+
+V-E+F=2
+16-32+16=0
+
+b
+
+() V-E+F-H+2P=2B
+16-32+16-04+2=2
+V-E+F-H+2P=2B
+
+() 16-244 11-14+0=2
+V-E+F=2
+
+(d) 16-28 + 14=2
+
+Figure 11.12 Multiply-connected polyhedra and a modified Euler formula.
+
+Another acceptable variation is shown in Figure 11.12c; here, the through
+passage in Figure 1].12a and 11.21b is now merely a concavity. If we add edges as in
+Figure 11.12d, then we satisfy the original Euler formula. (The individual faces, as
+well as the interior, are each simply-connected entities.)
+
+
+
+============================================================
+PDF PAGE 357
+============================================================
+334 Chapter 11
+
+A polyhedron exhibits nine classes of topological relationships between pairs
+of the three types of elements: vertices, edges, and faces (see Figure 11.13). Thus, for
+example, a vertex is topologically characterized by adjacent vertices, edges, and
+faces. For certain graphics applications, it is a good idea to use one of the relation-
+ships V:{V}, E:{V}, or F:{V} to know how vertices are joined, whereas Boolean
+
+shape operations are facilitated by the ring of faces around the vertex V:{F}, and
+
+the Euler operators usually require adjacency among faces F :{F}.
+
+F:{V}
+
+Figure 11.13 Topological relationships between
+pairs of polyhedron elements.
+
+Exercises Section 11.1
+
+1. Is a star polyhedron a simple or nonsimple polyhedron?
+
+2. For n=4 in Equation 11.5, write the complete equation, and discuss the
+meaning of Ng, Nj, Nz, and N3.
+
+3. How many regular polytopes are there in four-dimensional space?
+
+4. Show that every face of a polyhedron must be a topological disk. (Note: A
+topological disk is a bounded surface with no interior holes or “isolated” points. Its
+boundary can be made smaller without limit, approaching a point.)
+
+5. Construct the atlas for a tetrahedron.
+
+
+============================================================
+PDF PAGE 358
+============================================================
+Complex Model Construction 335
+
+6. Show that the total turning of a path around the vertex of a polyhedron is
+equal to the sum of all the interior angles meeting at that vertex.
+
+7. Show that K = 22(V—F) for a cube.
+
+8. Compute K for each of the five regular polyhedra.
+
+9. For piecewise square surfaces, show why K =22(V-—E+F) reduces to
+K=2n(V-F).
+
+10. Construct a toroidal polyhedron, and compute its Euler characteristic.
+Remember that each face of your construction must be a topological disk.
+
+11. Construct three distinct and different nets on a sphere, and compute the
+Euler characteristic for each one.
+
+12. Repeat Exercise 11 for a tetrahedron and a cube.
+
+13. Determine the effect of elementary net transformations by appropriately
+adding faces, edges, and vertices to the nets constructed for Exercises 11 and 12.
+
+14. Construct a “two hole” toroidal polyhedron, and compute its Euler char-
+acteristic and total curvature.
+
+11.2 Graph-Based Models
+
+A geometric model emphasizing topological structure, with data pointers
+linking together an object's faces, edges, and vertices, is a graph-based model. We
+can represent a solid object as a list of the object's faces and their respective surface
+equations. We represent the edges of these faces as curve equations, with pointers to
+their end-point vertices and adjoining faces. We represent the vertices as lists of co-
+ordinates, with pointers to the edges meeting at each vertex. Notice that there are two
+kinds of information:
+
+1. The pointers defining the topology or connectivity between vertices,
+edges, and faces and
+
+2. Numerical data defining curve and surface equations and vertex coordi-
+nates.
+
+Subsequent modeling operations may alter just the pointers, just the numerical data,
+or both.
+
+Figure 11.14 is an example of a graph-based model. The model contains re-
+dundant information, but in many situations this is desirable. Some redundancy can
+speed up searching algorithms, thereby eliminating the need for global searches.
+Scaling and rigid-body transformations (translation and rotation) alter only numerical
+data, leaving the pointers unaffected. In addition, in addition, wireframe-based com-
+puter graphic displays can be derived from a graph-based model in an amount of time
+proportional to the number of edges.
+
+There are interesting differences among graph-based systems: In addition to
+differences in degree of redundancy, there are differences in how the edges of a face
+are accommodated. Some graph-based systems require a face to have a single bound-
+ary with no "hole." Others allow an outer boundary plus disjoint inner boundary
+
+
+
+============================================================
+PDF PAGE 359
+============================================================
+336 Chapter 11
+
+loops representing holes. This characterizes the more highly structured systems and
+offers computational advantages for complex (multiply-connected) solids.
+
+For solids represented as planar-faced polyhedra, many economies are avail-
+able with graph-based systems. Because all edges are straight-line segments, we can
+store them as vertex pairs, and face boundaries as ordered lists (chains) of vertices.
+Alternatively, we can treat a polyhedron as a simple graph, listing the vertices with
+their coordinates in one array and their connectivity in another. The latter is a con-
+nectivity matrix. (Figure 11.15). The connectivity matrix is a binary matrix. Zero-
+valued elements indicate that no connectivity exists, and one-valued elements indi-
+cate that connectivity exists between the pair of vertices. We can construct such a
+matrix for other elements as well, and one is shown in this figure for the connectivity
+between the faces of the polyhedron.
+
+The connectivity matrix is also called an adjacency matrix. These matrices
+are convenient for algorithms that determine whether an edge exists between two
+vertices. If we let aj; denote the element of the connectivity matrix describing the
+
+existence of an edge between vertex i and vertex j, then an algorithm accesses Gij
+
+~ and reads its value. The time needed to do this is independent of the number of verti-
+
+ces and the number of edges. The main disadvantage of a connectivity matrix is that
+
+it requires v2 storage (V = number of vertices) even though most ay = 0. If effi-
+
+cient packing is available, the storage requirement can be reduced to V? bits.
+
+Figure 11.14 A graph-based model.
+
+
+============================================================
+PDF PAGE 360
+============================================================
+Complex Model Construction 337
+
+Vertex
+12345678
+1fo1 011000
+2110100100
+3101010010
+
+S4]10100001
+§5/10000101
+6]0 100101 0
+7100100101
+slo0011010
+
+Face
+
+ABCDEF
+Afo 1 1101
+Bli O 1 1 10
+gc]i 10011
+&pli 10011
+EJO 11101
+Fil 01110
+
+Figure 11.15 Connectivity matrices for a polyhedron.
+
+A graph, then, is a set of nodes (or points) connected by branches (lines). The
+number of branches at a node determines its degree. If any branch has a direction
+associated with it, then the graph is a directed graph (Figure 11.16). For directed
+graphs, we can assign an in degree and an out degree to each node by counting the
+branches pointing to it and away from it, respectively. A path from one node to an-
+other is the sequence of branches to be traversed. If the start and end nodes of a path
+are the same, the path is a circuit. If there is a path between any pair of nodes of a
+graph, the graph is connected. A tree is a connected graph without circuits. A graph
+containing some or all of the nodes and branches of a graph G and no other nodes or
+branches is a subgraph of G. A spanning tree of a connected graph G is a subgraph
+containing all its nodes and enough branches to maintain connectivity without creat-
+ing any circuits.
+
+We may represent a graph in many ways. One way uses a list of vertices
+(nodes) and their connectivity matrix (branches), as we saw earlier. Another inter-
+esting way uses bit vector matrix elements, which often results in considerable effi-
+ciency for graph algorithms. Lists may represent a graph by having a list of adjacent
+vertices associated with each vertex or node. Figure 11.16b shows a directed graph
+with six nodes.
+
+Notice that for a directed graph, aj; =1 only if there is a directed edge from
+
+vertex i to vertex j. The six adjacency lists are: Vertex A[B,F], Vertex B[C,F],
+Vertex C[D], Vertex D[E], Vertex E[C], and Vertex F[E].
+
+
+
+============================================================
+PDF PAGE 361
+============================================================
+338 Chapter 11
+
+A BC DEF
+
+AJO 10001
+
+B\0O 01001
+
+This is the connectivity matrix for Figure 11.16b: C/0 0 0 1 0 0
+D\0 000 10
+
+E}0 01000
+
+F{0 000 1 0
+
+Figure 11.16 Examples of graphs.
+
+Edges of undirected graphs are represented twice in an adjacency matrix. If
+there is an undirected branch (or edge) connecting vertex i to vertex j, then
+
+aj; = aj, =1. When we delete an edge from an undirected graph, we delete both a;
+
+and Gji from the matrix. In the case of adjacency lists, we create a supplementary
+
+array to link the double entries of edges and speed the search process.
+Again, a tree is a directed graph with no circuits. A tree has the following
+additional properties:
+1. There is one and only one node, called the root, which no branches enter.
+2. Every node except the root node has one and only one entering branch.
+3. There is a unique path from the root node to each other node (shown in
+
+bold outline in Figure 11.17).
+
+
+============================================================
+PDF PAGE 362
+============================================================
+Complex Model Construction 339
+
+Although it may be disconcerting to see trees with roots at the top and leaves
+at the bottom, that is the convention. Given two adjacent nodes a and bd, as in Figure
+11.17, if the branch is directed from a to b, then a is a proper ancestor of b (some-
+times called the father of b), and b is a proper descendant of a (a son of a). A leaf
+node has no proper descendants.
+
+Several quantitative parameters are associated with a tree, as in Figure 11.17.
+Looking at node b, we find that the depth of this node in the tree is the length of the
+path (number of branches traversed) from the root R to b. The height of node b is the
+length of the longest path from b to a leaf. We also notice that the height of the tree is
+the height of the root. The level of a node is the height of the tree minus the depth of
+the node.
+
+If the descendants of each node are in order, say, from left to right, then the
+tree is ordered. When we study Boolean models in Section 2, we will use a special
+type of tree, called a binary tree, which is an ordered tree where each node has two
+descendants —a left descendant and a right one. The tree in Figure 11.17 is a binary
+tree.
+
+The binary tree in Figure 11.18 is complete. A binary tree is complete if for
+some integer k every node of depth less than k has a left and right descendant and
+every node of depth k is a leaf. This is true for the nodes at depth k = 3 in the figure.
+
+The total number of nodes in a complete binary tree of height k is gkel 4
+
+Algorithms must often traverse a binary tree, that is, visit each node to get in-
+formation about it or the path on which it lies. We will investigate three systematic
+ways to do this: preorder traversal, postorder traversal, and inorder traversal. Figure
+11.19 illustrates these traversals on the binary tree shown in Figure 11.18.
+
+First, we define a node n and all its descendants as a subtree ¢, of tree T.
+The node n is the root of 1, . We let r denote the root of the tree and d; and dp its
+immediate descendants. Then we define the preorder traversal of T recursively as
+follows (Figure 11.19a):
+
+1. Visit the root r.
+
+2. Visit in preorder the subtrees with roots d; and dp, in that order.
+
+Define the postorder traversal of T recursively as follows (Figure 11.19b):
+
+1. Visit in postorder the subtrees with roots dz and dr, in that order.
+
+2. Visit the root r.
+
+Finally, define the inorder traversal recursively as follows (Figure 11.19c):
+
+1. Visit in inorder the left subtree of root r (if it exists).
+
+2. Visit r.
+
+3. Visit in inorder the right subtree of r (if it exists).
+
+If we assign a number in sequence to each node we visit, we notice some in-
+teresting properties. The inorder traversal numbers of the nodes of a binary tree occur
+in such a way that each node in the left subtree of a root node nr has a number less
+
+than ng, while each node in the right subtree has a number greater than np.
+
+
+
+============================================================
+PDF PAGE 363
+============================================================
+340 _ Chapter 11
+
+R= Root Height =k =3
+L=Leaf Number of nodes = 24+! — | = 15
+
+Figure 11.18 A complete binary tree.
+
+A wireframe model is the simplest example of a graph-based model, con-
+sisting of a set of vertices defined by their coordinates and a connectivity matrix de-
+fining how the vertices are connected to form straight-line edges. Faces either are not
+explicitly defined or are given as a separate list, or circuit of vertices. The literature
+describing the basics of wireframe modeling methods is vast and accessible. Work in
+this area is by no means finished. This is demonstrated by the work of Agarwal and
+Waggenspack (1992) on decomposition methods for extracting face topologies from
+wireframe models, of Hojnicki and White (1988) on converting CAD wireframe data
+to surfaced representations, of Lequett (1988) on the automatic construction of cur-
+vilinear solids from wireframe views, of Brewer, Vicknair, and Courter (1989) on
+converting wireframes to solids, and by the work of many others.
+
+Using a data structure equivalent to a directed graph, Letcher and Shook
+(1995a) present a new logical framework they call relational geometric synthesis
+(RGS) for constructing complex geometric models from points, curves, surfaces, and
+solids. Their graph structure is more complicated than the conventional tree, because
+
+
+============================================================
+PDF PAGE 364
+============================================================
+Complex Model Construction 341
+
+most of their geometric entities require two or more support nodes. The RGS scheme
+incorporates embedded entities (points on curves, curves on surfaces, etc.) and rela-
+tive entities. The data structure ensures durability of intersection curves, as well as
+durability of the results of compositional processes. Changes in any part of a com-
+plex geometric model are automatically reflected in contingent parts of the model.
+
+Figure 11.19 Traversals of a binary tree.
+
+
+
+============================================================
+PDF PAGE 365
+============================================================
+342 Chapter 11
+
+Exercises 11.2
+
+1. What is the height of the tree in Figure 11.17? For the same figure, what
+are the height, depth, and level of node b?
+
+2. Write out the connectivity matrix for the vertices and faces of a tetrahe-
+dron; for an octahedron.
+
+3. For a complete binary tree of height = 4, write a short subroutine to trav-
+erse it in preorder, postorder, and inorder.
+
+4. Discover the other properties of node numbering for the three types of tra-
+versals (Hint: For a preorder traversal, count the number of descendants of each
+node. Will this determine if node n; is a descendant of node nj? Is this similar to
+
+postorder traversal?)
+
+5. Verify the fact that a complete binary tree has 2+! _1 nodes. How many
+nodes are there in a complete quadtree? A complete octree? (How do you interpret
+the terms quadtree and octree?)
+
+6. Develop a graph-based model for a cube. Follow the example in Figure
+11.14.
+
+7. Develop two different graph-based models for a sphere. Again, follow the
+example in Figure 11.14.
+
+8. Develop a graph-based model that eliminates or minimizes the redundant
+information contained in the model developed in Exercise 6.
+
+9. Derive a connectivity matrix for a cube, each face of which is triangulated
+by an edge, so that four edges meet at each of half the vertices and five edges imeet at
+each of the other half of the vertices.
+
+11.3 Boolean Models
+
+The discussion of Boolean models begins with a brief review of set theory as
+it affects Boolean models and operators. In geometric modeling, when we combine
+the simple shapes called primitives to form complex shapes, set theory becomes use-
+ful. Solid modeling techniques, in particular, have drawn considerably from the axi-
+oms of set theory. For example, important early work at the university of Rochester
+draws from point-set topology to establish more rigorous mathematical foundations
+for solid modeling. See Requicha and Voelker (1977) and Requicha and Tilove
+(1978). We begin with some of the basic concepts of set theory and finish with a look
+at point-set topology, including set-membership classification and its relevance to
+solid modeling. (Incidentally, the first formal treatment of sets dates back to only the
+second half of the nineteenth century, when Cantor created the main body of the the-
+
+ory.)
+
+
+============================================================
+PDF PAGE 366
+============================================================
+Complex Model Construction 343
+
+Set Theory
+
+The term set denotes any well-defined collection of objects. Objects belong-
+ing to a set are its elements or members. In geometric modeling, solid or otherwise,
+
+the basic element is the point. The symbols { | } indicate the set-builder notation
+
+and describe the set in terms of conditions on any arbitrary element of the
+set—conditions that every element of the set must meet. For example,
+
+{x12.5 <x <3.5} is a set consisting of all real numbers in the specified interval. On
+
+the left-hand side of the vertical line we read, "the set of all x..." On the right-hand
+side we have the conditions for set membership.
+
+A set that contains all the elements of all the sets under consideration is the
+universal set, denoted by E. A deck of 52 playing cards may be the universal set if we
+are investigating the probabilities of certain combinations of cards in a poker hand.
+Conversely, a null set is a set that has no elements at all. It is denoted by @ and is
+also referred to as the empty set or the void set.
+
+In general, two sets A and B are equal, expressed as
+
+A=B (11.22)
+
+whenever set A and set B contain exactly the same elements.
+
+Two sets A and B are in one-to-one correspondence if we can pair each ele-
+ment in A with exactly one element in B, and each element in B with exactly one
+element in A. Two sets A and B are equivalent sets if we can place their elements in
+one-to-one correspondence.
+
+Any set A is a subset of set B only if every element in A is also an element
+in B. The symbol c indicates the subset relationship. Thus,
+
+ACB (11.23)
+
+means that A is a subset of B. A is a proper subset of B if every element in A is con-
+tained in B and if B has at least one element not contained in A. Every set is a subset
+of itself, but not a proper subset.
+
+New sets are formed by combining the elements in two or more sets in some
+fashion. Given sets A and B, we can construct a third set C whose elements are all of
+the elements in A together with all of the elements in B, that is, the union of A and B.
+We write this as
+
+C=AUB (11.24)
+By the union of two sets, we mean the set of all elements in one set or in the
+other set or in both sets. For example, if A={a,b,c} and B={c,d,e, f}, then
+C=AUB= {a,b,c,d,e, f}. Notice that there is no repetition of elements in C, even
+
+though element c is in both A and B. We may read AUB as A or B. Here, the "or" is
+what logicians call the inclusive "or" because AUB includes the elements that be-
+long to A as well as B.
+
+
+
+============================================================
+PDF PAGE 367
+============================================================
+344 Chapter 11
+
+If we form a set D comprised of elements common to both A and B, set D is
+the intersection of A and B, expressed as
+
+D=AOB (11.25)
+
+By the intersection of two sets, we mean the set of all elements, and only
+those elements, that are in both sets. Thus, if A= {a, b,c, d}, B= {e, d, ef.g}, and
+D=AB, then D= {c,d}.
+
+If A and B are sets, then their difference (or more formally, their Boolean
+difference) A—B denotes the set of elements in A that are not also elements in B.
+Thus, if A={a,b,c,d}, and B={d,e, f}, then A-B={a,b,c} and B-A={e, f}.
+Clearly, A- A=0. This minus sign does not combine with U in the way that a plus
+analogy might suggest. For example, (AUA)—A=0, but AU(A—A)=A. The
+complement of a set A with respect to a universal set E is the set of all elements in E
+that are not elements in A, written cA. Furthermore, if we form complements with
+respect to a set E containing A and Bas subsets, then A-~B=ANMcB and
+AUB=c(cAN cB). These two identities often allow us to simplify computations. In
+~ boundary evaluation algorithms, with appropriate pre- and post processing, only the
+intersection operator is required.
+
+One way to study sets and subsets are with Venn diagrams, which are par-
+ticularly useful in representing set relationships such as equality and such set opera-
+tions as union and intersection. Figure 11.20 illustrates some set properties and op-
+erations using these diagrams.
+
+(c) A-B (d) (ANB) U(ANC)
+
+Figure 11.20 Venn diagrams and set theory.
+
+
+============================================================
+PDF PAGE 368
+============================================================
+Complex Model Construction 345
+
+There are several ways we can combine sets, and certain well-established
+rules that govern these operations. These rules are discussed in any good textbook on
+set theory. Table 11.1 summarizes some of the properties of operations on sets.
+
+The geometric nature of Venn diagrams suggests useful ways for us to inter-
+pret the properties of sets and operations on them. In geometric modeling, sets con-
+sist of points, and the universal set e is the set of points defining a Euclidean space
+with a dimension of our choosing. Set theory suggests methods for operating on these
+points and classifying them according to such properties as inside, outside, or on the
+boundary of a geometric solid.
+
+Table 11.1 Properties of Operations on Sets
+
+Union Properties:
+
+1. AUB isaset. Closure property
+
+2, AUB=BUA Commutative property
+3. (AUB)UC=AU(BUC) Associative property
+
+4. AUD=A Identity property
+
+5. AUA=A Idempotent property
+6..AUCA=E Complement property
+
+Intersection Properties
+
+1. AOB isaset. Closure property
+
+2, ANB=BOA Commutative property
+3. (ANB)AC=AM(BAC) Associative property
+
+4. ANE=A Identity property
+
+5. ANA=A Idempotent property
+
+6. ANcA=D Complement property
+
+Distributive Properties
+
+1. AU(BNC)=(AUB)M(AUC) — Union is distributive over intersec-
+tion
+
+2, AN(BUC)=(ANB)U(ANC) _ Intersection is distributive over un-
+
+ion
+
+Complementation Properties
+
+1. cE=©O The complement of the universal set is the empty set.
+2. O=E The complement of the empty set is the universal set.
+3. c(cA)=A The complement of a complement of a set A is A.
+
+4. c(AUB)=cANcB DeMorgan's law.
+
+5. c(ANB)=cAUcB DeMorgan's law.
+
+
+
+============================================================
+PDF PAGE 369
+============================================================
+346 Chapter 11
+
+Let us consider the real line defined by a continuous set of points in E',
+where E! is the universal set of points we are considering (Figure 11.21). We define
+
+a subset X of E! by the line segment a < X <b, where a and b are limiting points of
+the set X. X is an open set, where the open circles at a and b symbolize that these
+points are not included in the set, and the solid circles in the lower figure indicate
+their inclusion. The closure of an open set is the union of the set with the set of all its
+limit points. These concepts extend to two- and three-dimensional spaces and point
+sets.
+
+a<x<b
+Te OO nd
+
+a b
+Open set
+
+asxSb
+SE Sn ae
+
+a b
+Closed set
+
+Figure 11.21 Open and closed sets.
+
+The boundary of a closed set is the set of all its limit points. Conversely, the
+interior of a closed set is the set of all points of a set not on its boundary. Thus,
+
+X =bXUiX (11.26)
+
+where bX denotes the set of boundary points and iX denotes the interior points.
+
+We are now ready to see how these concepts allow us to use simple shapes to
+create complex ones. We will use the set operators union U, intersection 4, and
+difference (~), also called Boolean operators, and the rules for their application and
+combination, called Boolean algebra.
+
+Set Membership Classification
+
+In order to regularize sets resulting from combining operations on other sets,
+we must determine whether a given point is inside, outside, or on the boundary of a
+given set. Three important subsets of any regularized set A are: the set of all its inte-
+rior points, denoted iA; the set of all points on its boundary, denoted bA ; and all
+points outside it, denoted cA. Assignment of a specific point to one of these sets is
+set-membership classification. The early work in formalizing and making rigorous
+set-membership classification for geometric modeling was done by R. B. Tilove
+(1980) and others at the University of Rochester. They observed a similarity between
+four types of geometric problems related to modeling:
+
+
+============================================================
+PDF PAGE 370
+============================================================
+Complex Model Construction 347
+
+1. Point inclusion: Given a solid and a point, is the point inside, outside, or
+on the boundary of the solid?
+
+2. Line/polygon clipping: Given a polygon and a line segment, what part of
+the line is inside the polygon? What part is outside the polygon? What part is on the
+boundary of the polygon?
+
+3. Polygon intersection: Given two polygons A and B, what is the intersec-
+tion polygon AN B?
+
+4. Solid interference: Given two solids, do they interfere (that is, intersect
+unintentionally)?
+
+In each problem, two geometric elements are involved, requiring us to de-
+termine some sort of inclusion relationship between them. Creating a set-membership
+classification function unifies the approach to these problems. We denote this func-
+
+tion as M{ L which operates on two specified point sets—a reference set S anda
+candidate set X. Thus, M[X,S] partitions X into subsets corresponding to their
+
+membership in bS, iS, or cS.
+Let us look at several classification relationships and some classification
+
+methods. We will consider the possible relationships between sets taken from E°,
+
+E! ; E2 , and E> universal sets, that is, points, lines or curves, surfaces, and solids.
+
+Relationships involving points are shown in Figure 11.22. The most basic,
+
+yet easily overlooked, classification relationship is between two points: A test point
+may be the same as a given point, or it may be different. A simple algorithm to com-
+pare coordinates with some degree of precision will produce the classification.
+A point may be on or off a given curve; if on the curve, three subclasses are
+possible: on the initial point, on the end point, or on an intermediate point. For a
+straight line, an additional pair of classifications for a point exist—on the back exten-
+sion of the line or on the forward extension of the line. Finally, a point can be to the
+right or left of a line or curve on a surface relative to its direction of parameterization.
+A simple test for right-side/left-side status is to first find the point on the given curve
+nearest the candidate point. Given a consistent convention, the sign of the resulting
+vector product indicates on which side of the curve we find the point.
+
+Given a bounded, simply-connected topological disc (for example, a closed,
+non-self-intersecting curve lying on a surface, of which a convex polygon on a plane
+is a special case), then a point may be inside the disc, on its boundary, or outside of
+it. In the special case of a straight-edged plane polygon, there are additional classifi-
+cations relative to the boundary—the point may be on a specific edge or a vertex.
+
+One way to classify a point as inside or outside a disc or polygon is to com-
+pute the winding number (see Apostol 1978 or any other calculus textbook). The sign
+of the winding number depends on the direction of parameterization (see Figure
+11.23). We can arrange the numerical integration of the appropriate line integral and
+the direction of parameterization to yield either the signs shown in the figure or the
+reverse.
+
