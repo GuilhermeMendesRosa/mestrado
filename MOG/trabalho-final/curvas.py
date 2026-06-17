@@ -156,34 +156,38 @@ class AplicativoCurvas:
         if not self.bspline.pronto():
             return
 
-        t_final = len(self.bspline.pontos) - self.bspline.GRAU
-        num_amostras = 100
-        passo_t = t_final / num_amostras
+        nos = self.bspline._gerar_vetor_nos(len(self.bspline.pontos))
+        t_ini = nos[self.bspline.GRAU]
+        t_fim = nos[len(self.bspline.pontos)]
+        passos = 100
+        dt = (t_fim - t_ini) / passos
 
-        pontos_curva = []
-        for i in range(num_amostras + 1):
-            t = i * passo_t
+        coords = []
+        t = t_ini
+        while t <= t_fim:
             x, y = self.bspline.calcular_ponto(t)
-            pontos_curva.extend([x, y])
+            coords.extend([x, y])
+            t += dt
 
-        if len(pontos_curva) >= 4:
-            self.canvas.create_line(pontos_curva, fill=self.bspline.cor_curva, width=2, smooth=True)
+        if len(coords) >= 4:
+            self.canvas.create_line(coords, fill=self.bspline.cor_curva, width=2, smooth=True)
 
     def desenhar_curva_bezier(self):
         """Desenha a curva Bezier usando o algoritmo de De Casteljau."""
         if not self.bezier.pronto():
             return
 
-        num_amostras = 100
-        passo_t = 1.0 / num_amostras
-        pontos_curva = []
-        for i in range(num_amostras + 1):
-            t = i * passo_t
+        passos = 100
+        dt = 1.0 / passos
+        coords = []
+        t = 0.0
+        while t <= 1.0:
             x, y = self.bezier.calcular_ponto(t)
-            pontos_curva.extend([x, y])
+            coords.extend([x, y])
+            t += dt
 
-        if len(pontos_curva) >= 4:
-            self.canvas.create_line(pontos_curva, fill=self.bezier.cor_curva, width=2, smooth=True)
+        if len(coords) >= 4:
+            self.canvas.create_line(coords, fill=self.bezier.cor_curva, width=2, smooth=True)
 
     # ---------- Redesenho geral (ordem: fundo -> poligonal -> pontos -> curva) ----------
 
