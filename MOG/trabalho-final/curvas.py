@@ -165,7 +165,7 @@ class AplicativoCurvas:
         coords = []
         t = t_ini
         while t <= t_fim:
-            x, y = self.bspline.calcular_ponto(t)
+            x, y, z = self.bspline.calcular_ponto(t)
             coords.extend([x, y])
             t += dt
 
@@ -182,7 +182,7 @@ class AplicativoCurvas:
         coords = []
         t = 0.0
         while t <= 1.0:
-            x, y = self.bezier.calcular_ponto(t)
+            x, y, z = self.bezier.calcular_ponto(t)
             coords.extend([x, y])
             t += dt
 

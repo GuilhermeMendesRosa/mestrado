@@ -13,10 +13,10 @@ class Bezier:
     def __init__(self):
         self.pontos = []
 
-    def adicionar_ponto(self, x, y):
+    def adicionar_ponto(self, x, y, z=0):
         """Adiciona ponto se ainda não tiver 6."""
         if len(self.pontos) < self.max_pontos:
-            self.pontos.append({"x": x, "y": y})
+            self.pontos.append({"x": x, "y": y, "z": z})
             return True
         return False
 
@@ -78,9 +78,10 @@ class Bezier:
         pontos[i]^(k) = (1-t) * pontos[i]^(k-1) + t * pontos[i+1]^(k-1)
         """
         n = self.GRAU
-        pts = [[p["x"], p["y"]] for p in self.pontos]
+        pts = [[p["x"], p["y"], p["z"]] for p in self.pontos]
         for k in range(1, n + 1):
             for i in range(n - k + 1):
                 pts[i][0] = (1 - t) * pts[i][0] + t * pts[i + 1][0]
                 pts[i][1] = (1 - t) * pts[i][1] + t * pts[i + 1][1]
-        return pts[0][0], pts[0][1]
+                pts[i][2] = (1 - t) * pts[i][2] + t * pts[i + 1][2]
+        return pts[0][0], pts[0][1], pts[0][2]
