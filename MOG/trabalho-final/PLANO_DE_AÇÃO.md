@@ -48,21 +48,22 @@
 
 ---
 
-## ⏳ FASE 3 — Implementar Bézier Grau 5
-**Status:** PENDENTE ⏳
-**Descrição:** Adicionar uma segunda curva (Bézier Grau 5) no mesmo espaço gráfico da B-spline.
+## ✅ FASE 3 — Implementar Bézier Grau 5
+**Status:** CONCLUÍDO ✅
+**Arquivo:** `bezier.py`
 
-### O que precisa ser feito:
-- [ ] Adicionar uma nova curva (Bézier Grau 5) no mesmo canvas.
-- [ ] Permitir inserir e mover os pontos de controle da Bézier separadamente.
-- [ ] Implementar o algoritmo de **De Casteljau** (ou fórmula binomial) para calcular os pontos da curva.
-- [ ] Diferenciar visualmente os pontos de controle da B-spline (azul) e da Bézier (outra cor, ex: verde).
-- [ ] Desenhar a curva Bézier na tela (outra cor, ex: verde).
+### O que foi feito:
+- [x] Adicionar uma nova curva (Bézier Grau 5) no mesmo canvas.
+- [x] Permitir inserir e mover os pontos de controle da Bézier separadamente.
+- [x] Implementar o **algoritmo de De Casteljau** para calcular os pontos da curva.
+- [x] Diferenciar visualmente os pontos de controle da B-spline (azul) e da Bézier (verde).
+- [x] Desenhar a curva Bézier na tela (cor verde).
 
-### Dica:
-- A curva Bézier de grau 5 usa **6 pontos de controle**.
-- A fórmula é mais simples que a B-spline, pois não precisa de vetor de nós.
-- Use cores diferentes para não confundir as duas curvas!
+### Como testar:
+1. Execute: `python3 curvas.py`
+2. Use o botão "Modo: B-spline" / "Modo: Bézier" para alternar entre as curvas.
+3. No modo Bézier, clique para adicionar pontos de controle (mínimo 6).
+4. Arraste os pontos verdes para ver a curva se atualizar em tempo real.
 
 ---
 
@@ -130,10 +131,10 @@ MOG/
 |------|-----------|--------|
 | 1 | Definir linguagem | ✅ Concluído |
 | 2 | B-spline Grau 4 | ✅ Concluído |
-| 3 | Bézier Grau 5 | ⏳ Pendente |
+| 3 | Bézier Grau 5 | ✅ Concluído |
 | 4 | Continuidade C0 | ⏳ Pendente |
 | 5 | Continuidade C1 | ⏳ Pendente |
 | 6 | Continuidade C2 | ⏳ Pendente |
 | 7 | Relatório | ⏳ Pendente |
 
-**Última atualização:** 08/06/2026
+**Última atualização:** 18/06/2026
