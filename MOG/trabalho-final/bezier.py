@@ -13,10 +13,10 @@ class Bezier:
     def __init__(self):
         self.pontos = []
 
-    def adicionar_ponto(self, x, y, z=0):
+    def adicionar_ponto(self, x, y):
         """Adiciona ponto se ainda não tiver 6."""
         if len(self.pontos) < self.max_pontos:
-            self.pontos.append({"x": x, "y": y, "z": z})
+            self.pontos.append({"x": x, "y": y})
             return True
         return False
 
@@ -44,7 +44,7 @@ class Bezier:
 
     @property
     def cor_ponto(self):
-        return "#00EE00"
+        return "green2"
 
     @property
     def cor_borda(self):
@@ -52,7 +52,7 @@ class Bezier:
 
     @property
     def cor_curva(self):
-        return "#00CD00"
+        return "green3"
 
     @property
     def cor_poligonal(self):
@@ -74,14 +74,13 @@ class Bezier:
 
     def _de_casteljau(self, t):
         """
-        Algoritmo de De Casteljau para grau 5 (3D).
+        Algoritmo de De Casteljau para grau 5.
         pontos[i]^(k) = (1-t) * pontos[i]^(k-1) + t * pontos[i+1]^(k-1)
         """
         n = self.GRAU
-        pts = [[p["x"], p["y"], p["z"]] for p in self.pontos]
+        pts = [[p["x"], p["y"]] for p in self.pontos]
         for k in range(1, n + 1):
             for i in range(n - k + 1):
                 pts[i][0] = (1 - t) * pts[i][0] + t * pts[i + 1][0]
                 pts[i][1] = (1 - t) * pts[i][1] + t * pts[i + 1][1]
-                pts[i][2] = (1 - t) * pts[i][2] + t * pts[i + 1][2]
-        return pts[0][0], pts[0][1], pts[0][2]
+        return pts[0][0], pts[0][1]

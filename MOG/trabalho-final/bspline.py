@@ -13,9 +13,9 @@ class BSpline:
     def __init__(self):
         self.pontos = []
 
-    def adicionar_ponto(self, x, y, z=0):
+    def adicionar_ponto(self, x, y):
         """Adiciona ponto de controle (ilimitado)."""
-        self.pontos.append({"x": x, "y": y, "z": z})
+        self.pontos.append({"x": x, "y": y})
 
     def pode_adicionar(self):
         """B-spline aceita quantos pontos quiser."""
@@ -70,13 +70,11 @@ class BSpline:
         p = self.GRAU
         x = 0.0
         y = 0.0
-        z = 0.0
         for i in range(len(self.pontos)):
             Ni = self._funcao_base(i, p, t, nos)
             x += Ni * self.pontos[i]["x"]
             y += Ni * self.pontos[i]["y"]
-            z += Ni * self.pontos[i]["z"]
-        return x, y, z
+        return x, y
 
     # ---------- Cox-de Boor (privados) ----------
 
