@@ -25,6 +25,8 @@ class AplicativoCurvas:
 
         self.modo_ativo = "bspline"
 
+        self.continuidade_c0 = False
+
         self.arrastando = None
         self.lista_arrastando = None
         self.raio_ponto = 6
@@ -39,6 +41,13 @@ class AplicativoCurvas:
             bg="#d0d0ff", width=22
         )
         self.botao_modo.pack()
+
+        self.botao_c0 = tk.Button(
+            self.frame_controle, text="Unir curvas (C0)",
+            command=self.aplicar_c0, font=("Arial", 11, "bold"),
+            bg="#ffffcc", width=22
+        )
+        self.botao_c0.pack()
 
         self.canvas = tk.Canvas(raiz, width=800, height=600, bg="white")
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -64,6 +73,27 @@ class AplicativoCurvas:
         else:
             self.modo_ativo = "bspline"
             self.botao_modo.config(text="Modo: B-spline", bg="#d0d0ff")
+        self.redesenhar()
+
+    # ---------- C0 Continuity ----------
+
+    def aplicar_c0(self):
+        """Aplica translação para unir as curvas com continuidade C0."""
+        if not self.bspline.pronto() or not self.bezier.pronto():
+            return
+
+        ultimo_bsp = self.bspline.pontos[-1]
+        primeiro_bez = self.bezier.pontos[0]
+
+        dx = ultimo_bsp["x"] - primeiro_bez["x"]
+        dy = ultimo_bsp["y"] - primeiro_bez["y"]
+
+        for p in self.bezier.pontos:
+            p["x"] += dx
+            p["y"] += dy
+
+        self.continuidade_c0 = True
+        self.botao_c0.config(text="Reaplicar C0", bg="#ccffcc")
         self.redesenhar()
 
     # ---------- Mouse ----------
@@ -123,6 +153,15 @@ class AplicativoCurvas:
                 text="Curva Bezier grau 5 usa exatamente 6 pontos!",
                 font=("Arial", 10), fill="red",
                 tags="aviso"
+            )
+
+        if self.continuidade_c0:
+            y_c0 = 52 if faltando <= 0 else 72
+            self.canvas.create_text(
+                400, y_c0,
+                text="Continuidade C0 ativa — curvas unidas por translacao",
+                font=("Arial", 10), fill="green",
+                tags="c0_status"
             )
 
     # ---------- Helpers de desenho (genericamente tipados) ----------
@@ -204,6 +243,20 @@ class AplicativoCurvas:
         self.desenhar_poligonal(self.bezier)
         self.desenhar_pontos(self.bezier)
         self.desenhar_curva_bezier()
+
+        # --- Marcador de juncao C0 ---
+        if self.continuidade_c0 and len(self.bspline.pontos) > 0:
+            p = self.bspline.pontos[-1]
+            r = 8
+            self.canvas.create_oval(
+                p["x"] - r, p["y"] - r, p["x"] + r, p["y"] + r,
+                outline="gold", width=3, tags="juncao"
+            )
+            self.canvas.create_text(
+                p["x"], p["y"] - r - 10,
+                text="Juncao C0", font=("Arial", 9, "bold"),
+                fill="gold", tags="juncao"
+            )
 
 
 if __name__ == "__main__":

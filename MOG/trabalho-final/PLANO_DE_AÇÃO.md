@@ -67,14 +67,22 @@
 
 ---
 
-## ⏳ FASE 4 — Unir as curvas com Continuidade C0
-**Status:** PENDENTE ⏳
+## ✅ FASE 4 — Unir as curvas com Continuidade C0
+**Status:** CONCLUÍDO ✅
 **Descrição:** Utilizar transformações geométricas para unir as duas curvas de forma que elas se toquem (posição igual no ponto de junção).
 
-### O que precisa ser feito:
-- [ ] Identificar o ponto final da primeira curva e o ponto inicial da segunda.
-- [ ] Aplicar uma **translação** na segunda curva para que esses pontos coincidam.
-- [ ] Garantir que as curvas estejam no mesmo espaço gráfico.
+### O que foi feito:
+- [x] Identificar o ponto final da B-spline (último ponto de controle) e o ponto inicial da Bézier (primeiro ponto de controle).
+- [x] Aplicar uma **translação** nos pontos de controle da Bézier para que esses pontos coincidam.
+- [x] Adicionar botão "Unir curvas (C0)" na interface.
+- [x] Indicador visual dourado no ponto de junção das curvas.
+- [x] Mensagem de status "Continuidade C0 ativa" exibida no canvas.
+
+### Como testar:
+1. Execute: `python3 curvas.py`
+2. Adicione pontos para ambas as curvas (B-spline: mínimo 5, Bézier: exatamente 6).
+3. Clique no botão "Unir curvas (C0)".
+4. Observe a Bézier ser transladada para encontrar a B-spline e o marcador dourado na junção.
 
 ---
 
@@ -132,7 +140,7 @@ MOG/
 | 1 | Definir linguagem | ✅ Concluído |
 | 2 | B-spline Grau 4 | ✅ Concluído |
 | 3 | Bézier Grau 5 | ✅ Concluído |
-| 4 | Continuidade C0 | ⏳ Pendente |
+| 4 | Continuidade C0 | ✅ Concluído |
 | 5 | Continuidade C1 | ⏳ Pendente |
 | 6 | Continuidade C2 | ⏳ Pendente |
 | 7 | Relatório | ⏳ Pendente |
