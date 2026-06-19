@@ -70,6 +70,21 @@ class Bezier:
         """
         return self._de_casteljau(t)
 
+    def derivada_no_inicio(self):
+        """Derivada Z'(0) no inicio da Bezier grau 5.
+
+        Z'(0) = n * (P_1 - P_0)
+        """
+        n = self.GRAU
+        if len(self.pontos) < 2:
+            return 0.0, 0.0, 0.0
+
+        return (
+            n * (self.pontos[1]["x"] - self.pontos[0]["x"]),
+            n * (self.pontos[1]["y"] - self.pontos[0]["y"]),
+            n * (self.pontos[1]["z"] - self.pontos[0]["z"]),
+        )
+
     # ---------- De Casteljau (privado) ----------
 
     def _de_casteljau(self, t):

@@ -6,6 +6,7 @@ Main: Tkinter + mouse + renderizacao
 Curvas: B-spline Grau 4 (nao uniforme) e Bezier Grau 5
 """
 
+import math
 import tkinter as tk
 from bspline import BSpline
 from bezier import Bezier
@@ -26,6 +27,8 @@ class AplicativoCurvas:
         self.modo_ativo = "bspline"
 
         self.continuidade_c0 = False
+        self.continuidade_c1 = False
+        self.continuidade_g1 = False
 
         self.arrastando = None
         self.lista_arrastando = None
@@ -48,6 +51,20 @@ class AplicativoCurvas:
             bg="#ffffcc", width=22
         )
         self.botao_c0.pack()
+
+        self.botao_c1 = tk.Button(
+            self.frame_controle, text="Unir curvas (C1)",
+            command=self.aplicar_c1, font=("Arial", 11, "bold"),
+            bg="#ffcccc", width=22
+        )
+        self.botao_c1.pack()
+
+        self.botao_g1 = tk.Button(
+            self.frame_controle, text="Unir curvas (G1)",
+            command=self.aplicar_g1, font=("Arial", 11, "bold"),
+            bg="#ccddff", width=22
+        )
+        self.botao_g1.pack()
 
         self.canvas = tk.Canvas(raiz, width=800, height=600, bg="white")
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -95,6 +112,127 @@ class AplicativoCurvas:
         self.continuidade_c0 = True
         self.botao_c0.config(text="Reaplicar C0", bg="#ccffcc")
         self.redesenhar()
+
+    # ---------- C1 Continuity ----------
+
+    def _pode_aplicar_c1(self):
+        return self.bspline.pronto() and self.bezier.pronto() and len(self.bspline.pontos) >= 2
+
+    def aplicar_c1(self):
+        """Ajusta Z_1 para igualar tangentes: C1."""
+        if not self._pode_aplicar_c1():
+            return
+
+        if not self.continuidade_c0:
+            self.aplicar_c0()
+            if not self.continuidade_c0:
+                return
+
+        jx = self.bspline.pontos[-1]["x"]
+        jy = self.bspline.pontos[-1]["y"]
+
+        dx_bs, dy_bs, _ = self.bspline.derivada_no_fim()
+
+        mag_bs = math.sqrt(dx_bs**2 + dy_bs**2)
+        if mag_bs < 1e-9:
+            self.continuidade_c1 = False
+            self.continuidade_g1 = False
+            return
+
+        # C1: 5*(Z_1 - Z_0) = 4*(B_last - B_n-1)
+        # Z_1 = Z_0 + (4*(B_last - B_n-1)) / 5 = Z_0 + derivada_bs / 5
+        self.bezier.pontos[1]["x"] = jx + dx_bs / 5
+        self.bezier.pontos[1]["y"] = jy + dy_bs / 5
+
+        self.continuidade_c1 = True
+        self.continuidade_g1 = False
+        self.botao_c1.config(text="Reaplicar C1", bg="#ff6666")
+        self.botao_g1.config(text="Unir curvas (G1)", bg="#ccddff")
+        self.redesenhar()
+
+    # ---------- G1 Continuity ----------
+
+    def aplicar_g1(self):
+        """Ajusta Z_1 para alinhar direcao com B-spline: G1."""
+        if not self._pode_aplicar_c1():
+            return
+
+        if not self.continuidade_c0:
+            self.aplicar_c0()
+            if not self.continuidade_c0:
+                return
+
+        dx_bs, dy_bs, _ = self.bspline.derivada_no_fim()
+        mag_bs = math.sqrt(dx_bs**2 + dy_bs**2)
+        if mag_bs < 1e-9:
+            self.continuidade_c1 = False
+            self.continuidade_g1 = False
+            return
+
+        dir_x = dx_bs / mag_bs
+        dir_y = dy_bs / mag_bs
+
+        z0 = self.bezier.pontos[0]
+        z1_orig = self.bezier.pontos[1]
+        dx_z = z1_orig["x"] - z0["x"]
+        dy_z = z1_orig["y"] - z0["y"]
+        mag_z = math.sqrt(dx_z**2 + dy_z**2)
+
+        if mag_z < 1e-9:
+            mag_z = mag_bs * 0.5
+
+        new_x = z0["x"] + dir_x * mag_z
+        new_y = z0["y"] + dir_y * mag_z
+
+        self.bezier.pontos[1]["x"] = new_x
+        self.bezier.pontos[1]["y"] = new_y
+
+        self.continuidade_c1 = False
+        self.continuidade_g1 = True
+        self.botao_c1.config(text="Unir curvas (C1)", bg="#ffcccc")
+        self.botao_g1.config(text="Reaplicar G1", bg="#6688ff")
+        self.redesenhar()
+
+    # ---------- Tangent visualization ----------
+
+    def desenhar_tangentes(self):
+        """Desenha vetores tangente na juncao e info de C1/G1."""
+        if not self.continuidade_c0:
+            return
+        if not self._pode_aplicar_c1():
+            return
+
+        jx = self.bspline.pontos[-1]["x"]
+        jy = self.bspline.pontos[-1]["y"]
+
+        dx_bs, dy_bs, _ = self.bspline.derivada_no_fim()
+        dx_bz, dy_bz, _ = self.bezier.derivada_no_inicio()
+
+        mag_bs = math.sqrt(dx_bs**2 + dy_bs**2)
+        mag_bz = math.sqrt(dx_bz**2 + dy_bz**2)
+
+        max_mag = max(mag_bs, mag_bz, 1e-9)
+        scale = min(60.0, 150.0 / max_mag)
+
+        ex1 = jx + dx_bs * scale
+        ey1 = jy + dy_bs * scale
+        self.canvas.create_line(jx, jy, ex1, ey1,
+                                fill="#cc0000", width=2.5, arrow=tk.LAST,
+                                tags="tangente")
+        self.canvas.create_text(ex1, ey1 - 8,
+                                text=f"B'=({dx_bs:.1f},{dy_bs:.1f})",
+                                fill="#cc0000", font=("Arial", 8, "bold"),
+                                tags="tangente")
+
+        ex2 = jx + dx_bz * scale
+        ey2 = jy + dy_bz * scale
+        self.canvas.create_line(jx, jy, ex2, ey2,
+                                fill="#006600", width=2.5, arrow=tk.LAST,
+                                tags="tangente")
+        self.canvas.create_text(ex2, ey2 - 8,
+                                text=f"Z'=({dx_bz:.1f},{dy_bz:.1f})",
+                                fill="#006600", font=("Arial", 8, "bold"),
+                                tags="tangente")
 
     # ---------- Mouse ----------
 
@@ -156,13 +294,28 @@ class AplicativoCurvas:
             )
 
         if self.continuidade_c0:
-            y_c0 = 52 if faltando <= 0 else 72
+            y_base = 52 if faltando <= 0 else 72
             self.canvas.create_text(
-                400, y_c0,
+                400, y_base,
                 text="Continuidade C0 ativa — curvas unidas por translacao",
                 font=("Arial", 10), fill="green",
                 tags="c0_status"
             )
+
+            if self.continuidade_c1:
+                self.canvas.create_text(
+                    400, y_base + 20,
+                    text="Continuidade C1 ativa — tangentes iguais (derivadas identicas)",
+                    font=("Arial", 10, "bold"), fill="darkred",
+                    tags="c1_status"
+                )
+            elif self.continuidade_g1:
+                self.canvas.create_text(
+                    400, y_base + 20,
+                    text="Continuidade G1 ativa — direcoes iguais, magnitudes podem diferir",
+                    font=("Arial", 10, "bold"), fill="#2244aa",
+                    tags="g1_status"
+                )
 
     # ---------- Helpers de desenho (genericamente tipados) ----------
 
@@ -257,6 +410,9 @@ class AplicativoCurvas:
                 text="Juncao C0", font=("Arial", 9, "bold"),
                 fill="gold", tags="juncao"
             )
+
+        # --- Vetores tangente ---
+        self.desenhar_tangentes()
 
 
 if __name__ == "__main__":

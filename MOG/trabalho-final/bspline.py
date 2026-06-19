@@ -78,6 +78,30 @@ class BSpline:
             z += Ni * self.pontos[i]["z"]
         return x, y, z
 
+    def derivada_no_fim(self):
+        """Derivada C'(t_fim) no endpoint da B-spline grau 4 clamped.
+
+        Para B-spline clamped com knots internos de espacamento 1:
+        C'(t_fim) = p * (P_n - P_{n-1}) / (u_{n+p} - u_n)
+        """
+        p = self.GRAU
+        n = len(self.pontos)
+        if n < 2:
+            return 0.0, 0.0, 0.0
+
+        i = n - 2
+        nos = self._gerar_vetor_nos(n)
+        den = nos[i + p + 1] - nos[i + 1]
+        if den == 0:
+            return 0.0, 0.0, 0.0
+
+        w = p / den
+        return (
+            w * (self.pontos[-1]["x"] - self.pontos[-2]["x"]),
+            w * (self.pontos[-1]["y"] - self.pontos[-2]["y"]),
+            w * (self.pontos[-1]["z"] - self.pontos[-2]["z"]),
+        )
+
     # ---------- Cox-de Boor (privados) ----------
 
     def _gerar_vetor_nos(self, num_pontos):
