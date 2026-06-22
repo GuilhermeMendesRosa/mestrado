@@ -98,19 +98,36 @@ class BSpline:
 
     def _gerar_vetor_nos(self, num_pontos):
         """
-        Gera o vetor de nos nao uniforme (clamped).
-        Para grau p, repetimos o primeiro valor p+1 vezes e o ultimo p+1 vezes.
+        Gera o vetor de nos aberto/clamped e nao uniforme.
+        Os nos internos sao obtidos por parametrizacao chord-length,
+        o que os torna dependentes do espacamento entre os pontos de controle.
         """
         p = self.GRAU
-        n = num_pontos + p + 1
-        nos = []
-        for _ in range(p + 1):
-            nos.append(0)
-        for i in range(1, num_pontos - p):
-            nos.append(i)
-        ultimo = num_pontos - p
-        for _ in range(p + 1):
-            nos.append(ultimo)
+
+        if num_pontos < p + 1:
+            return []
+
+        if num_pontos == p + 1:
+            return [0.0] * (p + 1) + [1.0] * (p + 1)
+
+        acumulado = [0.0]
+        for i in range(1, num_pontos):
+            dx = self.pontos[i]["x"] - self.pontos[i - 1]["x"]
+            dy = self.pontos[i]["y"] - self.pontos[i - 1]["y"]
+            dz = self.pontos[i]["z"] - self.pontos[i - 1]["z"]
+            distancia = (dx * dx + dy * dy + dz * dz) ** 0.5
+            acumulado.append(acumulado[-1] + distancia)
+
+        total = acumulado[-1]
+        if total == 0:
+            parametros = [i / (num_pontos - 1) for i in range(num_pontos)]
+        else:
+            parametros = [valor / total for valor in acumulado]
+
+        nos = [0.0] * (p + 1)
+        for j in range(1, num_pontos - p):
+            nos.append(sum(parametros[j:j + p]) / p)
+        nos.extend([1.0] * (p + 1))
         return nos
 
     def _funcao_base(self, i, p, t, nos):
