@@ -29,8 +29,6 @@ class AplicativoCurvas:
         self.continuidade_c0 = False
         self.continuidade_c1 = False
         self.continuidade_g1 = False
-        self.continuidade_c2 = False
-        self.continuidade_g2 = False
 
         self.arrastando = None
         self.lista_arrastando = None
@@ -67,20 +65,6 @@ class AplicativoCurvas:
             bg="#ccddff", width=22
         )
         self.botao_g1.pack()
-
-        self.botao_c2 = tk.Button(
-            self.frame_controle, text="Unir curvas (C2)",
-            command=self.aplicar_c2, font=("Arial", 11, "bold"),
-            bg="#ddccff", width=22
-        )
-        self.botao_c2.pack()
-
-        self.botao_g2 = tk.Button(
-            self.frame_controle, text="Unir curvas (G2)",
-            command=self.aplicar_g2, font=("Arial", 11, "bold"),
-            bg="#ccddcc", width=22
-        )
-        self.botao_g2.pack()
 
         self.canvas = tk.Canvas(raiz, width=800, height=600, bg="white")
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
@@ -134,10 +118,6 @@ class AplicativoCurvas:
     def _pode_aplicar_c1(self):
         return self.bspline.pronto() and self.bezier.pronto() and len(self.bspline.pontos) >= 2
 
-    def _pode_aplicar_c2(self):
-        return (self.bspline.pronto() and self.bezier.pronto()
-                and len(self.bspline.pontos) >= 3)
-
     def aplicar_c1(self):
         """Ajusta Z_1 para igualar tangentes: C1."""
         if not self._pode_aplicar_c1():
@@ -166,12 +146,8 @@ class AplicativoCurvas:
 
         self.continuidade_c1 = True
         self.continuidade_g1 = False
-        self.continuidade_c2 = False
-        self.continuidade_g2 = False
         self.botao_c1.config(text="Reaplicar C1", bg="#ff6666")
         self.botao_g1.config(text="Unir curvas (G1)", bg="#ccddff")
-        self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
-        self.botao_g2.config(text="Unir curvas (G2)", bg="#ccddcc")
         self.redesenhar()
 
     # ---------- G1 Continuity ----------
@@ -213,96 +189,8 @@ class AplicativoCurvas:
 
         self.continuidade_c1 = False
         self.continuidade_g1 = True
-        self.continuidade_c2 = False
-        self.continuidade_g2 = False
         self.botao_c1.config(text="Unir curvas (C1)", bg="#ffcccc")
         self.botao_g1.config(text="Reaplicar G1", bg="#6688ff")
-        self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
-        self.botao_g2.config(text="Unir curvas (G2)", bg="#ccddcc")
-        self.redesenhar()
-
-    # ---------- C2 Continuity ----------
-
-    def aplicar_c2(self):
-        """Ajusta Z_2 para igualar curvaturas: C2."""
-        if not self._pode_aplicar_c2():
-            return
-
-        if not self.continuidade_c0:
-            self.aplicar_c0()
-            if not self.continuidade_c0:
-                return
-
-        if not self.continuidade_c1:
-            self.aplicar_c1()
-            if not self.continuidade_c1:
-                return
-
-        Bn  = self.bspline.pontos[-1]
-        Bn1 = self.bspline.pontos[-2]
-        Bn2 = self.bspline.pontos[-3]
-
-        dx_bs2, dy_bs2, _ = self.bspline.derivada_segunda_no_fim()
-        mag_bs2 = math.sqrt(dx_bs2**2 + dy_bs2**2)
-        if mag_bs2 < 1e-9:
-            self.continuidade_c2 = False
-            self.continuidade_g2 = False
-            return
-
-        self.bezier.pontos[2]["x"] = (16.0 / 5.0) * Bn["x"] - (14.0 / 5.0) * Bn1["x"] + (3.0 / 5.0) * Bn2["x"]
-        self.bezier.pontos[2]["y"] = (16.0 / 5.0) * Bn["y"] - (14.0 / 5.0) * Bn1["y"] + (3.0 / 5.0) * Bn2["y"]
-
-        self.continuidade_c2 = True
-        self.continuidade_g2 = False
-        self.botao_c2.config(text="Reaplicar C2", bg="#9966ff")
-        self.botao_g2.config(text="Unir curvas (G2)", bg="#ccddcc")
-        self.redesenhar()
-
-    # ---------- G2 Continuity ----------
-
-    def aplicar_g2(self):
-        """Ajusta Z_2 para alinhar direcao da curvatura com B-spline: G2."""
-        if not self._pode_aplicar_c2():
-            return
-
-        if not self.continuidade_c0:
-            self.aplicar_c0()
-            if not self.continuidade_c0:
-                return
-
-        if not self.continuidade_c1:
-            self.aplicar_c1()
-            if not self.continuidade_c1:
-                return
-
-        dx_bs2, dy_bs2, _ = self.bspline.derivada_segunda_no_fim()
-        mag_bs2 = math.sqrt(dx_bs2**2 + dy_bs2**2)
-        if mag_bs2 < 1e-9:
-            return
-
-        dir_x = dx_bs2 / mag_bs2
-        dir_y = dy_bs2 / mag_bs2
-
-        dx_bz2_orig, dy_bz2_orig, _ = self.bezier.derivada_segunda_no_inicio()
-        mag_bz2 = math.sqrt(dx_bz2_orig**2 + dy_bz2_orig**2)
-
-        if mag_bz2 < 1e-9:
-            mag_bz2 = mag_bs2 * 0.5
-
-        target_dx = dir_x * mag_bz2
-        target_dy = dir_y * mag_bz2
-
-        jx = self.bspline.pontos[-1]["x"]
-        jy = self.bspline.pontos[-1]["y"]
-        z1 = self.bezier.pontos[1]
-
-        self.bezier.pontos[2]["x"] = target_dx / 20.0 + 2 * z1["x"] - jx
-        self.bezier.pontos[2]["y"] = target_dy / 20.0 + 2 * z1["y"] - jy
-
-        self.continuidade_c2 = False
-        self.continuidade_g2 = True
-        self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
-        self.botao_g2.config(text="Reaplicar G2", bg="#669966")
         self.redesenhar()
 
     # ---------- Tangent visualization ----------
@@ -345,47 +233,6 @@ class AplicativoCurvas:
                                 text=f"Z'=({dx_bz:.1f},{dy_bz:.1f})",
                                 fill="#006600", font=("Arial", 8, "bold"),
                                 tags="tangente")
-
-    # ---------- Curvature visualization ----------
-
-    def desenhar_curvaturas(self):
-        """Desenha vetores de curvatura (2a derivada) na juncao."""
-        if not self.continuidade_c0:
-            return
-        if not self._pode_aplicar_c2():
-            return
-
-        jx = self.bspline.pontos[-1]["x"]
-        jy = self.bspline.pontos[-1]["y"]
-
-        dx_bs2, dy_bs2, _ = self.bspline.derivada_segunda_no_fim()
-        dx_bz2, dy_bz2, _ = self.bezier.derivada_segunda_no_inicio()
-
-        mag_bs2 = math.sqrt(dx_bs2**2 + dy_bs2**2)
-        mag_bz2 = math.sqrt(dx_bz2**2 + dy_bz2**2)
-
-        max_mag = max(mag_bs2, mag_bz2, 1e-9)
-        scale = min(30.0, 80.0 / max_mag)
-
-        ex1 = jx + dx_bs2 * scale
-        ey1 = jy + dy_bs2 * scale
-        self.canvas.create_line(jx, jy, ex1, ey1,
-                                fill="#cc6600", width=2.5, arrow=tk.LAST,
-                                tags="curvatura")
-        self.canvas.create_text(ex1 + 10, ey1,
-                                text=f"B''=({dx_bs2:.1f},{dy_bs2:.1f})",
-                                fill="#cc6600", font=("Arial", 8, "bold"),
-                                tags="curvatura")
-
-        ex2 = jx + dx_bz2 * scale
-        ey2 = jy + dy_bz2 * scale
-        self.canvas.create_line(jx, jy, ex2, ey2,
-                                fill="#6600cc", width=2.5, arrow=tk.LAST,
-                                tags="curvatura")
-        self.canvas.create_text(ex2 + 10, ey2,
-                                text=f"Z''=({dx_bz2:.1f},{dy_bz2:.1f})",
-                                fill="#6600cc", font=("Arial", 8, "bold"),
-                                tags="curvatura")
 
     # ---------- Mouse ----------
 
@@ -468,21 +315,6 @@ class AplicativoCurvas:
                     text="Continuidade G1 ativa — direcoes iguais, magnitudes podem diferir",
                     font=("Arial", 10, "bold"), fill="#2244aa",
                     tags="g1_status"
-                )
-
-            if self.continuidade_c2:
-                self.canvas.create_text(
-                    400, y_base + 40,
-                    text="Continuidade C2 ativa — curvaturas iguais (2as derivadas identicas)",
-                    font=("Arial", 10, "bold"), fill="#9933cc",
-                    tags="c2_status"
-                )
-            elif self.continuidade_g2:
-                self.canvas.create_text(
-                    400, y_base + 40,
-                    text="Continuidade G2 ativa — direcoes de curvatura iguais, magnitudes podem diferir",
-                    font=("Arial", 10, "bold"), fill="#336699",
-                    tags="g2_status"
                 )
 
     # ---------- Helpers de desenho (genericamente tipados) ----------
@@ -581,9 +413,6 @@ class AplicativoCurvas:
 
         # --- Vetores tangente ---
         self.desenhar_tangentes()
-
-        # --- Vetores curvatura ---
-        self.desenhar_curvaturas()
 
 
 if __name__ == "__main__":

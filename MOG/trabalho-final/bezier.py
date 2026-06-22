@@ -85,21 +85,6 @@ class Bezier:
             n * (self.pontos[1]["z"] - self.pontos[0]["z"]),
         )
 
-    def derivada_segunda_no_inicio(self):
-        """Segunda derivada Z''(0) no inicio da Bezier grau 5.
-
-        Z''(0) = n * (n-1) * (P_2 - 2*P_1 + P_0)
-        """
-        n = self.GRAU
-        if len(self.pontos) < 3:
-            return 0.0, 0.0, 0.0
-
-        return (
-            n * (n - 1) * (self.pontos[2]["x"] - 2 * self.pontos[1]["x"] + self.pontos[0]["x"]),
-            n * (n - 1) * (self.pontos[2]["y"] - 2 * self.pontos[1]["y"] + self.pontos[0]["y"]),
-            n * (n - 1) * (self.pontos[2]["z"] - 2 * self.pontos[1]["z"] + self.pontos[0]["z"]),
-        )
-
     # ---------- De Casteljau (privado) ----------
 
     def _de_casteljau(self, t):
