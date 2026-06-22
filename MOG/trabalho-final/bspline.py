@@ -79,44 +79,20 @@ class BSpline:
         return x, y, z
 
     def derivada_no_fim(self):
-        """Derivada C'(t_fim) no endpoint da B-spline grau 4 clamped.
-
-        Para B-spline clamped com knots internos de espacamento 1:
-        C'(t_fim) = p * (P_n - P_{n-1}) / (u_{n+p} - u_n)
-        """
-        p = self.GRAU
-        n = len(self.pontos)
-        if n < 2:
+        """Derivada C'(t_fim) no endpoint da B-spline grau 4 clamped."""
+        derivadas = self._calcular_pontos_derivada(1)
+        if not derivadas:
             return 0.0, 0.0, 0.0
 
-        i = n - 2
-        nos = self._gerar_vetor_nos(n)
-        den = nos[i + p + 1] - nos[i + 1]
-        if den == 0:
-            return 0.0, 0.0, 0.0
-
-        w = p / den
-        return (
-            w * (self.pontos[-1]["x"] - self.pontos[-2]["x"]),
-            w * (self.pontos[-1]["y"] - self.pontos[-2]["y"]),
-            w * (self.pontos[-1]["z"] - self.pontos[-2]["z"]),
-        )
+        return derivadas[-1]
 
     def derivada_segunda_no_fim(self):
-        """Segunda derivada C''(t_fim) no endpoint da B-spline grau 4 clamped.
-
-        C''(t_fim) = p * (p-1) * (P_n - 2*P_{n-1} + P_{n-2})
-        """
-        p = self.GRAU
-        n = len(self.pontos)
-        if n < 3:
+        """Segunda derivada C''(t_fim) no endpoint da B-spline grau 4 clamped."""
+        derivadas = self._calcular_pontos_derivada(2)
+        if not derivadas:
             return 0.0, 0.0, 0.0
 
-        return (
-            p * (p - 1) * (self.pontos[-1]["x"] - 2 * self.pontos[-2]["x"] + self.pontos[-3]["x"]),
-            p * (p - 1) * (self.pontos[-1]["y"] - 2 * self.pontos[-2]["y"] + self.pontos[-3]["y"]),
-            p * (p - 1) * (self.pontos[-1]["z"] - 2 * self.pontos[-2]["z"] + self.pontos[-3]["z"]),
-        )
+        return derivadas[-1]
 
     # ---------- Cox-de Boor (privados) ----------
 
@@ -158,3 +134,38 @@ class BSpline:
         if den_dir != 0:
             resultado += ((nos[i + p + 1] - t) / den_dir) * self._funcao_base(i + 1, p - 1, t, nos)
         return resultado
+
+    def _calcular_pontos_derivada(self, ordem):
+        """Calcula os pontos de controle da derivada de ordem dada."""
+        if ordem < 1:
+            return []
+
+        pontos = [(p["x"], p["y"], p["z"]) for p in self.pontos]
+        nos = self._gerar_vetor_nos(len(self.pontos))
+        grau = self.GRAU
+
+        for _ in range(ordem):
+            if len(pontos) < 2 or grau <= 0:
+                return []
+
+            pontos_derivada = []
+            for i in range(len(pontos) - 1):
+                den = nos[i + grau + 1] - nos[i + 1]
+                if den == 0:
+                    pontos_derivada.append((0.0, 0.0, 0.0))
+                    continue
+
+                fator = grau / den
+                pontos_derivada.append(
+                    (
+                        fator * (pontos[i + 1][0] - pontos[i][0]),
+                        fator * (pontos[i + 1][1] - pontos[i][1]),
+                        fator * (pontos[i + 1][2] - pontos[i][2]),
+                    )
+                )
+
+            pontos = pontos_derivada
+            nos = nos[1:-1]
+            grau -= 1
+
+        return pontos
