@@ -86,14 +86,14 @@
 
 ---
 
-## ⏳ FASE 5 — Unir as curvas com Continuidade C1
-**Status:** PENDENTE ⏳
+## ✅ FASE 5 — Unir as curvas com Continuidade C1
+**Status:** CONCLUÍDO ✅
 **Descrição:** Além de C0 (posição igual), garantir que as **tangentes** (derivadas de primeira ordem) das duas curvas sejam iguais no ponto de junção.
 
 ### O que precisa ser feito:
-- [ ] Ajustar os pontos de controle internos próximos à junção para que as tangentes coincidam.
-- [ ] Ou usar uma transformação geométrica (ex: escala/rotação) para alinhar as direções das curvas.
-- [ ] Caso não consiga C1, aceitável entregar **G1** (direções iguais, magnitudes podem diferir), com nota reduzida.
+- [x] Ajustar os pontos de controle internos próximos à junção para que as tangentes coincidam.
+- [x] Ou usar uma transformação geométrica (ex: escala/rotação) para alinhar as direções das curvas.
+- [x] Caso não consiga C1, aceitável entregar **G1** (direções iguais, magnitudes podem diferir), com nota reduzida.
 
 ---
 
@@ -141,8 +141,8 @@ MOG/
 | 2 | B-spline Grau 4 | ✅ Concluído |
 | 3 | Bézier Grau 5 | ✅ Concluído |
 | 4 | Continuidade C0 | ✅ Concluído |
-| 5 | Continuidade C1 | ⏳ Pendente |
+| 5 | Continuidade C1 | ✅ Concluído |
 | 6 | Continuidade C2 | ⏳ Pendente |
 | 7 | Relatório | ⏳ Pendente |
 
-**Última atualização:** 18/06/2026
+**Última atualização:** 22/06/2026
