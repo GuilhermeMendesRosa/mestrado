@@ -97,14 +97,20 @@
 
 ---
 
-## ⏳ FASE 6 — Unir as curvas com Continuidade C2
-**Status:** PENDENTE ⏳
+## ✅ FASE 6 — Unir as curvas com Continuidade C2
+**Status:** CONCLUÍDO ✅
 **Descrição:** Além de C0 e C1, garantir que as **curvaturas** (derivadas de segunda ordem) também sejam iguais no ponto de junção.
 
-### O que precisa ser feito:
-- [ ] Ajustar os pontos de controle para que a segunda derivada coincida na junção.
-- [ ] Isso geralmente requer resolver um sistema de equações para posicionar os pontos corretamente.
-- [ ] Caso não consiga C2, aceitável entregar **G2**, com nota reduzida.
+### O que foi feito:
+- [x] Adicionar `derivada_segunda_no_fim()` em `bspline.py` — fórmula analítica para B''(t_fim).
+- [x] Adicionar `derivada_segunda_no_inicio()` em `bezier.py` — fórmula analítica para Z''(0).
+- [x] Implementar `aplicar_c2()` — ajusta Z_2 para igualar as segundas derivadas.
+- [x] Implementar `aplicar_g2()` (fallback) — alinha direção da curvatura, preserva magnitude original.
+- [x] Botões "Unir curvas (C2)" e "Unir curvas (G2)" na interface.
+- [x] Visualização dos vetores de curvatura (B'' em laranja, Z'' em roxo) na junção.
+- [x] Status de C2/G2 exibido no canvas.
+- [x] C2 invalida ao reaplicar C1/G1 ou arrastar pontos.
+- [x] C2 aplica C0 e C1 automaticamente se necessário.
 
 ---
 
@@ -142,7 +148,7 @@ MOG/
 | 3 | Bézier Grau 5 | ✅ Concluído |
 | 4 | Continuidade C0 | ✅ Concluído |
 | 5 | Continuidade C1 | ✅ Concluído |
-| 6 | Continuidade C2 | ⏳ Pendente |
+| 6 | Continuidade C2 | ✅ Concluído |
 | 7 | Relatório | ⏳ Pendente |
 
 **Última atualização:** 22/06/2026
