@@ -142,6 +142,8 @@ class BSpline:
         Calcula a funcao base N_{i,p}(t) usando o algoritmo de Cox-de Boor.
         """
         if p == 0:
+            if t == nos[-1]:
+                return 1 if i == len(self.pontos) - 1 else 0
             if nos[i] <= t <= nos[i + 1]:
                 if t == nos[i + 1] and i < len(nos) - 2:
                     return 0
