@@ -2,41 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 Trabalho de Computacao Grafica - Partes 2 e 3
-Main: Matplotlib + Tkinter + mouse + renderizacao
+Main: Tkinter + mouse + renderizacao
 Curvas: B-spline Grau 4 (nao uniforme) e Bezier Grau 5
 """
 
 import math
 import tkinter as tk
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-from matplotlib.patches import Circle
-
 from bspline import BSpline
 from bezier import Bezier
-
-# --------------------------------------------------------------------------- #
-# Mapeamento de cores Tkinter -> Matplotlib
-# --------------------------------------------------------------------------- #
-_MAPA_CORES = {
-    "green2":     "#00ee00",
-    "green3":     "#00cd00",
-    "lightgray":  "#d3d3d3",
-    "lightgreen": "#90ee90",
-    "darkblue":   "#00008b",
-    "darkgreen":  "#006400",
-    "gold":       "#ffd700",
-    "gray50":     "#808080",
-}
-
-def _cor(nome):
-    """Retorna o codigo de cor aceito pelo matplotlib."""
-    return _MAPA_CORES.get(nome, nome)
-
-
-LARGURA = 800
-ALTURA  = 600
-PASSOS  = 200   # resolucao das curvas parametricas
 
 
 class AplicativoCurvas:
@@ -45,7 +18,7 @@ class AplicativoCurvas:
     def __init__(self, raiz):
         self.raiz = raiz
         self.raiz.title("B-spline Grau 4 + Bezier Grau 5")
-        self.raiz.geometry("960x740")
+        self.raiz.geometry("800x600")
 
         # --- Composicao: Main TEM uma BSpline e TEM uma Bezier ---
         self.bspline = BSpline()
@@ -57,104 +30,59 @@ class AplicativoCurvas:
         self.continuidade_c1 = False
         self.continuidade_c2 = False
 
-        self.arrastando       = None
+        self.arrastando = None
         self.lista_arrastando = None
-        self.raio_selecao     = 15   # em unidades de dados (espaco [0,800]x[0,600])
+        self.raio_ponto = 6
 
-        # ------------------------------------------------------------------ #
-        # Frame de controles — empacotado PRIMEIRO para garantir posicao base
-        # ------------------------------------------------------------------ #
-        self.frame_controle = tk.Frame(raiz, pady=5)
-        self.frame_controle.pack(side=tk.BOTTOM, fill=tk.X)
+        # --- Widgets Tkinter ---
+        self.frame_controle = tk.Frame(raiz)
+        self.frame_controle.pack(side=tk.BOTTOM, fill=tk.X, pady=5)
 
         self.botao_modo = tk.Button(
             self.frame_controle, text="Modo: B-spline",
-            command=self.alternar_modo, font=("Arial", 11, "bold"),
-            bg="#d0d0ff", width=16
+            command=self.alternar_modo, font=("Arial", 12, "bold"),
+            bg="#d0d0ff", width=22
         )
-        self.botao_modo.pack(side=tk.LEFT, padx=6)
-
-        self.botao_limpar = tk.Button(
-            self.frame_controle, text="Limpar",
-            command=self.limpar, font=("Arial", 11, "bold"),
-            bg="#ffdddd", width=10
-        )
-        self.botao_limpar.pack(side=tk.LEFT, padx=6)
+        self.botao_modo.pack()
 
         self.botao_c0 = tk.Button(
             self.frame_controle, text="Unir curvas (C0)",
             command=self.aplicar_c0, font=("Arial", 11, "bold"),
-            bg="#ffffcc", width=16
+            bg="#ffffcc", width=22
         )
-        self.botao_c0.pack(side=tk.LEFT, padx=6)
+        self.botao_c0.pack()
 
         self.botao_c1 = tk.Button(
             self.frame_controle, text="Unir curvas (C1)",
             command=self.aplicar_c1, font=("Arial", 11, "bold"),
-            bg="#ffcccc", width=16
+            bg="#ffcccc", width=22
         )
-        self.botao_c1.pack(side=tk.LEFT, padx=6)
+        self.botao_c1.pack()
 
         self.botao_c2 = tk.Button(
             self.frame_controle, text="Unir curvas (C2)",
             command=self.aplicar_c2, font=("Arial", 11, "bold"),
-            bg="#ddccff", width=16
+            bg="#ddccff", width=22
         )
-        self.botao_c2.pack(side=tk.LEFT, padx=6)
+        self.botao_c2.pack()
 
-        # ------------------------------------------------------------------ #
-        # Frame da toolbar — empacotado ANTES do canvas para ficar abaixo dele
-        # ------------------------------------------------------------------ #
-        self.frame_toolbar = tk.Frame(raiz)
-        self.frame_toolbar.pack(side=tk.BOTTOM, fill=tk.X)
+        self.canvas = tk.Canvas(raiz, width=800, height=600, bg="white")
+        self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        # ------------------------------------------------------------------ #
-        # Figura Matplotlib
-        # ------------------------------------------------------------------ #
-        self.fig = Figure(dpi=100)
-        self.ax  = self.fig.add_subplot(111)
-        self._configurar_eixos()
-        self.fig.tight_layout(pad=2.0)
-
-        self.mpl_canvas = FigureCanvasTkAgg(self.fig, master=raiz)
-        self.mpl_canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        # Toolbar nativa (zoom por caixa, pan, home/reset, salvar)
-        self.toolbar = NavigationToolbar2Tk(
-            self.mpl_canvas, self.frame_toolbar, pack_toolbar=False
-        )
-        self.toolbar.update()
-        self.toolbar.pack(fill=tk.X)
-
-        # Conecta eventos de mouse do matplotlib
-        self.mpl_canvas.mpl_connect("button_press_event",   self._on_press)
-        self.mpl_canvas.mpl_connect("motion_notify_event",  self._on_motion)
-        self.mpl_canvas.mpl_connect("button_release_event", self._on_release)
+        self.canvas.bind("<Button-1>", self.clique_esquerdo)
+        self.canvas.bind("<B1-Motion>", self.arrastar)
+        self.canvas.bind("<ButtonRelease-1>", self.soltar)
 
         self.redesenhar()
 
-    # ---------------------------------------------------------------------- #
-    # Eixos
-    # ---------------------------------------------------------------------- #
-
-    def _configurar_eixos(self):
-        self.ax.set_xlim(0, LARGURA)
-        self.ax.set_ylim(0, ALTURA)
-        self.ax.set_xlabel("X", fontsize=10)
-        self.ax.set_ylabel("Y", fontsize=10)
-        self.ax.grid(True, color="#e0e0e0", linestyle="-", linewidth=0.6)
-        self.ax.set_facecolor("#f9f9f9")
-
-    # ---------------------------------------------------------------------- #
-    # Modo
-    # ---------------------------------------------------------------------- #
+    # ---------- Modo ----------
 
     def _curva_ativa(self):
         """Retorna o objeto da curva que esta ativa no momento."""
         return self.bspline if self.modo_ativo == "bspline" else self.bezier
 
     def alternar_modo(self):
-        self.arrastando       = None
+        self.arrastando = None
         self.lista_arrastando = None
         if self.modo_ativo == "bspline":
             self.modo_ativo = "bezier"
@@ -172,34 +100,14 @@ class AplicativoCurvas:
         self.botao_c1.config(text="Unir curvas (C1)", bg="#ffcccc")
         self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
 
-    # ---------------------------------------------------------------------- #
-    # Limpar
-    # ---------------------------------------------------------------------- #
-
-    def limpar(self):
-        """Reseta ambas as curvas, continuidades e volta para a visao padrao."""
-        self.bspline.pontos.clear()
-        self.bezier.pontos.clear()
-        self.arrastando       = None
-        self.lista_arrastando = None
-        self.modo_ativo       = "bspline"
-        self.botao_modo.config(text="Modo: B-spline", bg="#d0d0ff")
-        self._invalidar_continuidades()
-        # Restaura limites de visao iniciais
-        self.ax.set_xlim(0, LARGURA)
-        self.ax.set_ylim(0, ALTURA)
-        self.redesenhar()
-
-    # ---------------------------------------------------------------------- #
-    # C0 Continuidade
-    # ---------------------------------------------------------------------- #
+    # ---------- C0 Continuity ----------
 
     def aplicar_c0(self):
-        """Aplica translacao para unir as curvas com continuidade C0."""
+        """Aplica translação para unir as curvas com continuidade C0."""
         if not self.bspline.pronto() or not self.bezier.pronto():
             return
 
-        ultimo_bsp   = self.bspline.pontos[-1]
+        ultimo_bsp = self.bspline.pontos[-1]
         primeiro_bez = self.bezier.pontos[0]
 
         dx = ultimo_bsp["x"] - primeiro_bez["x"]
@@ -213,13 +121,10 @@ class AplicativoCurvas:
         self.botao_c0.config(text="Reaplicar C0", bg="#ccffcc")
         self.redesenhar()
 
-    # ---------------------------------------------------------------------- #
-    # C1 Continuidade
-    # ---------------------------------------------------------------------- #
+    # ---------- C1 Continuity ----------
 
     def _pode_aplicar_c1(self):
-        return (self.bspline.pronto() and self.bezier.pronto()
-                and len(self.bspline.pontos) >= 2)
+        return self.bspline.pronto() and self.bezier.pronto() and len(self.bspline.pontos) >= 2
 
     def aplicar_c1(self):
         """Ajusta Z_1 para igualar tangentes: C1."""
@@ -246,9 +151,7 @@ class AplicativoCurvas:
         self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
         self.redesenhar()
 
-    # ---------------------------------------------------------------------- #
-    # C2 Continuidade
-    # ---------------------------------------------------------------------- #
+    # ---------- C2 Continuity ----------
 
     def _pode_aplicar_c2(self):
         return (self.bspline.pronto() and self.bezier.pronto()
@@ -282,26 +185,7 @@ class AplicativoCurvas:
         self.botao_c2.config(text="Reaplicar C2", bg="#9966ff")
         self.redesenhar()
 
-    # ---------------------------------------------------------------------- #
-    # Helpers de vetores (tangente / curvatura)
-    # ---------------------------------------------------------------------- #
-
-    def _desenhar_vetor(self, jx, jy, ex, ey, cor, label, dx_label=0, dy_label=8):
-        """Desenha uma seta de (jx,jy) ate (ex,ey) com texto label."""
-        self.ax.annotate(
-            "", xy=(ex, ey), xytext=(jx, jy),
-            arrowprops=dict(arrowstyle="->", color=cor, lw=2.5),
-            zorder=7
-        )
-        self.ax.text(
-            ex + dx_label, ey + dy_label, label,
-            color=cor, fontsize=8, fontweight="bold",
-            ha="center", zorder=7
-        )
-
-    # ---------------------------------------------------------------------- #
-    # Tangentes (visualizacao C1)
-    # ---------------------------------------------------------------------- #
+    # ---------- Tangent visualization ----------
 
     def desenhar_tangentes(self):
         """Desenha vetores tangente na juncao para visualizar C1."""
@@ -316,23 +200,33 @@ class AplicativoCurvas:
         dx_bs, dy_bs, _ = self.bspline.derivada_no_fim()
         dx_bz, dy_bz, _ = self.bezier.derivada_no_inicio()
 
-        max_mag = max(math.hypot(dx_bs, dy_bs), math.hypot(dx_bz, dy_bz), 1e-9)
-        scale   = min(60.0, 150.0 / max_mag)
+        mag_bs = math.sqrt(dx_bs**2 + dy_bs**2)
+        mag_bz = math.sqrt(dx_bz**2 + dy_bz**2)
 
-        self._desenhar_vetor(
-            jx, jy,
-            jx + dx_bs * scale, jy + dy_bs * scale,
-            "#cc0000", f"B'=({dx_bs:.1f},{dy_bs:.1f})"
-        )
-        self._desenhar_vetor(
-            jx, jy,
-            jx + dx_bz * scale, jy + dy_bz * scale,
-            "#006600", f"Z'=({dx_bz:.1f},{dy_bz:.1f})"
-        )
+        max_mag = max(mag_bs, mag_bz, 1e-9)
+        scale = min(60.0, 150.0 / max_mag)
 
-    # ---------------------------------------------------------------------- #
-    # Curvaturas (visualizacao C2)
-    # ---------------------------------------------------------------------- #
+        ex1 = jx + dx_bs * scale
+        ey1 = jy + dy_bs * scale
+        self.canvas.create_line(jx, jy, ex1, ey1,
+                                fill="#cc0000", width=2.5, arrow=tk.LAST,
+                                tags="tangente")
+        self.canvas.create_text(ex1, ey1 - 8,
+                                text=f"B'=({dx_bs:.1f},{dy_bs:.1f})",
+                                fill="#cc0000", font=("Arial", 8, "bold"),
+                                tags="tangente")
+
+        ex2 = jx + dx_bz * scale
+        ey2 = jy + dy_bz * scale
+        self.canvas.create_line(jx, jy, ex2, ey2,
+                                fill="#006600", width=2.5, arrow=tk.LAST,
+                                tags="tangente")
+        self.canvas.create_text(ex2, ey2 - 8,
+                                text=f"Z'=({dx_bz:.1f},{dy_bz:.1f})",
+                                fill="#006600", font=("Arial", 8, "bold"),
+                                tags="tangente")
+
+    # ---------- Curvature visualization ----------
 
     def desenhar_curvaturas(self):
         """Desenha vetores de curvatura (2a derivada) na juncao."""
@@ -347,43 +241,42 @@ class AplicativoCurvas:
         dx_bs2, dy_bs2, _ = self.bspline.derivada_segunda_no_fim()
         dx_bz2, dy_bz2, _ = self.bezier.derivada_segunda_no_inicio()
 
-        max_mag = max(math.hypot(dx_bs2, dy_bs2), math.hypot(dx_bz2, dy_bz2), 1e-9)
-        scale   = min(30.0, 80.0 / max_mag)
+        mag_bs2 = math.sqrt(dx_bs2**2 + dy_bs2**2)
+        mag_bz2 = math.sqrt(dx_bz2**2 + dy_bz2**2)
 
-        self._desenhar_vetor(
-            jx, jy,
-            jx + dx_bs2 * scale, jy + dy_bs2 * scale,
-            "#cc6600", f"B''=({dx_bs2:.1f},{dy_bs2:.1f})",
-            dx_label=10, dy_label=0
-        )
-        self._desenhar_vetor(
-            jx, jy,
-            jx + dx_bz2 * scale, jy + dy_bz2 * scale,
-            "#6600cc", f"Z''=({dx_bz2:.1f},{dy_bz2:.1f})",
-            dx_label=10, dy_label=0
-        )
+        max_mag = max(mag_bs2, mag_bz2, 1e-9)
+        scale = min(30.0, 80.0 / max_mag)
 
-    # ---------------------------------------------------------------------- #
-    # Mouse
-    # ---------------------------------------------------------------------- #
+        ex1 = jx + dx_bs2 * scale
+        ey1 = jy + dy_bs2 * scale
+        self.canvas.create_line(jx, jy, ex1, ey1,
+                                fill="#cc6600", width=2.5, arrow=tk.LAST,
+                                tags="curvatura")
+        self.canvas.create_text(ex1 + 10, ey1,
+                                text=f"B''=({dx_bs2:.1f},{dy_bs2:.1f})",
+                                fill="#cc6600", font=("Arial", 8, "bold"),
+                                tags="curvatura")
 
-    def _toolbar_ativa(self):
-        """True se a toolbar esta em modo zoom ou pan — nao adicionar pontos."""
-        return bool(self.toolbar.mode)
+        ex2 = jx + dx_bz2 * scale
+        ey2 = jy + dy_bz2 * scale
+        self.canvas.create_line(jx, jy, ex2, ey2,
+                                fill="#6600cc", width=2.5, arrow=tk.LAST,
+                                tags="curvatura")
+        self.canvas.create_text(ex2 + 10, ey2,
+                                text=f"Z''=({dx_bz2:.1f},{dy_bz2:.1f})",
+                                fill="#6600cc", font=("Arial", 8, "bold"),
+                                tags="curvatura")
 
-    def _on_press(self, evento):
-        if evento.button != 1:
-            return
-        if evento.inaxes is None or self._toolbar_ativa():
-            return
+    # ---------- Mouse ----------
 
-        x, y  = evento.xdata, evento.ydata
+    def clique_esquerdo(self, evento):
+        x, y = evento.x, evento.y
         curva = self._curva_ativa()
 
-        # Verifica se clicou perto de algum ponto para iniciar arraste
         for i, ponto in enumerate(curva.pontos):
-            if math.hypot(ponto["x"] - x, ponto["y"] - y) <= self.raio_selecao:
-                self.arrastando       = i
+            distancia = ((ponto["x"] - x) ** 2 + (ponto["y"] - y) ** 2) ** 0.5
+            if distancia <= self.raio_ponto + 5:
+                self.arrastando = i
                 self.lista_arrastando = self.modo_ativo
                 return
 
@@ -392,171 +285,173 @@ class AplicativoCurvas:
             self._invalidar_continuidades()
         self.redesenhar()
 
-    def _on_motion(self, evento):
-        if self.arrastando is None:
-            return
-        if evento.button != 1:
-            return
-        if evento.inaxes is None:
-            return
-        if self.lista_arrastando != self.modo_ativo:
-            return
+    def arrastar(self, evento):
+        if self.arrastando is not None and self.lista_arrastando == self.modo_ativo:
+            curva = self._curva_ativa()
+            curva.pontos[self.arrastando]["x"] = evento.x
+            curva.pontos[self.arrastando]["y"] = evento.y
+            self._invalidar_continuidades()
+            self.redesenhar()
 
-        curva = self._curva_ativa()
-        curva.pontos[self.arrastando]["x"] = evento.xdata
-        curva.pontos[self.arrastando]["y"] = evento.ydata
-        self._invalidar_continuidades()
-        self.redesenhar()
-
-    def _on_release(self, evento):
-        self.arrastando       = None
+    def soltar(self, evento):
+        self.arrastando = None
         self.lista_arrastando = None
 
-    # ---------------------------------------------------------------------- #
-    # Helpers de desenho genericos
-    # ---------------------------------------------------------------------- #
+    # ---------- Instrucoes ----------
 
-    def _desenhar_pontos(self, curva):
-        """Desenha pontos de controle e labels de qualquer curva."""
-        if not curva.pontos:
-            return
-
-        xs = [p["x"] for p in curva.pontos]
-        ys = [p["y"] for p in curva.pontos]
-
-        self.ax.scatter(
-            xs, ys, s=55, zorder=5,
-            color=_cor(curva.cor_ponto),
-            edgecolors=_cor(curva.cor_borda),
-            linewidths=1.8
+    def desenhar_instrucoes(self):
+        self.canvas.create_text(
+            400, 12,
+            text="Clique no canvas para adicionar pontos. Arraste para move-los.",
+            font=("Arial", 11), fill="gray50"
         )
-        for i, (px, py) in enumerate(zip(xs, ys)):
-            self.ax.text(
-                px + 7, py + 7,
-                curva.prefixo_label + str(i),
-                fontsize=9, fontweight="bold",
-                color=_cor(curva.cor_borda), zorder=5
+        self.canvas.create_text(
+            400, 32,
+            text="Modo atual: " + self._curva_ativa().nome,
+            font=("Arial", 12, "bold"),
+            fill=self._curva_ativa().cor_borda,
+            tags="modo_texto"
+        )
+        faltando = self._curva_ativa().min_pontos - len(self._curva_ativa().pontos)
+        if faltando > 0:
+            self.canvas.create_text(
+                400, 52,
+                text="Adicione mais %d ponto(s) para ver a curva %s!" % (faltando, self._curva_ativa().nome),
+                font=("Arial", 10), fill="orange",
+                tags="aviso"
+            )
+        elif self.modo_ativo == "bezier" and not self.bezier.pode_adicionar() and len(self.bezier.pontos) > self.bezier.max_pontos:
+            self.canvas.create_text(
+                400, 52,
+                text="Curva Bezier grau 5 usa exatamente 6 pontos!",
+                font=("Arial", 10), fill="red",
+                tags="aviso"
             )
 
-    def _desenhar_poligonal(self, curva):
+        if self.continuidade_c0:
+            y_base = 52 if faltando <= 0 else 72
+            self.canvas.create_text(
+                400, y_base,
+                text="Continuidade C0 ativa — curvas unidas por translacao",
+                font=("Arial", 10), fill="green",
+                tags="c0_status"
+            )
+
+            if self.continuidade_c1:
+                self.canvas.create_text(
+                    400, y_base + 20,
+                    text="Continuidade C1 ativa — tangentes iguais (derivadas identicas)",
+                    font=("Arial", 10, "bold"), fill="darkred",
+                    tags="c1_status"
+                )
+
+            if self.continuidade_c2:
+                self.canvas.create_text(
+                    400, y_base + 40,
+                    text="Continuidade C2 ativa — curvaturas iguais (2as derivadas identicas)",
+                    font=("Arial", 10, "bold"), fill="#9933cc",
+                    tags="c2_status"
+                )
+
+    # ---------- Helpers de desenho (genericamente tipados) ----------
+
+    def desenhar_pontos(self, curva):
+        """Desenha pontos de controle e labels de qualquer curva."""
+        for i, p in enumerate(curva.pontos):
+            r = self.raio_ponto
+            self.canvas.create_oval(
+                p["x"] - r, p["y"] - r, p["x"] + r, p["y"] + r,
+                fill=curva.cor_ponto, outline=curva.cor_borda, width=2
+            )
+            self.canvas.create_text(
+                p["x"] + 12, p["y"] - 12,
+                text=curva.prefixo_label + str(i),
+                font=("Arial", 10, "bold"), fill=curva.cor_borda
+            )
+
+    def desenhar_poligonal(self, curva):
         """Desenha a poligonal de controle (linha tracejada) de qualquer curva."""
-        if len(curva.pontos) < 2:
-            return
-        xs = [p["x"] for p in curva.pontos]
-        ys = [p["y"] for p in curva.pontos]
-        self.ax.plot(
-            xs, ys,
-            color=_cor(curva.cor_poligonal),
-            linestyle="--", linewidth=1, zorder=2
-        )
+        if len(curva.pontos) > 1:
+            c = []
+            for p in curva.pontos:
+                c.extend([p["x"], p["y"]])
+            self.canvas.create_line(c, fill=curva.cor_poligonal, dash=(4, 4), width=1)
 
-    # ---------------------------------------------------------------------- #
-    # Desenho especifico de cada curva
-    # ---------------------------------------------------------------------- #
+    # ---------- Desenho especifico de cada curva (EXPLICITO) ----------
 
-    def _desenhar_curva_bspline(self):
+    def desenhar_curva_bspline(self):
         """Desenha a curva B-spline usando o algoritmo de Cox-de Boor."""
         if not self.bspline.pronto():
             return
 
-        nos   = self.bspline._gerar_vetor_nos(len(self.bspline.pontos))
+        nos = self.bspline._gerar_vetor_nos(len(self.bspline.pontos))
         t_ini = nos[self.bspline.GRAU]
         t_fim = nos[len(self.bspline.pontos)]
-        dt    = (t_fim - t_ini) / PASSOS
+        passos = 100
+        dt = (t_fim - t_ini) / passos
 
-        xs, ys = [], []
+        coords = []
         t = t_ini
-        while t <= t_fim + 1e-12:
-            cx, cy, _ = self.bspline.calcular_ponto(min(t, t_fim))
-            xs.append(cx)
-            ys.append(cy)
+        while t <= t_fim:
+            x, y, z = self.bspline.calcular_ponto(t)
+            coords.extend([x, y])
             t += dt
 
-        self.ax.plot(xs, ys, color=_cor(self.bspline.cor_curva), linewidth=2, zorder=3)
+        if len(coords) >= 4:
+            self.canvas.create_line(coords, fill=self.bspline.cor_curva, width=2)
 
-    def _desenhar_curva_bezier(self):
+    def desenhar_curva_bezier(self):
         """Desenha a curva Bezier usando o algoritmo de De Casteljau."""
         if not self.bezier.pronto():
             return
 
-        xs, ys = [], []
-        for i in range(PASSOS + 1):
-            cx, cy, _ = self.bezier.calcular_ponto(i / PASSOS)
-            xs.append(cx)
-            ys.append(cy)
+        passos = 100
+        dt = 1.0 / passos
+        coords = []
+        t = 0.0
+        while t <= 1.0:
+            x, y, z = self.bezier.calcular_ponto(t)
+            coords.extend([x, y])
+            t += dt
 
-        self.ax.plot(xs, ys, color=_cor(self.bezier.cor_curva), linewidth=2, zorder=3)
+        if len(coords) >= 4:
+            self.canvas.create_line(coords, fill=self.bezier.cor_curva, width=2)
 
-    # ---------------------------------------------------------------------- #
-    # Titulo / status
-    # ---------------------------------------------------------------------- #
-
-    def _atualizar_titulo(self):
-        curva  = self._curva_ativa()
-        partes = [f"Modo: {curva.nome}"]
-
-        faltando = curva.min_pontos - len(curva.pontos)
-        if faltando > 0:
-            partes.append(f"adicione mais {faltando} ponto(s)")
-
-        ativas = []
-        if self.continuidade_c0:
-            ativas.append("C0")
-        if self.continuidade_c1:
-            ativas.append("C1")
-        if self.continuidade_c2:
-            ativas.append("C2")
-        if ativas:
-            partes.append("Continuidade ativa: " + ", ".join(ativas))
-
-        self.ax.set_title("   |   ".join(partes), fontsize=10, pad=6)
-
-    # ---------------------------------------------------------------------- #
-    # Redesenho geral
-    # ---------------------------------------------------------------------- #
+    # ---------- Redesenho geral (ordem: fundo -> poligonal -> pontos -> curva) ----------
 
     def redesenhar(self):
-        # Preserva o zoom/pan atual do usuario
-        xlim = self.ax.get_xlim()
-        ylim = self.ax.get_ylim()
-
-        self.ax.cla()
-        self._configurar_eixos()
-
-        # Restaura a view do usuario apos cla()
-        self.ax.set_xlim(xlim)
-        self.ax.set_ylim(ylim)
-
-        self._atualizar_titulo()
+        self.canvas.delete("all")
+        self.desenhar_instrucoes()
 
         # --- B-spline ---
-        self._desenhar_poligonal(self.bspline)
-        self._desenhar_curva_bspline()
-        self._desenhar_pontos(self.bspline)
+        self.desenhar_poligonal(self.bspline)
+        self.desenhar_pontos(self.bspline)
+        self.desenhar_curva_bspline()
 
         # --- Bezier ---
-        self._desenhar_poligonal(self.bezier)
-        self._desenhar_curva_bezier()
-        self._desenhar_pontos(self.bezier)
+        self.desenhar_poligonal(self.bezier)
+        self.desenhar_pontos(self.bezier)
+        self.desenhar_curva_bezier()
 
         # --- Marcador de juncao C0 ---
-        if self.continuidade_c0 and self.bspline.pontos:
+        if self.continuidade_c0 and len(self.bspline.pontos) > 0:
             p = self.bspline.pontos[-1]
-            self.ax.add_patch(Circle(
-                (p["x"], p["y"]), radius=8,
-                fill=False, edgecolor="goldenrod", linewidth=3, zorder=6
-            ))
-            self.ax.text(
-                p["x"], p["y"] + 15, "Juncao C0",
-                fontsize=9, fontweight="bold",
-                color="goldenrod", ha="center", zorder=6
+            r = 8
+            self.canvas.create_oval(
+                p["x"] - r, p["y"] - r, p["x"] + r, p["y"] + r,
+                outline="gold", width=3, tags="juncao"
+            )
+            self.canvas.create_text(
+                p["x"], p["y"] - r - 10,
+                text="Juncao C0", font=("Arial", 9, "bold"),
+                fill="gold", tags="juncao"
             )
 
-        # --- Vetores tangente e curvatura ---
+        # --- Vetores tangente ---
         self.desenhar_tangentes()
-        self.desenhar_curvaturas()
 
-        self.mpl_canvas.draw()
+        # --- Vetores curvatura ---
+        self.desenhar_curvaturas()
 
 
 if __name__ == "__main__":
