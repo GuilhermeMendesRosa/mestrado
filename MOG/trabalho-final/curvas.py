@@ -140,6 +140,24 @@ class AplicativoCurvas:
             "ponto_bz",  foreground="#004d00", font=("Courier", 10))
         self.texto_pontos.tag_config(
             "vazio",     foreground="#999999", font=("Arial", 9, "italic"))
+        self.texto_pontos.tag_config(
+            "header_deriv", foreground="#555555", font=("Arial", 10, "bold"))
+        self.texto_pontos.tag_config(
+            "label_d1_bs",  foreground="#cc0000", font=("Courier", 9, "bold"))
+        self.texto_pontos.tag_config(
+            "valor_d1_bs",  foreground="#cc0000", font=("Courier", 10))
+        self.texto_pontos.tag_config(
+            "label_d1_bz",  foreground="#006600", font=("Courier", 9, "bold"))
+        self.texto_pontos.tag_config(
+            "valor_d1_bz",  foreground="#006600", font=("Courier", 10))
+        self.texto_pontos.tag_config(
+            "label_d2_bs",  foreground="#cc6600", font=("Courier", 9, "bold"))
+        self.texto_pontos.tag_config(
+            "valor_d2_bs",  foreground="#cc6600", font=("Courier", 10))
+        self.texto_pontos.tag_config(
+            "label_d2_bz",  foreground="#6600cc", font=("Courier", 9, "bold"))
+        self.texto_pontos.tag_config(
+            "valor_d2_bz",  foreground="#6600cc", font=("Courier", 10))
 
         # -------------------------------------------------------
         # Bindings de mouse
@@ -299,19 +317,11 @@ class AplicativoCurvas:
         self.canvas.create_line(jx, jy, ex1, ey1,
                                 fill="#cc0000", width=2.5, arrow=tk.LAST,
                                 tags="tangente")
-        self.canvas.create_text(ex1, ey1 - 8,
-                                text=f"B'=({dx_bs:.1f},{dy_bs:.1f})",
-                                fill="#cc0000", font=("Arial", 8, "bold"),
-                                tags="tangente")
 
         ex2 = jx + dx_bz * scale
         ey2 = jy + dy_bz * scale
         self.canvas.create_line(jx, jy, ex2, ey2,
                                 fill="#006600", width=2.5, arrow=tk.LAST,
-                                tags="tangente")
-        self.canvas.create_text(ex2, ey2 - 8,
-                                text=f"Z'=({dx_bz:.1f},{dy_bz:.1f})",
-                                fill="#006600", font=("Arial", 8, "bold"),
                                 tags="tangente")
 
     # ---------- Curvature visualization ----------
@@ -342,19 +352,11 @@ class AplicativoCurvas:
         self.canvas.create_line(jx, jy, ex1, ey1,
                                 fill="#cc6600", width=2.5, arrow=tk.LAST,
                                 tags="curvatura")
-        self.canvas.create_text(ex1 + 10, ey1,
-                                text=f"B''=({dx_bs2:.1f},{dy_bs2:.1f})",
-                                fill="#cc6600", font=("Arial", 8, "bold"),
-                                tags="curvatura")
 
         ex2 = jx + dx_bz2 * scale
         ey2 = jy + dy_bz2 * scale
         self.canvas.create_line(jx, jy, ex2, ey2,
                                 fill="#6600cc", width=2.5, arrow=tk.LAST,
-                                tags="curvatura")
-        self.canvas.create_text(ex2 + 10, ey2,
-                                text=f"Z''=({dx_bz2:.1f},{dy_bz2:.1f})",
-                                fill="#6600cc", font=("Arial", 8, "bold"),
                                 tags="curvatura")
 
     # ---------- Mouse ----------
@@ -536,6 +538,27 @@ class AplicativoCurvas:
                 self.texto_pontos.insert(tk.END, linha, "ponto_bz")
         else:
             self.texto_pontos.insert(tk.END, "  (sem pontos)\n", "vazio")
+
+        # --- Secao Derivadas (so aparece quando C0 esta ativo) ---
+        if self.continuidade_c0:
+            self.texto_pontos.insert(tk.END, "\n")
+            self.texto_pontos.insert(tk.END, "\u2500\u2500 Derivadas \u2500\u2500\n", "header_deriv")
+
+            if self._pode_aplicar_c1():
+                dx_bs, dy_bs, _ = self.bspline.derivada_no_fim()
+                dx_bz, dy_bz, _ = self.bezier.derivada_no_inicio()
+                self.texto_pontos.insert(tk.END, "  B'(fim):\n", "label_d1_bs")
+                self.texto_pontos.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bs, dy_bs), "valor_d1_bs")
+                self.texto_pontos.insert(tk.END, "  Z'(inicio):\n", "label_d1_bz")
+                self.texto_pontos.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bz, dy_bz), "valor_d1_bz")
+
+            if self._pode_aplicar_c2():
+                dx_bs2, dy_bs2, _ = self.bspline.derivada_segunda_no_fim()
+                dx_bz2, dy_bz2, _ = self.bezier.derivada_segunda_no_inicio()
+                self.texto_pontos.insert(tk.END, "  B''(fim):\n", "label_d2_bs")
+                self.texto_pontos.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bs2, dy_bs2), "valor_d2_bs")
+                self.texto_pontos.insert(tk.END, "  Z''(inicio):\n", "label_d2_bz")
+                self.texto_pontos.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bz2, dy_bz2), "valor_d2_bz")
 
         self.texto_pontos.config(state=tk.DISABLED)
 
