@@ -18,7 +18,7 @@ class AplicativoCurvas:
     def __init__(self, raiz):
         self.raiz = raiz
         self.raiz.title("B-spline Grau 4 + Bezier Grau 5")
-        self.raiz.geometry("800x600")
+        self.raiz.geometry("1060x620")
 
         # --- Composicao: Main TEM uma BSpline e TEM uma Bezier ---
         self.bspline = BSpline()
@@ -34,43 +34,118 @@ class AplicativoCurvas:
         self.lista_arrastando = None
         self.raio_ponto = 6
 
-        # --- Widgets Tkinter ---
-        self.frame_controle = tk.Frame(raiz)
-        self.frame_controle.pack(side=tk.BOTTOM, fill=tk.X, pady=5)
+        # Flag de visibilidade das setas de derivada
+        self.mostrar_setas = True
+
+        # -------------------------------------------------------
+        # Frame de controle (barra inferior com botoes)
+        # -------------------------------------------------------
+        self.frame_controle = tk.Frame(raiz, pady=4)
+        self.frame_controle.pack(side=tk.BOTTOM, fill=tk.X)
 
         self.botao_modo = tk.Button(
             self.frame_controle, text="Modo: B-spline",
-            command=self.alternar_modo, font=("Arial", 12, "bold"),
-            bg="#d0d0ff", width=22
+            command=self.alternar_modo, font=("Arial", 11, "bold"),
+            bg="#d0d0ff", width=20
         )
-        self.botao_modo.pack()
+        self.botao_modo.pack(side=tk.LEFT, padx=4)
 
         self.botao_c0 = tk.Button(
             self.frame_controle, text="Unir curvas (C0)",
             command=self.aplicar_c0, font=("Arial", 11, "bold"),
-            bg="#ffffcc", width=22
+            bg="#ffffcc", width=18
         )
-        self.botao_c0.pack()
+        self.botao_c0.pack(side=tk.LEFT, padx=4)
 
         self.botao_c1 = tk.Button(
             self.frame_controle, text="Unir curvas (C1)",
             command=self.aplicar_c1, font=("Arial", 11, "bold"),
-            bg="#ffcccc", width=22
+            bg="#ffcccc", width=18
         )
-        self.botao_c1.pack()
+        self.botao_c1.pack(side=tk.LEFT, padx=4)
 
         self.botao_c2 = tk.Button(
             self.frame_controle, text="Unir curvas (C2)",
             command=self.aplicar_c2, font=("Arial", 11, "bold"),
-            bg="#ddccff", width=22
+            bg="#ddccff", width=18
         )
-        self.botao_c2.pack()
+        self.botao_c2.pack(side=tk.LEFT, padx=4)
 
-        self.canvas = tk.Canvas(raiz, width=800, height=600, bg="white")
-        self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.botao_setas = tk.Button(
+            self.frame_controle, text="Ocultar setas",
+            command=self.alternar_setas, font=("Arial", 11, "bold"),
+            bg="#e0f8ff", width=16
+        )
+        self.botao_setas.pack(side=tk.LEFT, padx=4)
 
-        self.canvas.bind("<Button-1>", self.clique_esquerdo)
-        self.canvas.bind("<B1-Motion>", self.arrastar)
+        # -------------------------------------------------------
+        # Frame principal: canvas (esq.) + separador + painel (dir.)
+        # -------------------------------------------------------
+        self.frame_principal = tk.Frame(raiz)
+        self.frame_principal.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        # Canvas principal
+        self.canvas = tk.Canvas(self.frame_principal, bg="white")
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Separador vertical
+        sep = tk.Frame(self.frame_principal, width=2, bg="#cccccc")
+        sep.pack(side=tk.LEFT, fill=tk.Y)
+
+        # -------------------------------------------------------
+        # Painel lateral de pontos de controle
+        # -------------------------------------------------------
+        self.frame_pontos = tk.Frame(self.frame_principal, width=220, bg="#f8f8f8")
+        self.frame_pontos.pack(side=tk.LEFT, fill=tk.Y)
+        self.frame_pontos.pack_propagate(False)
+
+        tk.Label(
+            self.frame_pontos,
+            text="Pontos de Controle",
+            font=("Arial", 12, "bold"),
+            bg="#f8f8f8", fg="#333333",
+            pady=8
+        ).pack(fill=tk.X)
+
+        tk.Frame(self.frame_pontos, height=1, bg="#cccccc").pack(fill=tk.X)
+
+        frame_texto = tk.Frame(self.frame_pontos, bg="#f8f8f8")
+        frame_texto.pack(fill=tk.BOTH, expand=True, padx=4, pady=6)
+
+        scrollbar = tk.Scrollbar(frame_texto)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.texto_pontos = tk.Text(
+            frame_texto,
+            yscrollcommand=scrollbar.set,
+            state=tk.DISABLED,
+            font=("Courier", 10),
+            bg="#f8f8f8",
+            relief=tk.FLAT,
+            cursor="arrow",
+            wrap=tk.NONE,
+            width=22,
+        )
+        self.texto_pontos.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.config(command=self.texto_pontos.yview)
+
+        # Tags de cor no widget de texto
+        self.texto_pontos.tag_config(
+            "header_bs", foreground="#1a1aff", font=("Arial", 10, "bold"))
+        self.texto_pontos.tag_config(
+            "ponto_bs",  foreground="#000099", font=("Courier", 10))
+        self.texto_pontos.tag_config(
+            "header_bz", foreground="#006600", font=("Arial", 10, "bold"))
+        self.texto_pontos.tag_config(
+            "ponto_bz",  foreground="#004d00", font=("Courier", 10))
+        self.texto_pontos.tag_config(
+            "vazio",     foreground="#999999", font=("Arial", 9, "italic"))
+
+        # -------------------------------------------------------
+        # Bindings de mouse
+        # -------------------------------------------------------
+        self.canvas.bind("<Button-1>",       self.clique_esquerdo)
+        self.canvas.bind("<B1-Motion>",      self.arrastar)
         self.canvas.bind("<ButtonRelease-1>", self.soltar)
 
         self.redesenhar()
@@ -99,6 +174,17 @@ class AplicativoCurvas:
         self.botao_c0.config(text="Unir curvas (C0)", bg="#ffffcc")
         self.botao_c1.config(text="Unir curvas (C1)", bg="#ffcccc")
         self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
+
+    # ---------- Toggle setas ----------
+
+    def alternar_setas(self):
+        """Alterna a visibilidade das setas de tangente e curvatura."""
+        self.mostrar_setas = not self.mostrar_setas
+        if self.mostrar_setas:
+            self.botao_setas.config(text="Ocultar setas", bg="#e0f8ff")
+        else:
+            self.botao_setas.config(text="Mostrar setas", bg="#c0c0c0")
+        self.redesenhar()
 
     # ---------- C0 Continuity ----------
 
@@ -189,6 +275,8 @@ class AplicativoCurvas:
 
     def desenhar_tangentes(self):
         """Desenha vetores tangente na juncao para visualizar C1."""
+        if not self.mostrar_setas:
+            return
         if not self.continuidade_c0:
             return
         if not self._pode_aplicar_c1():
@@ -230,6 +318,8 @@ class AplicativoCurvas:
 
     def desenhar_curvaturas(self):
         """Desenha vetores de curvatura (2a derivada) na juncao."""
+        if not self.mostrar_setas:
+            return
         if not self.continuidade_c0:
             return
         if not self._pode_aplicar_c2():
@@ -300,13 +390,16 @@ class AplicativoCurvas:
     # ---------- Instrucoes ----------
 
     def desenhar_instrucoes(self):
+        w = self.canvas.winfo_width()
+        cx = w // 2 if w > 10 else 400
+
         self.canvas.create_text(
-            400, 12,
+            cx, 12,
             text="Clique no canvas para adicionar pontos. Arraste para move-los.",
             font=("Arial", 11), fill="gray50"
         )
         self.canvas.create_text(
-            400, 32,
+            cx, 32,
             text="Modo atual: " + self._curva_ativa().nome,
             font=("Arial", 12, "bold"),
             fill=self._curva_ativa().cor_borda,
@@ -315,14 +408,14 @@ class AplicativoCurvas:
         faltando = self._curva_ativa().min_pontos - len(self._curva_ativa().pontos)
         if faltando > 0:
             self.canvas.create_text(
-                400, 52,
+                cx, 52,
                 text="Adicione mais %d ponto(s) para ver a curva %s!" % (faltando, self._curva_ativa().nome),
                 font=("Arial", 10), fill="orange",
                 tags="aviso"
             )
         elif self.modo_ativo == "bezier" and not self.bezier.pode_adicionar() and len(self.bezier.pontos) > self.bezier.max_pontos:
             self.canvas.create_text(
-                400, 52,
+                cx, 52,
                 text="Curva Bezier grau 5 usa exatamente 6 pontos!",
                 font=("Arial", 10), fill="red",
                 tags="aviso"
@@ -331,7 +424,7 @@ class AplicativoCurvas:
         if self.continuidade_c0:
             y_base = 52 if faltando <= 0 else 72
             self.canvas.create_text(
-                400, y_base,
+                cx, y_base,
                 text="Continuidade C0 ativa — curvas unidas por translacao",
                 font=("Arial", 10), fill="green",
                 tags="c0_status"
@@ -339,7 +432,7 @@ class AplicativoCurvas:
 
             if self.continuidade_c1:
                 self.canvas.create_text(
-                    400, y_base + 20,
+                    cx, y_base + 20,
                     text="Continuidade C1 ativa — tangentes iguais (derivadas identicas)",
                     font=("Arial", 10, "bold"), fill="darkred",
                     tags="c1_status"
@@ -347,7 +440,7 @@ class AplicativoCurvas:
 
             if self.continuidade_c2:
                 self.canvas.create_text(
-                    400, y_base + 40,
+                    cx, y_base + 40,
                     text="Continuidade C2 ativa — curvaturas iguais (2as derivadas identicas)",
                     font=("Arial", 10, "bold"), fill="#9933cc",
                     tags="c2_status"
@@ -417,6 +510,35 @@ class AplicativoCurvas:
         if len(coords) >= 4:
             self.canvas.create_line(coords, fill=self.bezier.cor_curva, width=2)
 
+    # ---------- Painel lateral: lista de pontos ----------
+
+    def atualizar_painel_pontos(self):
+        """Atualiza o painel lateral com as coordenadas atuais dos pontos de controle."""
+        self.texto_pontos.config(state=tk.NORMAL)
+        self.texto_pontos.delete("1.0", tk.END)
+
+        # --- Secao B-spline ---
+        self.texto_pontos.insert(tk.END, "\u2500\u2500 B-spline \u2500\u2500\n", "header_bs")
+        if self.bspline.pontos:
+            for i, p in enumerate(self.bspline.pontos):
+                linha = "  B%d: (%d, %d)\n" % (i, round(p["x"]), round(p["y"]))
+                self.texto_pontos.insert(tk.END, linha, "ponto_bs")
+        else:
+            self.texto_pontos.insert(tk.END, "  (sem pontos)\n", "vazio")
+
+        self.texto_pontos.insert(tk.END, "\n")
+
+        # --- Secao Bezier ---
+        self.texto_pontos.insert(tk.END, "\u2500\u2500\u2500 Bezier \u2500\u2500\u2500\n", "header_bz")
+        if self.bezier.pontos:
+            for i, p in enumerate(self.bezier.pontos):
+                linha = "  Z%d: (%d, %d)\n" % (i, round(p["x"]), round(p["y"]))
+                self.texto_pontos.insert(tk.END, linha, "ponto_bz")
+        else:
+            self.texto_pontos.insert(tk.END, "  (sem pontos)\n", "vazio")
+
+        self.texto_pontos.config(state=tk.DISABLED)
+
     # ---------- Redesenho geral (ordem: fundo -> poligonal -> pontos -> curva) ----------
 
     def redesenhar(self):
@@ -452,6 +574,9 @@ class AplicativoCurvas:
 
         # --- Vetores curvatura ---
         self.desenhar_curvaturas()
+
+        # --- Atualiza painel lateral ---
+        self.atualizar_painel_pontos()
 
 
 if __name__ == "__main__":
