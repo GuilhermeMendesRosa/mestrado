@@ -78,6 +78,13 @@ class AplicativoCurvas:
         )
         self.botao_setas.pack(side=tk.LEFT, padx=4)
 
+        self.botao_reset = tk.Button(
+            self.frame_controle, text="Resetar curvas",
+            command=self.resetar_curvas, font=("Arial", 11, "bold"),
+            bg="#ffccaa", width=16
+        )
+        self.botao_reset.pack(side=tk.LEFT, padx=4)
+
         # -------------------------------------------------------
         # Frame principal: canvas (esq.) + separador + painel (dir.)
         # -------------------------------------------------------
@@ -183,6 +190,17 @@ class AplicativoCurvas:
         else:
             self.modo_ativo = "bspline"
             self.botao_modo.config(text="Modo: B-spline", bg="#d0d0ff")
+        self.redesenhar()
+
+    def resetar_curvas(self):
+        """Remove todos os pontos de controle e reseta o estado completo."""
+        self.bspline.pontos = []
+        self.bezier.pontos = []
+        self.arrastando = None
+        self.lista_arrastando = None
+        self.modo_ativo = "bspline"
+        self.botao_modo.config(text="Modo: B-spline", bg="#d0d0ff")
+        self._invalidar_continuidades()
         self.redesenhar()
 
     def _invalidar_continuidades(self):
