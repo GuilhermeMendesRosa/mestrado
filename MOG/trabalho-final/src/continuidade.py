@@ -41,10 +41,12 @@ class GerenciadorContinuidade:
 
         dx = ultimo_bsp["x"] - primeiro_bez["x"]
         dy = ultimo_bsp["y"] - primeiro_bez["y"]
+        dz = ultimo_bsp["z"] - primeiro_bez["z"]
 
         for p in bezier.pontos:
             p["x"] += dx
             p["y"] += dy
+            p["z"] += dz
 
         self.c0 = True
         return True
@@ -61,10 +63,11 @@ class GerenciadorContinuidade:
         jx = bspline.pontos[-1]["x"]
         jy = bspline.pontos[-1]["y"]
 
-        dx_bs, dy_bs, _ = bspline.derivada_no_fim()
+        dx_bs, dy_bs, dz_bs = bspline.derivada_no_fim()
 
         bezier.pontos[1]["x"] = jx + dx_bs / 5
         bezier.pontos[1]["y"] = jy + dy_bs / 5
+        bezier.pontos[1]["z"] = 0
 
         self.c1 = True
         self.c2 = False
@@ -83,13 +86,14 @@ class GerenciadorContinuidade:
             if not self.aplicar_c1(bspline, bezier):
                 return False
 
-        dx_bs2, dy_bs2, _ = bspline.derivada_segunda_no_fim()
+        dx_bs2, dy_bs2, dz_bs2 = bspline.derivada_segunda_no_fim()
 
         z0 = bezier.pontos[0]
         z1 = bezier.pontos[1]
 
         bezier.pontos[2]["x"] = dx_bs2 / 20.0 + 2 * z1["x"] - z0["x"]
         bezier.pontos[2]["y"] = dy_bs2 / 20.0 + 2 * z1["y"] - z0["y"]
+        bezier.pontos[2]["z"] = 0
 
         self.c2 = True
         return True

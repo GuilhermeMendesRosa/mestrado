@@ -82,7 +82,7 @@ class PainelPontos:
         self.texto.insert(tk.END, "\u2500\u2500 B-spline \u2500\u2500\n", "header_bs")
         if bspline.pontos:
             for i, p in enumerate(bspline.pontos):
-                linha = "  B%d: (%d, %d)\n" % (i, round(p["x"]), round(p["y"]))
+                linha = "  B%d: (%d, %d, %d)\n" % (i, round(p["x"]), round(p["y"]), round(p["z"]))
                 self.texto.insert(tk.END, linha, "ponto_bs")
         else:
             self.texto.insert(tk.END, "  (sem pontos)\n", "vazio")
@@ -92,7 +92,7 @@ class PainelPontos:
         self.texto.insert(tk.END, "\u2500\u2500\u2500 Bezier \u2500\u2500\u2500\n", "header_bz")
         if bezier.pontos:
             for i, p in enumerate(bezier.pontos):
-                linha = "  Z%d: (%d, %d)\n" % (i, round(p["x"]), round(p["y"]))
+                linha = "  Z%d: (%d, %d, %d)\n" % (i, round(p["x"]), round(p["y"]), round(p["z"]))
                 self.texto.insert(tk.END, linha, "ponto_bz")
         else:
             self.texto.insert(tk.END, "  (sem pontos)\n", "vazio")
@@ -102,19 +102,19 @@ class PainelPontos:
             self.texto.insert(tk.END, "\u2500\u2500 Derivadas \u2500\u2500\n", "header_deriv")
 
             if continuidade.pode_aplicar_c1(bspline, bezier):
-                dx_bs, dy_bs, _ = bspline.derivada_no_fim()
-                dx_bz, dy_bz, _ = bezier.derivada_no_inicio()
+                dx_bs, dy_bs, dz_bs = bspline.derivada_no_fim()
+                dx_bz, dy_bz, dz_bz = bezier.derivada_no_inicio()
                 self.texto.insert(tk.END, "  B'(fim):\n", "label_d1_bs")
-                self.texto.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bs, dy_bs), "valor_d1_bs")
+                self.texto.insert(tk.END, "    (%.1f, %.1f, %.1f)\n" % (dx_bs, dy_bs, dz_bs), "valor_d1_bs")
                 self.texto.insert(tk.END, "  Z'(inicio):\n", "label_d1_bz")
-                self.texto.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bz, dy_bz), "valor_d1_bz")
+                self.texto.insert(tk.END, "    (%.1f, %.1f, %.1f)\n" % (dx_bz, dy_bz, dz_bz), "valor_d1_bz")
 
             if continuidade.pode_aplicar_c2(bspline, bezier):
-                dx_bs2, dy_bs2, _ = bspline.derivada_segunda_no_fim()
-                dx_bz2, dy_bz2, _ = bezier.derivada_segunda_no_inicio()
+                dx_bs2, dy_bs2, dz_bs2 = bspline.derivada_segunda_no_fim()
+                dx_bz2, dy_bz2, dz_bz2 = bezier.derivada_segunda_no_inicio()
                 self.texto.insert(tk.END, "  B''(fim):\n", "label_d2_bs")
-                self.texto.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bs2, dy_bs2), "valor_d2_bs")
+                self.texto.insert(tk.END, "    (%.1f, %.1f, %.1f)\n" % (dx_bs2, dy_bs2, dz_bs2), "valor_d2_bs")
                 self.texto.insert(tk.END, "  Z''(inicio):\n", "label_d2_bz")
-                self.texto.insert(tk.END, "    (%.1f, %.1f)\n" % (dx_bz2, dy_bz2), "valor_d2_bz")
+                self.texto.insert(tk.END, "    (%.1f, %.1f, %.1f)\n" % (dx_bz2, dy_bz2, dz_bz2), "valor_d2_bz")
 
         self.texto.config(state=tk.DISABLED)
