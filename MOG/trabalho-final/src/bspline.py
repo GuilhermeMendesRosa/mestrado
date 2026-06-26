@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-BSpline - Lógica da curva B-spline Grau 4 (Não Uniforme)
-"""
 
 
 class BSpline:
-    """Curva B-spline de grau 4 (não uniforme, clamped)."""
 
     GRAU = 4
 
@@ -14,18 +10,13 @@ class BSpline:
         self.pontos = []
 
     def adicionar_ponto(self, x, y, z=0):
-        """Adiciona ponto de controle (ilimitado)."""
         self.pontos.append({"x": x, "y": y, "z": z})
 
     def pode_adicionar(self):
-        """B-spline aceita quantos pontos quiser."""
         return True
 
     def pronto(self):
-        """True se há pontos suficientes para desenhar a curva."""
         return len(self.pontos) >= self.min_pontos
-
-    # ---------- Propriedades (estilo POO) ----------
 
     @property
     def min_pontos(self):
@@ -59,13 +50,7 @@ class BSpline:
     def prefixo_label(self):
         return "B"
 
-    # ---------- Cálculo da curva ----------
-
     def calcular_ponto(self, t):
-        """
-        Calcula o ponto C(t) na curva B-spline.
-        C(t) = somatorio de N_{i,p}(t) * P_i
-        """
         nos = self._gerar_vetor_nos(len(self.pontos))
         p = self.GRAU
         x = 0.0
@@ -79,7 +64,6 @@ class BSpline:
         return x, y, z
 
     def derivada_no_fim(self):
-        """Derivada C'(t_fim) no endpoint da B-spline grau 4 clamped."""
         derivadas = self._calcular_pontos_derivada(1)
         if not derivadas:
             return 0.0, 0.0, 0.0
@@ -87,21 +71,13 @@ class BSpline:
         return derivadas[-1]
 
     def derivada_segunda_no_fim(self):
-        """Segunda derivada C''(t_fim) no endpoint da B-spline grau 4 clamped."""
         derivadas = self._calcular_pontos_derivada(2)
         if not derivadas:
             return 0.0, 0.0, 0.0
 
         return derivadas[-1]
 
-    # ---------- Cox-de Boor (privados) ----------
-
     def _gerar_vetor_nos(self, num_pontos):
-        """
-        Gera o vetor de nos aberto/clamped e nao uniforme.
-        Os nos internos sao obtidos por parametrizacao chord-length,
-        o que os torna dependentes do espacamento entre os pontos de controle.
-        """
         p = self.GRAU
 
         if num_pontos < p + 1:
@@ -131,9 +107,6 @@ class BSpline:
         return nos
 
     def _funcao_base(self, i, p, t, nos):
-        """
-        Calcula a funcao base N_{i,p}(t) usando o algoritmo de Cox-de Boor.
-        """
         if p == 0:
             if t == nos[-1]:
                 return 1 if i == len(self.pontos) - 1 else 0
@@ -153,7 +126,6 @@ class BSpline:
         return resultado
 
     def _calcular_pontos_derivada(self, ordem):
-        """Calcula os pontos de controle da derivada de ordem dada."""
         if ordem < 1:
             return []
 

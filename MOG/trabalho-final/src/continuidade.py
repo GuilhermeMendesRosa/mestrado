@@ -1,13 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-GerenciadorContinuidade - Logica pura de continuidade geometrica C0/C1/C2.
-Sem dependencia de Tkinter.
-"""
 
 
 class GerenciadorContinuidade:
-    """Gerencia os estados e a aplicacao das continuidades C0, C1 e C2."""
 
     def __init__(self):
         self.c0 = False
@@ -32,7 +27,7 @@ class GerenciadorContinuidade:
         )
 
     def aplicar_c0(self, bspline, bezier):
-        """Translada a Bezier para unir as curvas com continuidade C0."""
+
         if not bspline.pronto() or not bezier.pronto():
             return False
 
@@ -52,7 +47,7 @@ class GerenciadorContinuidade:
         return True
 
     def aplicar_c1(self, bspline, bezier):
-        """Ajusta Z_1 para igualar tangentes: C1."""
+
         if not self.pode_aplicar_c1(bspline, bezier):
             return False
 
@@ -74,7 +69,7 @@ class GerenciadorContinuidade:
         return True
 
     def aplicar_c2(self, bspline, bezier):
-        """Ajusta Z_2 para igualar curvaturas: C2."""
+
         if not self.pode_aplicar_c2(bspline, bezier):
             return False
 

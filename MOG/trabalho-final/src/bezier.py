@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Bezier - Lógica da curva Bezier Grau 5 (De Casteljau)
-"""
 
 
 class Bezier:
-    """Curva Bezier de grau 5 (exatamente 6 pontos de controle)."""
 
     GRAU = 5
 
@@ -14,21 +10,16 @@ class Bezier:
         self.pontos = []
 
     def adicionar_ponto(self, x, y, z=0):
-        """Adiciona ponto se ainda não tiver 6."""
         if len(self.pontos) < self.max_pontos:
             self.pontos.append({"x": x, "y": y, "z": z})
             return True
         return False
 
     def pode_adicionar(self):
-        """True enquanto tiver menos de 6 pontos."""
         return len(self.pontos) < self.max_pontos
 
     def pronto(self):
-        """True exatamente quando há 6 pontos (para desenhar a curva)."""
         return len(self.pontos) == self.max_pontos
-
-    # ---------- Propriedades (estilo POO) ----------
 
     @property
     def min_pontos(self):
@@ -62,19 +53,10 @@ class Bezier:
     def prefixo_label(self):
         return "Z"
 
-    # ---------- Cálculo da curva ----------
-
     def calcular_ponto(self, t):
-        """
-        Calcula o ponto B(t) na curva Bezier usando De Casteljau.
-        """
         return self._de_casteljau(t)
 
     def derivada_no_inicio(self):
-        """Derivada Z'(0) no inicio da Bezier grau 5.
-
-        Z'(0) = n * (P_1 - P_0)
-        """
         n = self.GRAU
         if len(self.pontos) < 2:
             return 0.0, 0.0, 0.0
@@ -86,10 +68,6 @@ class Bezier:
         )
 
     def derivada_segunda_no_inicio(self):
-        """Segunda derivada Z''(0) no inicio da Bezier grau 5.
-
-        Z''(0) = n * (n-1) * (P_2 - 2*P_1 + P_0)
-        """
         n = self.GRAU
         if len(self.pontos) < 3:
             return 0.0, 0.0, 0.0
@@ -100,13 +78,7 @@ class Bezier:
             n * (n - 1) * (self.pontos[2]["z"] - 2 * self.pontos[1]["z"] + self.pontos[0]["z"]),
         )
 
-    # ---------- De Casteljau (privado) ----------
-
     def _de_casteljau(self, t):
-        """
-        Algoritmo de De Casteljau para grau 5.
-        pontos[i]^(k) = (1-t) * pontos[i]^(k-1) + t * pontos[i+1]^(k-1)
-        """
         n = self.GRAU
         pts = [[p["x"], p["y"], p["z"]] for p in self.pontos]
         for k in range(1, n + 1):
