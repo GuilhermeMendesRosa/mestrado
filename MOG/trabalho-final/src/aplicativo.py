@@ -67,13 +67,6 @@ class AplicativoCurvas:
         )
         self.botao_c2.pack(side=tk.LEFT, padx=4)
 
-        self.botao_setas = tk.Button(
-            self.frame_controle, text="Ocultar setas",
-            command=self.alternar_setas, font=("Arial", 11, "bold"),
-            bg="#e0f8ff", width=16
-        )
-        self.botao_setas.pack(side=tk.LEFT, padx=4)
-
         self.botao_reset = tk.Button(
             self.frame_controle, text="Resetar curvas",
             command=self.resetar_curvas, font=("Arial", 11, "bold"),
@@ -148,16 +141,6 @@ class AplicativoCurvas:
         self.botao_c0.config(text="Unir curvas (C0)", bg="#ffffcc")
         self.botao_c1.config(text="Unir curvas (C1)", bg="#ffcccc")
         self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
-
-    # ---------- Toggle setas ----------
-
-    def alternar_setas(self):
-        self.renderizador.mostrar_setas = not self.renderizador.mostrar_setas
-        if self.renderizador.mostrar_setas:
-            self.botao_setas.config(text="Ocultar setas", bg="#e0f8ff")
-        else:
-            self.botao_setas.config(text="Mostrar setas", bg="#c0c0c0")
-        self.redesenhar()
 
     # ---------- Continuidade (thin wrappers) ----------
 

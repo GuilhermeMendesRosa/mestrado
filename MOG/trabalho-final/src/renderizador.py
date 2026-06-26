@@ -4,12 +4,8 @@
 Renderizador - Responsavel por todo desenho no canvas Tkinter.
 """
 
-import math
-import tkinter as tk
-
-
 class Renderizador:
-    """Desenha curvas, pontos, poligonais, setas e instrucoes no canvas."""
+    """Desenha curvas, pontos, poligonais e instrucoes no canvas."""
 
     def __init__(self, canvas, bspline, bezier, continuidade):
         self.canvas = canvas
@@ -17,7 +13,6 @@ class Renderizador:
         self.bezier = bezier
         self.continuidade = continuidade
         self.raio_ponto = 6
-        self.mostrar_setas = True
 
     def _curva_ativa(self, modo_ativo):
         return self.bspline if modo_ativo == "bspline" else self.bezier
@@ -37,8 +32,6 @@ class Renderizador:
         self.desenhar_curva_bezier()
 
         self.desenhar_juncao()
-        self.desenhar_tangentes()
-        self.desenhar_curvaturas()
 
     # ---------- Instrucoes ----------
 
@@ -176,70 +169,4 @@ class Renderizador:
                 fill="gold", tags="juncao"
             )
 
-    # ---------- Tangentes ----------
 
-    def desenhar_tangentes(self):
-        if not self.mostrar_setas:
-            return
-        if not self.continuidade.c0:
-            return
-        if not self.continuidade.pode_aplicar_c1(self.bspline, self.bezier):
-            return
-
-        jx = self.bspline.pontos[-1]["x"]
-        jy = self.bspline.pontos[-1]["y"]
-
-        dx_bs, dy_bs, _ = self.bspline.derivada_no_fim()
-        dx_bz, dy_bz, _ = self.bezier.derivada_no_inicio()
-
-        mag_bs = math.sqrt(dx_bs**2 + dy_bs**2)
-        mag_bz = math.sqrt(dx_bz**2 + dy_bz**2)
-
-        max_mag = max(mag_bs, mag_bz, 1e-9)
-        scale = min(60.0, 150.0 / max_mag)
-
-        ex1 = jx + dx_bs * scale
-        ey1 = jy + dy_bs * scale
-        self.canvas.create_line(jx, jy, ex1, ey1,
-                                fill="#cc0000", width=2.5, arrow=tk.LAST,
-                                tags="tangente")
-
-        ex2 = jx + dx_bz * scale
-        ey2 = jy + dy_bz * scale
-        self.canvas.create_line(jx, jy, ex2, ey2,
-                                fill="#006600", width=2.5, arrow=tk.LAST,
-                                tags="tangente")
-
-    # ---------- Curvaturas ----------
-
-    def desenhar_curvaturas(self):
-        if not self.mostrar_setas:
-            return
-        if not self.continuidade.c0:
-            return
-        if not self.continuidade.pode_aplicar_c2(self.bspline, self.bezier):
-            return
-
-        jx = self.bspline.pontos[-1]["x"]
-        jy = self.bspline.pontos[-1]["y"]
-
-        dx_bs2, dy_bs2, _ = self.bspline.derivada_segunda_no_fim()
-        dx_bz2, dy_bz2, _ = self.bezier.derivada_segunda_no_inicio()
-
-        mag_bs2 = math.sqrt(dx_bs2**2 + dy_bs2**2)
-        mag_bz2 = math.sqrt(dx_bz2**2 + dy_bz2**2)
-
-        max_mag = max(mag_bs2, mag_bz2, 1e-9)
-        scale = min(30.0, 80.0 / max_mag)
-
-        ex1 = jx + dx_bs2 * scale
-        ey1 = jy + dy_bs2 * scale
-        self.canvas.create_line(jx, jy, ex1, ey1,
-                                fill="#cc6600", width=2.5, arrow=tk.LAST,
-                                tags="curvatura")
-
-        ex2 = jx + dx_bz2 * scale
-        ey2 = jy + dy_bz2 * scale
-        self.canvas.create_line(jx, jy, ex2, ey2,
-                                fill="#6600cc", width=2.5, arrow=tk.LAST,
-                                tags="curvatura")
