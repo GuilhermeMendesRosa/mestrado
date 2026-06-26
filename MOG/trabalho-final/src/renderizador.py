@@ -31,8 +31,6 @@ class Renderizador:
         self.desenhar_pontos(self.bezier)
         self.desenhar_curva_bezier()
 
-        self.desenhar_juncao()
-
     # ---------- Instrucoes ----------
 
     def desenhar_instrucoes(self, modo_ativo):
@@ -67,31 +65,6 @@ class Renderizador:
                 font=("Arial", 10), fill="red",
                 tags="aviso"
             )
-
-        if self.continuidade.c0:
-            y_base = 52 if faltando <= 0 else 72
-            self.canvas.create_text(
-                cx, y_base,
-                text="Continuidade C0 ativa — curvas unidas por translacao",
-                font=("Arial", 10), fill="green",
-                tags="c0_status"
-            )
-
-            if self.continuidade.c1:
-                self.canvas.create_text(
-                    cx, y_base + 20,
-                    text="Continuidade C1 ativa — tangentes iguais (derivadas identicas)",
-                    font=("Arial", 10, "bold"), fill="darkred",
-                    tags="c1_status"
-                )
-
-            if self.continuidade.c2:
-                self.canvas.create_text(
-                    cx, y_base + 40,
-                    text="Continuidade C2 ativa — curvaturas iguais (2as derivadas identicas)",
-                    font=("Arial", 10, "bold"), fill="#9933cc",
-                    tags="c2_status"
-                )
 
     # ---------- Pontos e poligonal ----------
 
@@ -152,21 +125,5 @@ class Renderizador:
 
         if len(coords) >= 4:
             self.canvas.create_line(coords, fill=self.bezier.cor_curva, width=2)
-
-    # ---------- Juncao ----------
-
-    def desenhar_juncao(self):
-        if self.continuidade.c0 and len(self.bspline.pontos) > 0:
-            p = self.bspline.pontos[-1]
-            r = 8
-            self.canvas.create_oval(
-                p["x"] - r, p["y"] - r, p["x"] + r, p["y"] + r,
-                outline="gold", width=3, tags="juncao"
-            )
-            self.canvas.create_text(
-                p["x"], p["y"] - r - 10,
-                text="Juncao C0", font=("Arial", 9, "bold"),
-                fill="gold", tags="juncao"
-            )
 
 
