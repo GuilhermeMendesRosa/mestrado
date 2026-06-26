@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 """
 Trabalho de Computacao Grafica - Partes 2 e 3
-Main: Tkinter + mouse + renderizacao
+Aplicativo: Tkinter + mouse + renderizacao
 Curvas: B-spline Grau 4 (nao uniforme) e Bezier Grau 5
 """
 
 import tkinter as tk
-from bspline import BSpline
-from bezier import Bezier
-from continuidade import GerenciadorContinuidade
-from renderizador import Renderizador
-from painel import PainelPontos
+from .bspline import BSpline
+from .bezier import Bezier
+from .continuidade import GerenciadorContinuidade
+from .renderizador import Renderizador
+from .painel import PainelPontos
 
 
 class AplicativoCurvas:
@@ -212,9 +212,3 @@ class AplicativoCurvas:
     def redesenhar(self):
         self.renderizador.redesenhar(self.modo_ativo)
         self.painel.atualizar(self.bspline, self.bezier, self.continuidade)
-
-
-if __name__ == "__main__":
-    janela = tk.Tk()
-    app = AplicativoCurvas(janela)
-    janela.mainloop()
