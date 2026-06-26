@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Renderizador - Responsavel por todo desenho no canvas Tkinter.
+"""
 
 class Renderizador:
+    """Desenha curvas, pontos, poligonais e instrucoes no canvas."""
 
     def __init__(self, canvas, bspline, bezier, continuidade):
         self.canvas = canvas
@@ -12,6 +16,8 @@ class Renderizador:
 
     def _curva_ativa(self, modo_ativo):
         return self.bspline if modo_ativo == "bspline" else self.bezier
+
+    # ---------- Redesenho geral ----------
 
     def redesenhar(self, modo_ativo):
         self.canvas.delete("all")
@@ -24,6 +30,8 @@ class Renderizador:
         self.desenhar_poligonal(self.bezier)
         self.desenhar_pontos(self.bezier)
         self.desenhar_curva_bezier()
+
+    # ---------- Instrucoes ----------
 
     def desenhar_instrucoes(self, modo_ativo):
         w = self.canvas.winfo_width()
@@ -58,6 +66,8 @@ class Renderizador:
                 tags="aviso"
             )
 
+    # ---------- Pontos e poligonal ----------
+
     def desenhar_pontos(self, curva):
         for i, p in enumerate(curva.pontos):
             r = self.raio_ponto
@@ -77,6 +87,8 @@ class Renderizador:
             for p in curva.pontos:
                 c.extend([p["x"], p["y"]])
             self.canvas.create_line(c, fill=curva.cor_poligonal, dash=(4, 4), width=1)
+
+    # ---------- Curvas ----------
 
     def desenhar_curva_bspline(self):
         if not self.bspline.pronto():

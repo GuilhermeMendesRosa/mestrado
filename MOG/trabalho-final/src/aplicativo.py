@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Trabalho de Computacao Grafica - Partes 2 e 3
+Aplicativo: Tkinter + mouse + renderizacao
+Curvas: B-spline Grau 4 (nao uniforme) e Bezier Grau 5
+"""
 
 import tkinter as tk
 from .bspline import BSpline
@@ -10,6 +15,7 @@ from .painel import PainelPontos
 
 
 class AplicativoCurvas:
+    """Janela principal. Gerencia as duas curvas via composicao (POO)."""
 
     RAIO_PONTO = 6
 
@@ -18,6 +24,7 @@ class AplicativoCurvas:
         self.raiz.title("B-spline Grau 4 + Bezier Grau 5")
         self.raiz.geometry("1060x620")
 
+        # --- Composicao ---
         self.bspline = BSpline()
         self.bezier = Bezier()
         self.continuidade = GerenciadorContinuidade()
@@ -26,6 +33,9 @@ class AplicativoCurvas:
         self.arrastando = None
         self.lista_arrastando = None
 
+        # -------------------------------------------------------
+        # Frame de controle (barra inferior com botoes)
+        # -------------------------------------------------------
         self.frame_controle = tk.Frame(raiz, pady=4)
         self.frame_controle.pack(side=tk.BOTTOM, fill=tk.X)
 
@@ -64,6 +74,9 @@ class AplicativoCurvas:
         )
         self.botao_reset.pack(side=tk.LEFT, padx=4)
 
+        # -------------------------------------------------------
+        # Frame principal: canvas (esq.) + separador + painel (dir.)
+        # -------------------------------------------------------
         self.frame_principal = tk.Frame(raiz)
         self.frame_principal.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
@@ -73,20 +86,31 @@ class AplicativoCurvas:
         sep = tk.Frame(self.frame_principal, width=2, bg="#cccccc")
         sep.pack(side=tk.LEFT, fill=tk.Y)
 
+        # -------------------------------------------------------
+        # Painel lateral (construido via PainelPontos)
+        # -------------------------------------------------------
         self.frame_pontos = tk.Frame(self.frame_principal, width=220, bg="#f8f8f8")
         self.frame_pontos.pack(side=tk.LEFT, fill=tk.Y)
         self.frame_pontos.pack_propagate(False)
         self.painel = PainelPontos(self.frame_pontos)
 
+        # -------------------------------------------------------
+        # Renderizador
+        # -------------------------------------------------------
         self.renderizador = Renderizador(
             self.canvas, self.bspline, self.bezier, self.continuidade
         )
 
+        # -------------------------------------------------------
+        # Bindings de mouse
+        # -------------------------------------------------------
         self.canvas.bind("<Button-1>",       self.clique_esquerdo)
         self.canvas.bind("<B1-Motion>",      self.arrastar)
         self.canvas.bind("<ButtonRelease-1>", self.soltar)
 
         self.redesenhar()
+
+    # ---------- Modo ----------
 
     def _curva_ativa(self):
         return self.bspline if self.modo_ativo == "bspline" else self.bezier
@@ -118,6 +142,8 @@ class AplicativoCurvas:
         self.botao_c1.config(text="Unir curvas (C1)", bg="#ffcccc")
         self.botao_c2.config(text="Unir curvas (C2)", bg="#ddccff")
 
+    # ---------- Continuidade (thin wrappers) ----------
+
     def aplicar_c0(self):
         if self.continuidade.aplicar_c0(self.bspline, self.bezier):
             self.botao_c0.config(text="Reaplicar C0", bg="#ccffcc")
@@ -133,6 +159,8 @@ class AplicativoCurvas:
         if self.continuidade.aplicar_c2(self.bspline, self.bezier):
             self.botao_c2.config(text="Reaplicar C2", bg="#9966ff")
             self.redesenhar()
+
+    # ---------- Mouse ----------
 
     def clique_esquerdo(self, evento):
         x, y = evento.x, evento.y
@@ -161,6 +189,8 @@ class AplicativoCurvas:
     def soltar(self, evento):
         self.arrastando = None
         self.lista_arrastando = None
+
+    # ---------- Redesenho geral ----------
 
     def redesenhar(self):
         self.renderizador.redesenhar(self.modo_ativo)

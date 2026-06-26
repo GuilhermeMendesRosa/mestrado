@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+PainelPontos - Painel lateral com coordenadas dos pontos de controle.
+"""
 
 import tkinter as tk
 
 
 class PainelPontos:
+    """Constroi e atualiza o painel lateral de pontos de controle e derivadas."""
 
     def __init__(self, parent):
         self.frame = parent
