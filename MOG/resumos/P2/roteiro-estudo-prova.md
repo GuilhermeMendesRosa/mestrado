@@ -357,3 +357,228 @@ O livro do Mortenson (Geometric Modeling, 3rd ed.) cobre apenas parcialmente est
 - A diferença entre feature recognition e feature-based design
 - Como classificar uma peça entre rotacional e prismática (critérios)
 - Por que o mapeamento entre features de design e de manufatura não é trivial
+
+## 3.3 Definições, Taxonomias e Representação de Features (Slide 18)
+
+### Estudar
+
+- **Definições históricas de features:**
+  - Grayer (1976): "característica geométrica que corresponde a uma operação de usinagem"
+  - Pratt (1985): "região de interesse na superfície da peça"
+  - Lenau (1993): "conjuntos de informações que referem-se a aspectos de forma ou outro atributo"
+  - Henderson (1990): "padrões geométrico/topológicos interessantes de alto nível"
+  - Por que não há definição única (Pratt93): diversidade de usos, produtos, métodos e filosofias
+
+- **Features Abstratas — subtipos:**
+  - Estruturais: relacionamentos entre features (precedência, conectividade, simetria)
+  - Físicas: fenômenos físicos e elementos mecânicos (cunha, alavanca)
+  - Precisão: tolerâncias, acabamento superficial, circularidade, planicidade
+  - Material: rigidez, elasticidade, durabilidade
+
+- **Taxonomias de Form Features:**
+  - **Pratt:** ThroughHole, Depression (rotational/prismatic), Protrusion (rotational/prismatic), Area, Other
+  - **Gindy:** classificação por EAD's (External Access Directions); 0 a 5 EAD's; subdivisão em Quadrangular e Cylindrical
+  - **Hounsell (1998):** tabela bilíngue Pocket/Reentrância, Hole/Furo, Slot/Canal Cego, Step/Degrau, Notch/Entalhe, Boss/Protuberância, etc.
+
+- **4 Formas de representar features:**
+  1. B-rep ou CSG puros
+  2. Simplificações (ex: DSG — apenas diferença)
+  3. Híbridos B-rep + CSG (redundância como desvantagem)
+  4. Melhoramentos adaptados para features
+
+- **DSG (Destructive Solid Geometry):** CSG apenas com operador de diferença
+
+- **Tipos de sistemas de features:**
+  - FeR (Feature Recognition): pós-processamento, aproveita legado, mas lento e limitado
+  - DbF (Design-by-Features): captura Design Intent, mas limitado a features pré-definidas
+  - Híbridos: 4 formas de integrar FeR em DbF
+
+### Saber explicar
+
+- Por que não existe uma definição única de feature
+- A diferença entre features abstratas estruturais, físicas, de precisão e de material
+- Como a taxonomia de Gindy (EAD's) conecta geometria com manufaturabilidade
+- O que é DSG e como ela simplifica a representação de features
+- Vantagens e desvantagens de FeR vs. DbF
+
+## 3.4 Problemas de Validação em Features (Slide 19)
+
+### Estudar
+
+- **Motivação:** "Mesmo sendo uma tecnologia promissora, ainda é muito imatura" (Hounsell/Rosso)
+
+- **Interações entre Features:**
+  - Adjacência (encostadas)
+  - Compartilhamento de faces/arestas
+  - Cruzamento (interseção)
+  - Sobreposição (mesmo volume)
+
+- **Thin Walls (Paredes Finas):**
+  - Feature-to-Feature
+  - Feature-to-STOCK
+  - Casos adjacentes (Adjoint)
+  - Casos disjuntos (Disjoint)
+
+- **8 Problemas de Edição:**
+  1. Remoção ≠ reinserção de volume
+  2. Desconexão de feature por edição de parâmetros
+  3. Colisão ou redundância entre features
+  4. Cobertura ou fechamento (feature "tampada")
+  5. Absorção de intenções de projeto
+  6. Apagamento de intenções por modificação de valores
+  7. Alterações geométricas implícitas
+  8. Invalidação total por inserção de nova feature
+
+- **Fatores simultâneos de validação:** renomeação, união de intenções, reparametrização
+
+- **Validação Geométrica vs. Validação Semântica:**
+  - Geométrica: homogeneidade dimensional, fronteiras, auto-interseções
+  - Semântica: preservação das intenções de projeto
+  - Operações semânticas: Split, Delete, Merge, Label
+
+- **Changeability:** uma feature deve, de alguma forma, mudar a geometria/topologia do modelo
+
+### Saber explicar
+
+- Por que boss e slot têm a mesma topologia e por que isso dificulta FeR
+- Os 4 tipos de interação entre features com exemplos
+- Por que Thin Walls são um problema de manufaturabilidade
+- Pelo menos 4 dos 8 problemas de edição, com exemplos
+- A diferença entre validação geométrica e validação semântica
+- O que significa "a tecnologia de features ainda é imatura"
+
+---
+
+# 4. Representação por Decomposição e Estruturas de Dados Espaciais
+
+**Fonte:** Slides 13 e 13a do professor + Mortenson Capítulo 11.
+
+## 4.1 Representação por Decomposição (Slide 13)
+
+### Estudar
+
+- **Conceito:** subdividir o espaço em família de células volumétricas; objeto = enumeração das células que o intersectam
+
+- **Duas formas:**
+  - **Uniforme (Matricial/Voxels):** reticulado regular, células de mesmo tamanho
+  - **Não-Uniforme:** tamanho variável (Quadtree, Octree, BSP-tree) ou forma variável (Voronoi, células quaisquer)
+
+- **Voxels (Representação Matricial):**
+  - Extensão 3D da representação matricial 2D (pixel → voxel)
+  - Características: tem unicidade, não-ambígua, fácil validar, precisão depende do tamanho, **não é concisa**
+  - Operações booleanas em domínio inteiro (muito simples)
+  - Também chamada de representação volumétrica (imagem 3D)
+  - Vantagens: técnicas de processamento de imagens, visualização simples, usada em equipamentos de captura
+
+- **Decomposição Celular (células quaisquer):**
+  - Não tem unicidade, é exata mas não concisa
+  - Domínio restrito (depende das células disponíveis)
+  - Difícil validar (colagens geram interseção?)
+
+- **Quadtree (2D) e Octree (3D):**
+  - Estruturas hierárquicas, decomposição recursiva
+  - Cada nó gera 2^d filhos (d=2: Quadtree, d=3: Octree)
+  - Estados: Empty (vazio), Full (cheio), Partial (parcial → subdivide)
+  - Vantagens: simplificam interseção, localização, remoção de superfícies
+  - Acesso O(log n); estrutura estática (difícil mover elementos)
+
+- **BSP-tree (Binary Space Partitioning):**
+  - Árvore binária, divide espaço em 2 partes por plano de corte
+  - Axis-Aligned (planos paralelos aos eixos) e Polygon-Aligned (polígono define plano)
+  - Representa côncavos e convexos; potencialmente não compacta
+  - Lado direito = fora, lado esquerdo = dentro
+
+- **Conversão entre representações:**
+
+  | Conversão | Dificuldade |
+  |-----------|-------------|
+  | CSG → B-rep | Possível |
+  | B-rep → CSG | Muito mais complicada |
+  | B-rep → Células | Simples |
+  | Células → B-rep | Relativamente simples (marching cubes) |
+  | CSG → Células | Simples |
+  | Células → CSG | Complicado |
+
+### Saber explicar
+
+- A diferença entre decomposição uniforme e não-uniforme
+- Por que voxels "não são concisos" e quando isso é um problema
+- Como funciona a subdivisão recursiva em Quadtree/Octree
+- A diferença entre Axis-Aligned e Polygon-Aligned BSP-tree
+- Quais conversões entre representações são viáveis e quais são difíceis
+- Por que o método de modelagem (interface) não restringe a representação interna
+
+## 4.2 Estruturas de Dados Espaciais (Slide 13a)
+
+### Estudar
+
+- **Malha de Triângulos:** rede de triângulos conectados por compartilhamento de arestas e vértices
+  - Lista de triângulos desconectados **não** é uma malha
+
+- **Manifold:**
+  - Vizinhança de qualquer ponto é "achatável" em superfície plana
+  - Verificação: toda aresta compartilhada por exatamente 2 triângulos; todo vértice tem círculo completo de triângulos
+  - Manifold não garante orientação consistente das faces
+
+- **Winged-Edge:**
+  - Armazena conectividade nas arestas (2 faces, 2 vértices, 4 arestas vizinhas)
+  - Acesso O(1) para arestas de face/vértice
+  - Sempre verifica orientação antes de navegar
+
+- **Half-Edge:**
+  - Cada aresta dividida em 2 metades com orientações opostas
+  - Elimina necessidade de verificar orientação
+  - Cada half-edge: vértice origem, half-edge oposta (pair), face, next, prev
+
+- **MX Quadtree:** para pontos discretos, posição implícita na árvore, folha = preto ou branco
+- **PR Quadtree:** armazena coordenadas, máximo 1 ponto por folha
+
+- **Extended Octree:** folhas armazenam polígonos para representar superfícies
+- **Graftree:** folhas armazenam raiz de árvore CSG; estados: FULL, EMPTY, BOUNDARY
+
+- **KD-Tree:**
+  - Tipo especial de BSP para pontos; cada nível divide em uma dimensão
+  - Busca/inserção/remoção: O(log n) médio, O(n) pior caso
+  - Ordem de inserção afeta balanceamento
+
+- **BVH (Bounding Volume Hierarchy):**
+  - Organiza bounding volumes (esferas, AABB) em árvore
+  - BVH agrupa por proximidade; Octree subdivide espaço uniformemente
+
+### Saber explicar
+
+- A diferença entre Winged-Edge e Half-Edge (e por que Half-Edge é mais elegante)
+- Como verificar se uma malha é manifold
+- O que é uma MX Quadtree e qual sua principal limitação (dobrar precisão = 2^d × memória)
+- A diferença entre Extended Octree e Graftree
+- Como uma KD-Tree organiza pontos e por que a ordem de inserção importa
+- BVH vs. Octree: quando usar cada uma
+
+---
+
+# 5. Otimização de Modelos — LOD (Level of Detail)
+
+**Fonte:** Slide 14 do professor.
+
+## 5.1 Conceito e Implementação
+
+### Estudar
+
+- **Motivação:** é custoso mostrar objeto completo sempre com maior detalhe; quanto mais longe, menos detalhes necessários
+
+- **Solução LOD:** criar múltiplos níveis de detalhe do mesmo modelo
+
+- **Critério de troca:** baseado em distância e resolução da tela
+  - Exemplo: tela 640×480 = 307K pixels; objeto ocupa metade → ~150K pixels
+  - Mais que ~300K triângulos é desperdício (metade está em back-face)
+
+- **Questões práticas:**
+  - Como criar múltiplos níveis? (simplificação de malha)
+  - Quando trocar? (distância + resolução)
+  - Artefatos visuais (popping) nos pontos de troca
+
+### Saber explicar
+
+- Por que existe um limite de triângulos além do qual é desperdício
+- Como decidir quando trocar de LOD
+- O que são artefatos de popping e por que ocorrem

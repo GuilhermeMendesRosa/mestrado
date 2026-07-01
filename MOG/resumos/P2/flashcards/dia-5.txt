@@ -1,0 +1,107 @@
+#separator:tab
+#html:true
+"Segundo o slide do professor, qual porcentagem das tarefas de design são variacionais?
+"	"80% de todas as tarefas de design são variacionais — o objetivo é adaptar um projeto básico a novos requisitos (Shah95/Chung90c).
+"
+"Defina: variáveis do modelo, dimensões e parâmetros do modelo.
+"	"Variáveis do modelo: descrevem forma e tamanho (ex: um ponto em B-rep). Dimensões: valores nominais de propriedades geométricas. Parâmetros do modelo: podem ser uma dimensão ou valores sem significado geométrico específico usados para computar dimensões (controle indireto).
+"
+"Quais os 4 passos do processo de projeto a restrições (Shah95)?
+"	"1) Criar o objeto sem dimensões (geometria + conectividade). 2) Especificar restrições (geométricas e de engenharia). 3) O sistema resolve gerando modelo válido. 4) O usuário cria variações mudando valores das variáveis restritas.
+"
+"Por que os termos &quot;paramétrico&quot; e &quot;variacional&quot; são usados indistintamente na literatura?
+"	"Porque do ponto de vista do usuário nem sempre é fácil identificar qual técnica está sendo usada. A implementação pode mascarar a técnica, e os sistemas comerciais são híbridos. A diferença conceitual é mais importante que rotular um software específico.
+"
+"O que acontece com o histórico de decisões quando restrições funcionais se tornam restrições geométricas?"
+"	"O processo começa com requisitos funcionais (ex: suportar 500 N), que são traduzidos em restrições geométricas (ex: espessura mínima 5 mm), mas a conexão com o requisito original se perde (Suzuki90). Ferramentas de design intent tentam preservar essa rastreabilidade.
+"
+"Qual o método de solução das restrições paramétricas?"
+"	"Método procedural (sequencial): armazena a sequência de construção, cada instanciação é feita em função de variáveis computadas anteriormente ou variáveis independentes. Para variações: reavaliar a sequência.
+"
+"Qual o método de solução das restrições variacionais?"
+"	"Método declarativo (equações simultâneas): sequência fixa substituída por procedimento generalizado independente da ordem. Usa grafos e predicados de primeira ordem. Sistemas de equações simultâneas não-lineares resolvidos por métodos numéricos.
+"
+"Qual o tipo de função usado no paramétrico e no variacional?"
+"	"Paramétrico: funções explícitas (x = f(p1, p2, ...)). Variacional: funções implícitas (F(x, y, ...) = 0).
+"
+"Como o paramétrico e o variacional lidam com restrições geométricas + de engenharia?"
+"	"Paramétrico: não podem ser acopladas (apenas restrições pré-definidas de biblioteca fixa). Variacional: permite acoplamento (qualquer combinação de restrições).
+"
+"Compare velocidade e flexibilidade entre paramétrico e variacional."
+"	"Paramétrico: rápidos (reavaliação simples), flexibilidade limitada (sequência fixa). Variacional: lentos (resolve sistema toda vez), alta flexibilidade (permite interdependência).
+"
+"Como paramétrico e variacional lidam com modelos sub-restringidos e sobre-restringidos?"
+"	"Paramétrico: maior suporte a sub-restringidos, fácil detectar sobre-restringidos. Variacional: dificuldade de manipular sub-restringidos, difícil detectar sobre-restringidos.
+"
+"Quais as principais limitações dos métodos procedurais (paramétrico)?"
+"	"Apenas gama modesta de variações; difícil incluir novas dependências; forte dependência entre topologia e restrições; ambiente rígido (não adaptado a what-if); algoritmos específicos para cada tipo de restrição.
+"
+"Quais as principais limitações dos métodos declarativos (variacional)?"
+"	"Relação pouco clara entre equação e geometria; lentos (resolver sistema toda vez); dificuldade com modelos incompletos; projetista pode se preocupar mais com o processo de projeto que com o método de geração da geometria.
+"
+"Qual foi a primeira definição conhecida de feature (Grayer, 1976)?"
+"	&quot;Uma feature é uma característica geométrica que corresponde a uma operação de usinagem.&quot;
+"
+"Como Pratt (1985) e Henderson (1990) definiram feature?"
+"	"Pratt: &quot;Uma feature é uma região de interesse na superfície da peça.&quot; Henderson: &quot;Features são padrões geométrico/topológicos interessantes no modelo da peça que representam entidades de alto nível, úteis para alguma análise da peça.&quot;
+"
+"Por que não existe uma definição única de feature (Pratt93)?"
+"	"Porque espera-se que features sejam usadas de modos diversos por organizações com grande variedade de produtos, métodos de projeto, métodos de manufatura, instalações e filosofias gerais de organização.
+"
+"O que são features abstratas estruturais? Dê exemplos."
+"	"Não-geométricas, especificam relacionamentos entre features geométricas. Não existem por conta própria. Exemplos: precedência, conectividade, paralelismo, perpendicularismo, concentricidade, simetria, disposição padrão.
+"
+"O que são features físicas (abstratas)?"
+"	"Relacionadas a fenômenos físicos e elementos mecânicos no nível conceitual. Exemplo: uma cunha (wedge) que causa propagação de força entre faces.
+"
+"O que são features de precisão?"
+"	"Tratamento de superfícies, dimensões, restrições dimensionais, tolerâncias. Inclui: alturas, diâmetros, circularidade, retilineidade, planicidade.
+"
+"Como a taxonomia de Gindy classifica features?"
+"	"Pelo número de External Access Directions (EAD's) — direções pelas quais uma ferramenta pode acessar a feature. Depressões e Protrusões classificadas de 0 a 5 EAD's, subdivididas em Quadrangular e Cylindrical.
+"
+"O que são EAD's na taxonomia de Gindy e por que são importantes?"
+"	"External Access Directions: direções de acesso externo de uma ferramenta à feature. Conectam diretamente a geometria com a manufaturabilidade — o número de direções de acesso determina quais operações de usinagem são possíveis.
+"
+"O que é DSG (Destructive Solid Geometry)?"
+"	"CSG contendo apenas o operador de Diferença. Representa features como volumes removidos do blank. É uma simplificação do CSG para representação de features de manufatura.
+"
+"Quais as 4 formas de representar features?"
+"	"1) B-rep ou CSG puros. 2) Simplificações (ex: DSG — apenas diferença). 3) Versão híbrida B-rep + CSG (captura história do projeto, mas com redundância). 4) Melhoramentos das abordagens acima para informações específicas de features.
+"
+"Quais as 4 formas de integrar Feature Recognition em sistemas Design-by-Features?"
+"	"1) Converter arquivos legados. 2) Ajudar na validação em DbFs. 3) Solucionar problemas de interações entre features. 4) Conversão para espaços de representação específicos de aplicação.
+"
+"Por que boss e slot têm a mesma topologia e por que isso é um problema?"
+"	"Boss (ressalto) e Slot (rasgo) compartilham a mesma estrutura topológica (faces, arestas, vértices), mas têm significados opostos: um é adição, outro é remoção. Isso torna o Feature Recognition ambíguo — a topologia sozinha não distingue a feature.
+"
+"Quais são os 4 tipos de interação entre features?"
+"	"1) Adjacência: features encostadas/justapostas. 2) Compartilhamento: features dividindo face ou aresta. 3) Cruzamento: features que se interceptam. 4) Sobreposição: features ocupando o mesmo volume.
+"
+"O que são Thin Walls e quais os 4 casos?"
+"	"Paredes finas que ocorrem quando features estão muito próximas, podendo ficar finas demais para fabricação. Casos: Feature-to-Feature, Feature-to-STOCK (borda do material bruto), Adjoint Cases (encostadas), Disjoint Cases (separadas mas próximas).
+"
+"Descreva os problemas 1 e 2 dos 8 problemas de edição em features."
+"	"1) Remoção ≠ Reinserção: retirar feature não equivale a reinserir seu volume — a remoção deixa cicatrizes topológicas. 2) Desconexão: editar parâmetros pode fazer outra feature se desconectar do modelo.
+"
+"Descreva os problemas 3 e 4 dos 8 problemas de edição em features."
+"	"3) Colisão ou Redundância: features podem colidir ou uma engolir a outra após edição. 4) Cobertura ou Fechamento: uma feature pode ser coberta por outra, perdendo seu significado (ex: furo tampado por protrusão).
+"
+"Descreva os problemas 5 e 6 dos 8 problemas de edição em features."
+"	"5) Absorção de Intenções: manipulação de parâmetros absorve/elimina intenções de outra feature. 6) Apagamento de Intenções: modificação de valores apaga intenções previamente especificadas.
+"
+"Descreva os problemas 7 e 8 dos 8 problemas de edição em features."
+"	"7) Alterações Implícitas: mudar uma feature altera implicitamente geometria de outras conectadas. 8) Invalidação por Inserção: modelo válido pode ser invalidado após simples inserção de nova feature.
+"
+"Qual a diferença entre validação geométrica e validação semântica?"
+"	"Geométrica: verifica se o modelo é geometricamente válido (homogeneidade dimensional, fronteiras bem definidas, sem auto-interseções). Semântica: vai além da geometria — verifica se as intenções de projeto foram preservadas.
+"
+"O que são as operações Split, Delete, Merge e Label na validação semântica?"
+"	"Split: dividir feature em duas (ex: furo cortado ao meio). Delete: remover feature que perdeu significado. Merge: unir duas features que se tornaram uma só. Label: renomear/reclassificar feature que mudou de tipo.
+"
+"Qual a essência do conceito de features segundo Case92a?"
+"	&quot;A descrição do produto não somente diz o que é o produto como também contém informações implícitas e explícitas sobre como ele pode ser transformado para ou de um outro estado.&quot; A feature carrega o potencial de transformação ao longo do ciclo de vida.
+"
+"Por que sistemas DbF são mais orientados ao projeto e sistemas FeR são mais orientados às aplicações?"
+"	"DbF: provê biblioteca de features para o designer, linguagem mais natural para projeto, captura Design Intent durante a construção. FeR: é pós-processamento sobre geometria pronta, aproveita CAD legado, promove interfaceamento CAD-CAPP-CAM. Ter uma abordagem não significa não precisar da outra.
+"

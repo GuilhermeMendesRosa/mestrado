@@ -1,0 +1,187 @@
+#separator:tab
+#html:true
+"Por que diferentes departamentos de uma empresa industrial usam softwares CAD/CAM diferentes?
+"	"Porque cada área (Projeto, Análise/CAE, Manufatura/CAM, Inspeção, Gestão/PLM) usa ferramentas especializadas (ex: CATIA, ANSYS, Mastercam, Teamcenter), cada uma com formato interno proprietário.
+"
+"Qual é o problema fundamental que os padrões de troca de dados CAD tentam resolver?
+"	"Permitir que informação de produto transite entre sistemas heterogêneos sem perda de significado.
+"
+"Na estratégia Point-to-Point (tradutor direto), quantos tradutores são necessários para N sistemas?
+"	"N x (N-1) tradutores.
+"
+"Com 10 sistemas, quantos tradutores diretos seriam necessários na estratégia Point-to-Point?
+"	"90 tradutores.
+"
+"Na estratégia de Arquivo Neutro, quantos conversores são necessários para N sistemas?
+"	"2N conversores (N exportadores + N importadores).
+"
+"Com 10 sistemas, quantos conversores seriam necessários na estratégia de Arquivo Neutro?
+"	"20 conversores.
+"
+"Cite as principais vantagens do tradutor direto (point-to-point).
+"	"Tradução otimizada para cada par, potencialmente mais rápida e precisa, e arquivo de menor tamanho.
+"
+"Cite as principais desvantagens do tradutor direto (point-to-point).
+"	"Explosão combinatória (cresce com N²) e manutenção insustentável quando os softwares evoluem.
+"
+"Cite as principais vantagens do arquivo neutro.
+"	"Escalável (cresce linearmente com N), fácil de manter, e garante independência de fornecedor.
+"
+"Cite as principais desvantagens do arquivo neutro.
+"	"Arquivo maior e possível perda de informação específica do sistema na ida e volta.
+"
+"Por que o arquivo neutro costuma ser maior que um tradutor direto?
+"	"Porque precisa ser &quot;generoso&quot;: inclui redundâncias e metadados para que qualquer sistema consiga interpretar a informação, mesmo que parte seja irrelevante para ele.
+"
+"Qual estratégia (point-to-point ou arquivo neutro) a indústria escolheu para troca de dados CAD?
+"	"A estratégia do arquivo neutro (neutral file).
+"
+"O que foi o programa ICAM e quando surgiu?
+"	"Integrated Computer-Aided Manufacturing; programa da Força Aérea dos EUA (US Air Force) nos anos 1970.
+"
+"Qual foi o legado/contribuição do ICAM para os padrões de troca de dados?
+"	"Evidenciou que, sem formato padronizado, cada contratante precisaria de tradutores diferentes; essa necessidade levou à criação do IGES.
+"
+"O que significa a sigla IGES?
+"	"Initial Graphics Exchange Specification (Especificação Inicial de Troca Gráfica).
+"
+"Em que ano o IGES foi padronizado e qual sua designação ANSI original?
+"	"1980, como padrão ANSI Y14.26M (depois renomeado US PRO/IPO-100).
+"
+"Qual é o escopo principal do IGES?
+"	"Geometria: curvas (linhas, arcos, splines), superfícies (planos, cilindros, NURBS), wireframe e anotações/dimensões 2D.
+"
+"Cite quatro tipos de informação que o IGES NÃO troca.
+"	"Materiais, tolerâncias dimensionais/geométricas, estrutura de montagem (assembly), histórico de construção (também: intenção de projeto, informação de manufatura, ciclo de vida).
+"
+"Qual é a principal limitação semântica do IGES?
+"	"Só troca geometria, sem semântica - ex: um furo é trocado como um conjunto de superfícies cilíndricas, não como &quot;furo passante M8&quot;.
+"
+"Qual a analogia clássica usada para explicar a limitação do IGES?
+"	"É como enviar uma foto de uma peça: você vê a forma, mas não sabe o material, a tolerância nem como ela foi projetada para ser fabricada.
+"
+"Cite duas outras limitações do IGES além da falta de semântica.
+"	"Arquivos muito grandes (representação verbosa) e interpretação ambígua entre sistemas diferentes.
+"
+"O que é o SET e de onde se originou?
+"	"Standard d&#x27;Échange et de Transfert; padrão francês (norma AFNOR Z68-300), concorrente e precursor do STEP.
+"
+"Em qual indústria o SET foi adotado principalmente?
+"	"Indústria aeroespacial francesa (Airbus, Dassault).
+"
+"O que significa a sigla VDA-FS?
+"	"Verband der Automobilindustrie - Flächenschnittstelle.
+"
+"Qual o foco específico do VDA-FS?
+"	"Troca de dados de superfícies de forma livre (freeform surfaces), usado pela indústria automotiva alemã (BMW, Mercedes, VW, Audi) para superfícies de classe A.
+"
+"Por que surgiram tantos padrões setoriais (IGES, SET, VDA-FS) antes do STEP?
+"	"Porque o IGES era genérico demais; cada indústria/país tinha necessidades específicas, como alta precisão em superfícies (VDA-FS) ou estrutura mais completa (SET), até convergirem para o STEP.
+"
+"O que significa a sigla STEP?
+"	"STandard for the Exchange of Product model data.
+"
+"Qual é a norma ISO correspondente ao STEP?
+"	"ISO 10303.
+"
+"A partir de que ano o STEP começou a ser publicado, e desde quando foi desenvolvido?
+"	"Publicado a partir de 1994, desenvolvido desde os anos 1980.
+"
+"Qual a diferença fundamental entre STEP e IGES, em uma frase?
+"	"IGES é um formato de desenho eletrônico; STEP é um modelo de produto computável.
+"
+"O que o STEP troca que o IGES não troca?
+"	"Informação completa de produto: material, processo, tolerância, estrutura de montagem e ciclo de vida completo (design, análise, manufatura, inspeção, suporte).
+"
+"Como é feita a validação de dados no IGES em comparação ao STEP?
+"	"IGES: apenas validação sintática. STEP: validação sintática e semântica (via EXPRESS).
+"
+"O STEP cobre manufatura (CNC)? Como?
+"	"Sim, por meio do STEP-NC (ISO 14649).
+"
+"Quais são as três camadas da arquitetura do STEP?
+"	"1) Description Methods; 2) Integrated Resources; 3) Application Protocols (APs).
+"
+"O que a camada &quot;Description Methods&quot; do STEP define?
+"	"Como descrever os dados (a &quot;linguagem&quot; do STEP): EXPRESS, EXPRESS-G e EXPRESS-X.
+"
+"O que é a EXPRESS-G?
+"	"Notação gráfica da linguagem EXPRESS, usada para visualizar schemas em diagramas.
+"
+"O que é a EXPRESS-X?
+"	"Extensão da linguagem EXPRESS para mapeamento entre schemas diferentes.
+"
+"EXPRESS é uma linguagem de programação?
+"	"Não. É uma linguagem de especificação/modelagem de dados: descreve a estrutura que os dados devem ter, não como processá-los.
+"
+"O que são as &quot;Integrated Resources&quot; (camada 2 do STEP)?
+"	"Bibliotecas reutilizáveis de definições, os &quot;blocos de construção&quot; do STEP, usadas pelos Application Protocols para evitar duplicação.
+"
+"Cite três Integrated Resources (Parts) do STEP e o que cada uma cobre.
+"	"Part 42: geometria e topologia. Part 45: materiais. Part 47: tolerâncias.
+"
+"O que a camada &quot;Application Protocols&quot; (AP) do STEP define?
+"	"Quais partes do modelo STEP completo são necessárias para um domínio específico - cada AP é uma &quot;fatia&quot; do modelo STEP.
+"
+"O que é o AP203?
+"	"Configuration Controlled 3D Design: design mecânico 3D com controle de configuração (versões, aprovação).
+"
+"O que é o AP214?
+"	"Core Data for Automotive Mechanical Design: dados de design automotivo.
+"
+"O que é o AP224?
+"	"Feature-Based Process Planning: planejamento de processo baseado em features, usado em usinagem.
+"
+"🗑️ O que é o AP238?
+"	"STEP-NC (Application Interpreted Model for CNC): integração CAD-CAM-CNC.
+"
+"O que é o AP242 e o que ele unifica?
+"	"Managed Model-Based 3D Engineering (MBE); unifica/sucede o AP203 e o AP214.
+"
+"O que é o AP239?
+"	"Product Life Cycle Support (PLCS): suporte ao ciclo de vida do produto.
+"
+"Qual a analogia usada para explicar o que é um Application Protocol?
+"	"É como um &quot;contrato&quot; entre sistemas: define exatamente o que será trocado para um determinado propósito, evitando ambiguidade.
+"
+"O que é EXPRESS (ISO 10303-11)?
+"	"Linguagem formal de modelagem de dados, orientada a objetos e baseada em schemas, que define entidades, atributos, relações e restrições.
+"
+"O que é uma ENTITY em EXPRESS?
+"	"Define um tipo de objeto com atributos.
+"
+"O que são as regras WHERE em EXPRESS?
+"	"Regras de validação: restrições que os dados devem satisfazer (ex: radius &gt; 0.0).
+"
+"O que é UNIQUE em EXPRESS?
+"	"Restrições de unicidade entre atributos ou entidades.
+"
+"O que é INVERSE em EXPRESS?
+"	"Relações inversas entre entidades.
+"
+"O que é SUBTYPE/SUPERTYPE em EXPRESS?
+"	"Mecanismo de herança entre entidades, similar à herança em programação orientada a objetos.
+"
+"Por que o STEP usa EXPRESS em vez de UML ou SQL?
+"	"Porque foi projetada especificamente para dados de produto de engenharia, suporta restrições complexas (WHERE rules) e é independente de implementação de armazenamento.
+"
+"O que significa a sigla SDAI e qual a norma ISO correspondente?
+"	"Standard Data Access Interface; ISO 10303-22.
+"
+"Qual problema o SDAI resolve?
+"	"Sem ele, cada aplicação precisaria implementar seu próprio parser de arquivos STEP, o que é complexo e propenso a erros.
+"
+"Cite três funcionalidades que o SDAI provê.
+"	"Operações de consulta e navegação sobre modelos STEP, CRUD de entidades (criar, ler, atualizar, deletar), e gerenciamento de sessões/transações.
+"
+"Qual a analogia que relaciona EXPRESS e SDAI?
+"	"EXPRESS é o &quot;dicionário&quot; (define as palavras/conceitos que existem); SDAI é o &quot;manual de conversação&quot; (define como usar essas palavras entre sistemas).
+"
+"<br>
+<div>A frente deste cartão está em branco.<br><a href='https://docs.ankiweb.net/templates/errors.html#front-of-card-is-blank'>Mais informações</a></div>"	"<div>A frente deste cartão está em branco.<br><a href='https://docs.ankiweb.net/templates/errors.html#front-of-card-is-blank'>Mais informações</a></div>"
+"Qual é o formato físico do STEP mais comum e qual sua extensão de arquivo?
+"	"ISO 10303-21 (Clear Text Encoding), com extensão .step ou .stp.
+"
+"🗑️Coloque em ordem cronológica: ICAM, STEP, IGES.
+"	"ICAM (anos 1970) -&gt; IGES (1980) -&gt; STEP/ISO 10303 (a partir de 1994).
+"

@@ -1,0 +1,77 @@
+#separator:tab
+#html:true
+"Quais são os três domínios do modelo de produto integrado?
+"	"Estrutural (montagem, BOM, relações, versões), Geométrico (forma, dimensões, posição, CSG/B-rep) e de Conhecimento (regras, restrições, tolerâncias, intenção de projeto).
+"
+"O que o domínio Estrutural do product model responde?
+"	"&quot;Do que esta peça faz parte?&quot; — BOM, estrutura de montagem, relações entre componentes, versionamento e configuração.
+"
+"O que o domínio Geométrico do product model responde?
+"	"&quot;Qual é a forma e onde está?&quot; — forma, dimensões, posição, CSG/B-rep. É o que o IGES cobre (parcialmente) e é condição necessária mas não suficiente para um modelo completo.
+"
+"O que o domínio de Conhecimento do product model responde?
+"	"&quot;Por que esta peça é assim e como deve ser julgada?&quot; — regras de projeto, restrições funcionais, tolerâncias, especificações, intenção de projeto. É o que torna o modelo &quot;inteligente&quot;.
+"
+"O que é o Integrated Product Model?
+"	"A combinação dos três domínios (estrutural, geométrico e conhecimento) em uma única representação coerente e computável. O STEP foi construído sobre este paradigma.
+"
+"Quais as 4 limitações do código G tradicional (ISO 6983)?
+"	"1) Descreve movimentos de eixos, não features de usinagem; 2) Não sabe o que está usinando (só coordenadas); 3) Dependente da máquina específica; 4) Não contém tolerâncias, material ou estratégia de usinagem.
+"
+"O que é o STEP-NC e qual sua norma ISO?
+"	"Extensão do STEP para comando numérico (ISO 14649). Em vez de enviar movimentos de eixo, envia informação de features e operações de usinagem (eleva o nível de abstração do &quot;como&quot; para o &quot;o quê&quot; usinar).
+"
+"Qual a diferença fundamental entre código G e STEP-NC?
+"	"Código G: baixo nível, descreve &quot;como&quot; usinar (movimentos de eixo), dependente de máquina. STEP-NC: alto nível, descreve &quot;o quê&quot; usinar (features + operações), independente de máquina.
+"
+"O que é Design Intent?
+"	"Conjunto de regras, relações e restrições que capturam o raciocínio do projetista e ficam embutidas no modelo paramétrico. Sem ele, o modelo é um desenho passivo; com ele, é uma &quot;máquina&quot; que gera geometria correta sob variação de parâmetros.
+"
+"Dê um exemplo de Design Intent em uma peça mecânica.
+"	"Flange com 6 furos: com Design Intent, os furos são definidos como &quot;círculo concêntrico ao flange, igualmente espaçados, diâmetro proporcional&quot;. Se o diâmetro do flange muda, os furos se reposicionam e redimensionam automaticamente.
+"
+"O que é group technology segundo Mortenson (Cap. 10)?
+"	"Esquema que agrupa peças manufaturadas em classes ou famílias de formas similares, onde membros individuais são distinguidos por poucos parâmetros (key dimensions). Incentiva padronização no design e produção.
+"
+"O que são generic primitive e primitive instance segundo Mortenson?
+"	"Generic primitive: uma família inteira de formas similares. Primitive instance: um membro individual da família, definido por valores específicos das key dimensions.
+"
+"O que são key dimensions segundo Mortenson?
+"	"Os parâmetros (dimensões-chave) que distinguem os membros de uma família de peças. Poucas key dimensions são suficientes para definir formas de objetos simples.
+"
+"Qual a principal limitação dos sistemas baseados em primitivas parametrizadas, segundo Mortenson?
+"	"&quot;The number of useful generic primitives, though large, is limited&quot; — o repertório de primitivas genéricas é limitado. Sistemas puramente baseados nisso são altamente especializados e exigem um grande repertório para ampla aplicação.
+"
+"Como Mortenson define uma instance de primitiva (Cap. 10.5)?
+"	"Como uma transformação linear de uma primitiva existente: cada novo cubo ou sólido retangular é uma instância particular do cubo inicial, obtida por transformação linear (escala, translação, rotação).
+"
+"Qual a diferença entre modelagem paramétrica e variacional quanto à direção das dependências?
+"	"Paramétrica: dependências unidirecionais (definidas). Variacional: dependências bidirecionais (simultâneas, resolvidas por solver).
+"
+"Como funciona a resolução na modelagem paramétrica?
+"	"Em ordem sequencial, seguindo o histórico de construção. Cada parâmetro é calculado a partir dos que já foram definidos antes dele (como uma planilha Excel).
+"
+"Como funciona a resolução na modelagem variacional?
+"	"As restrições são tratadas como equações simultâneas, sem direção preferencial. Um solver encontra valores que satisfazem todas as restrições ao mesmo tempo (como um sistema de equações algébricas).
+"
+"Compare o custo computacional e a flexibilidade entre paramétrico e variacional.
+"	"Paramétrico: menor custo computacional, menor flexibilidade, alta previsibilidade. Variacional: maior custo computacional (precisa de solver numérico), maior flexibilidade, previsibilidade média (múltiplas soluções possíveis).
+"
+"Qual abordagem (paramétrica ou variacional) é usada por SolidWorks, Inventor e Creo?
+"	"Usam modelagem paramétrica com histórico, mas incorporam elementos variacionais (equações simultâneas, restrições de sketch 2D). Não são puramente um nem outro.
+"
+"O que são restrições geométricas? Dê exemplos.
+"	"Definem relações espaciais entre entidades geométricas. Exemplos: orientação (paralelo, perpendicular, tangente), posição (coincidente, concêntrico), dimensional (distância, ângulo, raio), simetria e padrão (igual, circular, retangular).
+"
+"O que são restrições funcionais (ou de engenharia)? Dê um exemplo.
+"	"Restrições baseadas em requisitos de desempenho, conectando geometria com física. Exemplo: tensão máxima ≤ 200 MPa, deflexão máxima ≤ 0.05 mm, massa total ≤ 5 kg, primeira frequência natural ≥ 50 Hz.
+"
+"Por que restrições funcionais são mais complexas que restrições geométricas?
+"	"Exigem integração com modelos de análise (FEA, CFD), dependem de propriedades de material, a avaliação pode exigir simulação numérica (não apenas álgebra), e o vínculo entre geometria e desempenho é indireto.
+"
+"O que são restrições variacionais?
+"	"Restrições que permitem intervalos (desigualdades) em vez de valores fixos, definindo um espaço de soluções viáveis. Ex: 50 ≤ L ≤ 100 em vez de L = 100.
+"
+"Para que servem as restrições variacionais?
+"	"Projeto preliminar (valores exatos ainda não decididos), otimização (espaço de busca para algoritmos) e design robusto (garantir funcionamento dentro de uma faixa de variação).
+"

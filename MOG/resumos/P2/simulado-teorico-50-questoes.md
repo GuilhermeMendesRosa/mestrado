@@ -1,9 +1,9 @@
-# Simulado teórico com 50 questões — P2
+# Simulado teórico com 75 questões — P2
 
-Este simulado foi montado com foco teórico, seguindo os tópicos da P2 e o roteiro de estudo.
+Este simulado foi montado com foco teórico, seguindo os tópicos da P2 (incluindo slides do professor) e o roteiro de estudo.
 
 Como usar:
-1. Tente responder as 50 questões sem olhar as respostas.
+1. Tente responder as 75 questões sem olhar as respostas.
 2. Marque as que você não souber ou responder com insegurança.
 3. Corrija pelo gabarito e revise os temas em que mais errou.
 
@@ -170,3 +170,86 @@ Resposta: Porque features podem se intersectar, sobrepor ou ser parcialmente des
 
 50. Como a modelagem por features resolve as deficiências do CAD tradicional?
 Resposta: (1) Substitui "dados microscópicos" por entidades com significado (features). (2) Elimina a sub-especificação ao associar semântica e parâmetros de manufatura a cada feature. (3) Reduz a construção tediosa com operações de alto nível (ex: "criar furo passante" em vez de modelar cada face). (4) Cria estrutura hierárquica (árvore de features) substituindo a estrutura plana.
+
+---
+
+### Bloco D: Representação por Decomposição e Estruturas de Dados Espaciais (Questões 51–65)
+
+51. O que é representação por decomposição do espaço? Como ela difere das representações construtivas (CSG/B-rep)?
+Resposta: A representação por decomposição subdivide o espaço em uma família de células volumétricas e representa o objeto pela enumeração das células que o intersectam. Diferente das representações construtivas (que constroem o sólido a partir de primitivas e operações), a decomposição "fatia" o espaço e verifica quais fatias pertencem ao objeto. É adequada para objetos cujos atributos variam no interior.
+
+52. Quais as duas formas principais de decomposição e como se diferenciam?
+Resposta: (1) Uniforme (matricial/voxels): reticulado regular com células de mesmo tamanho. (2) Não-Uniforme: células com tamanho variável (Quadtree, Octree, BSP-tree) ou forma variável (Voronoi, células quaisquer).
+
+53. O que é um voxel? Liste suas principais características (unicidade, ambiguidade, concisão, validação).
+Resposta: Voxel (volume element) é a unidade cúbica da representação matricial 3D. Características: tem unicidade, não é ambígua, fácil de validar, precisão depende do tamanho do voxel, e **não é concisa** (consome muita memória para precisão razoável).
+
+54. Por que a representação por voxels "não é concisa"? Em que situações isso é problemático?
+Resposta: Porque regiões homogêneas (totalmente dentro ou fora do sólido) são representadas com a mesma densidade de células que as regiões de borda, desperdiçando memória. É problemático quando se precisa de alta precisão, pois o número de voxels cresce cubicamente com a resolução.
+
+55. Como funciona uma Quadtree (2D)? O que significam os estados Empty, Full e Partial?
+Resposta: A Quadtree subdivide recursivamente o espaço 2D em 4 quadrantes (NW, NE, SW, SE). Cada nó pode estar em um de três estados: Empty (vazio — totalmente fora), Full (cheio — totalmente dentro), ou Partial (parcial — parcialmente ocupado, precisa subdividir). O processo continua até que todas as folhas sejam Empty ou Full, ou até um critério de parada.
+
+56. Como funciona uma Octree? Qual a diferença principal para a Quadtree?
+Resposta: A Octree aplica o mesmo princípio da Quadtree em 3D: cada nó parcial é subdividido em 8 octantes (2³). A diferença principal é a dimensionalidade: Quadtree é para 2D (4 filhos por nó), Octree é para 3D (8 filhos por nó).
+
+57. Qual a complexidade de acesso em uma Octree? Por que ela é considerada uma estrutura "estática"?
+Resposta: Acesso em O(log n). É considerada estática porque é difícil mover voxels dentro da estrutura — transformações como translação exigem remover e reinserir cada elemento, sendo mais prático usar um grid temporário e recriar a árvore.
+
+58. O que é uma BSP-tree? Quais os dois tipos e como se diferenciam?
+Resposta: BSP-tree (Binary Space Partitioning) é uma árvore binária que divide o espaço recursivamente em 2 partes por um plano de corte. Dois tipos: (1) Axis-Aligned: planos paralelos aos eixos coordenados (xy, xz, yz). (2) Polygon-Aligned: um polígono 3D define o plano de corte. A diferença está na orientação do plano divisor.
+
+59. Quais conversões entre representações são simples e quais são complicadas?
+Resposta: Simples: CSG → B-rep, B-rep → Células, CSG → Células, Células → B-rep (marching cubes). Complicadas: B-rep → CSG (muito mais complicada), Células → CSG (complicado). O método de modelagem (interface) não restringe a representação interna.
+
+60. O que é uma malha manifold? Como verificar se uma malha é manifold?
+Resposta: É uma superfície onde a vizinhança de qualquer ponto pode ser "achatada" em um plano. Verificação: (1) toda aresta é compartilhada por exatamente 2 triângulos, (2) todo vértice tem um único e completo círculo de triângulos ao seu redor. Manifold não garante orientação consistente das faces.
+
+61. Qual a diferença entre Winged-Edge e Half-Edge?
+Resposta: Winged-Edge armazena conectividade nas arestas (2 faces, 2 vértices, 4 arestas vizinhas) mas sempre precisa verificar orientação antes de navegar. Half-Edge divide cada aresta em duas metades com orientações opostas — uma para cada face — eliminando a necessidade de verificar orientação durante a travessia. Half-Edge é mais elegante e elimina testes condicionais.
+
+62. O que é uma MX Quadtree e qual sua principal limitação?
+Resposta: MX Quadtree (Matrix) é uma quadtree para pontos discretos onde cada folha é preto (dado presente) ou branco (vazio), e a posição do dado está implícita na posição na árvore. Principal limitação: dobrar a precisão custa 2^d vezes mais memória (4× em 2D, 8× em 3D).
+
+63. O que é uma KD-Tree e como ela organiza pontos no espaço?
+Resposta: É um tipo especial de árvore BSP para pontos. Cada nível divide o espaço em 2 regiões com um plano perpendicular a um eixo, alternando a dimensão de divisão a cada nível. A ordem de inserção influencia o balanceamento. Complexidade média: busca/inserção/remoção O(log n), pior caso O(n).
+
+64. Qual a diferença entre BVH e Octree como estruturas de aceleração espacial?
+Resposta: BVH (Bounding Volume Hierarchy) agrupa objetos por proximidade espacial — bounding volumes são aninhados conforme a distribuição dos objetos. Octree subdivide o espaço uniformemente, independentemente de onde os objetos estão. BVH adapta-se melhor a cenas com objetos concentrados; Octree é mais previsível.
+
+65. O que é LOD (Level of Detail) e qual o critério para trocar de nível durante a renderização?
+Resposta: LOD é uma técnica de otimização que cria múltiplos níveis de detalhe do mesmo modelo e usa o mais adequado à distância. Critério de troca: baseado na distância do objeto à câmera e na resolução da tela. Exemplo: tela 640×480 (307K pixels), objeto ocupa metade (~150K pixels) → mais que ~300K triângulos é desperdício.
+
+---
+
+### Bloco E: Complementos de Restrições e Features + Problemas de Validação (Questões 66–75)
+
+66. Segundo o slide do professor, qual porcentagem das tarefas de design são variacionais e o que isso significa?
+Resposta: 80% das tarefas de design são variacionais, significando que a maioria do trabalho de engenharia é adaptar projetos existentes a novos requisitos, não criar do zero. Isso justifica a importância da modelagem a restrições.
+
+67. Defina: variáveis do modelo, dimensões e parâmetros do modelo (segundo os slides).
+Resposta: Variáveis do modelo descrevem forma e tamanho (em B-rep, pode ser um ponto). Dimensões são valores nominais de propriedades geométricas. Parâmetros do modelo podem ser dimensões ou valores sem significado geométrico usados para computar dimensões — são um controle indireto de variáveis do modelo.
+
+68. Por que "boss e slot têm a mesma topologia" e por que isso é um problema para Feature Recognition?
+Resposta: Porque ambos são volumes que se projetam/penetram na peça com a mesma estrutura topológica (faces, arestas, vértices conectados da mesma forma). A diferença está no significado (protrusão vs. depressão), não na topologia. Isso torna o reconhecimento automático ambíguo — pequenas variações na geometria podem levar a classificações totalmente diferentes.
+
+69. Como a taxonomia de Gindy classifica features e o que são EAD's?
+Resposta: Gindy classifica features pelo número de External Access Directions (EAD's) — direções pelas quais uma ferramenta pode acessar a feature. Varia de 0 a 5 EAD's. Cada categoria subdivide-se em Quadrangular e Cylindrical. Exemplo: Pocket fechado = 0 EAD's, Slot passante = 1 EAD, Step = 2 EAD's. Conecta geometria com manufaturabilidade.
+
+70. O que é DSG (Destructive Solid Geometry)?
+Resposta: DSG é uma simplificação da CSG que contém apenas o operador de **Diferença**. Representa features como volumes removidos do blank (material bruto), sendo uma forma natural de modelar features de usinagem (onde sempre se remove material).
+
+71. Quais os 4 tipos de interação entre features? Dê um exemplo de cada.
+Resposta: (1) Adjacência — features encostadas (furo com rebaixo encostado em outro). (2) Compartilhamento — features dividindo face ou aresta (duas cavidades com parede comum). (3) Cruzamento — features que se interceptam (furo atravessando uma cavidade). (4) Sobreposição — features ocupando mesmo volume (dois furos parcialmente sobrepostos).
+
+72. O que são Thin Walls e quais os 4 casos identificados?
+Resposta: Thin Walls (paredes finas) ocorrem quando features estão muito próximas, gerando paredes finas demais para fabricação. 4 casos: (1) Feature-to-Feature, (2) Feature-to-STOCK, (3) Adjoint Cases (adjacentes), (4) Disjoint Cases (disjuntos mas próximos).
+
+73. Cite 4 dos 8 problemas de edição em modelos baseados em features e explique um deles.
+Resposta: (1) Remoção ≠ reinserção de volume — retirar uma feature não é o mesmo que reinserir o volume original (deixa "cicatrizes" topológicas). (2) Desconexão de feature por edição de parâmetros. (3) Colisão ou redundância entre features. (4) Cobertura/fechamento de feature por outra. (5) Absorção de intenções. (6) Apagamento de intenções. (7) Alterações implícitas. (8) Invalidação por inserção de nova feature.
+
+74. Qual a diferença entre validação geométrica e validação semântica em modelos de features?
+Resposta: Validação geométrica verifica se o modelo é matematicamente válido (homogeneidade dimensional, fronteiras bem definidas, sem auto-interseções). Validação semântica verifica se as intenções de projeto foram preservadas (as features mantêm seu significado após edições). Um modelo pode ser geometricamente válido mas semanticamente inválido.
+
+75. O que são as operações Split, Delete, Merge e Label na validação semântica de features?
+Resposta: São operações para corrigir modelos semanticamente inválidos. Split: dividir uma feature em duas (ex: furo cortado ao meio por outra feature). Delete: remover feature que perdeu o significado. Merge: unir duas features que se tornaram uma só. Label: renomear/reclassificar uma feature que mudou de tipo após edições (ex: furo passante que virou furo cego).

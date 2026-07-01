@@ -1,0 +1,83 @@
+#separator:tab
+#html:true
+"O que é representação por decomposição e como difere das representações construtivas (CSG/B-rep)?
+"	"Em vez de construir o sólido a partir de primitivas e operações, subdivide o espaço e representa o objeto por quais células estão ocupadas. Consiste em subdividir o espaço em uma família de células volumétricas, enumerando as células que intersectam o objeto.
+"
+"Quais são as duas formas principais de decomposição?
+"	"1) Uniforme (matricial/voxels): reticulado regular, células de mesmo tamanho. 2) Não-uniforme: variação de tamanho (Quadtree, Octree, BSP-tree) ou variação de forma (células quaisquer, Diagramas de Voronoi).
+"
+"O que é um voxel?
+"	"Volume element — a extensão 3D do pixel. Cada célula de um reticulado 3D regular (geralmente cúbica) que armazena: dentro/fora do sólido + amostra de atributos.
+"
+"Quais as características da representação por voxels (unicidade, ambiguidade, concisão, validação)?
+"	"Unicidade: sim. Ambiguidade: não é ambígua. Validação: fácil de validar. Precisão: depende do tamanho do voxel. Concisão: NÃO é concisa (muitos voxels). Domínio: qualquer sólido.
+"
+"Por que a representação matricial (voxels) não é concisa?
+"	"Para boa precisão precisa-se de muitos voxels, e regiões homogêneas (totalmente dentro ou fora) ocupam o mesmo espaço que regiões de fronteira. O consumo de memória cresce com o cubo da resolução.
+"
+"Como funcionam as operações booleanas em voxels?
+"	"São operações lógicas bit a bit no domínio dos inteiros (1 = ocupado, 0 = vazio). União: A OR B. Interseção: A AND B. Diferença: A AND NOT B. Extremamente simples.
+"
+"Como funciona uma Quadtree (2D)?
+"	"Começa com região quadrada do espaço. Se totalmente vazia → folha Empty (E). Se totalmente ocupada → folha Full (F). Se parcialmente ocupada → nó Partial (P), subdivide em 4 quadrantes (NW, NE, SW, SE). Repete recursivamente até critério de parada.
+"
+"Como funciona uma Octree (3D)?
+"	"Mesmo princípio da Quadtree, mas em 3D: cada nó parcial é subdividido em 8 octantes (2³ = 8 filhos). Acesso O(log n). Estrutura estática: transformações exigem recriação da árvore.
+"
+"Quais são os três estados de um nó em Quadtree/Octree?"
+"	"Empty (E): totalmente vazio. Full (F): totalmente ocupado. Partial (P): parcialmente ocupado → subdivide.
+"
+"O que é o problema do padrão xadrez em Quadtree/Octree?"
+"	"Em casos extremamente heterogêneos (ex: tabuleiro de xadrez), a Quadtree pode consumir MAIS memória que o grid equivalente, pois cada célula alternada força subdivisões até o nível máximo. Ex: xadrez 4×4 = 16 elementos no grid vs. 21 nós na Quadtree.
+"
+"O que é uma MX Quadtree?"
+"	"Matrix Quadtree: para pontos com índices discretos. Cada folha tem 2 estados (preto = dado presente, branco = vazio). Posição implícita na árvore. Limitação: dobrar a precisão custa 2²× (2D) ou 2³× (3D) de memória adicional.
+"
+"O que é uma PR Quadtree?"
+"	"Point Region Quadtree: similar à MX mas armazena coordenadas dos pontos nas folhas. Máximo de 1 ponto por folha. Inserir ponto próximo a outro existente pode causar muitas subdivisões.
+"
+"O que é uma Extended Octree?"
+"	"Folhas armazenam polígonos que representam a superfície, resolvendo o problema de aproximação grosseira de voxels binários. Usa a Octree como acelerador para operações locais (booleanas).
+"
+"O que é uma Graftree?"
+"	"Folhas armazenam a raiz de uma árvore CSG. Estados: FULL (dentro), EMPTY (fora), BOUNDARY (raiz da CSG). Permite operações CSG locais — útil quando booleanas afetam apenas regiões pequenas.
+"
+"O que é uma BSP-tree e como funciona?"
+"	"Binary Space Partitioning: árvore binária que subdivide o espaço em 2 partes por um plano de corte (splitting plane). Cada nó armazena um plano; filho esquerdo = região &quot;dentro&quot;; filho direito = região &quot;fora&quot;. Permite representar côncavos e convexos.
+"
+"Quais os dois tipos de BSP-tree e suas diferenças?"
+"	"1) Axis-Aligned: planos de corte paralelos aos eixos (xy, xz, yz) — mais simples, menos compacta. 2) Polygon-Aligned: polígono 3D como splitting plane — trade-off entre balanceamento e número de splits.
+"
+"Quais conversões entre representações são simples e quais são complicadas?"
+"	"Simples: CSG→B-rep (possível), CSG→Células, B-rep→Células, Células→B-rep (marching cubes). Complicadas: B-rep→CSG (muito mais complicada), Células→CSG.
+"
+"O que é uma malha manifold?"
+"	"Superfície onde uma pequena vizinhança de qualquer ponto pode ser achatada em uma superfície plana. Verificação: 1) todas as arestas são compartilhadas por exatamente 2 triângulos; 2) todos os vértices têm um único círculo completo de triângulos em volta.
+"
+"Qual a diferença entre Winged-Edge e Half-Edge?"
+"	"Winged-Edge: armazena conectividade nas arestas, mas sempre precisa verificar orientação antes de navegar. Half-Edge: divide cada aresta em duas metades com orientações opostas, eliminando a necessidade de testes condicionais de orientação durante a travessia.
+"
+"O que cada half-edge armazena?"
+"	"Vértice de origem, half-edge oposta (pair), face à qual pertence, próxima half-edge na face (next), half-edge anterior (prev).
+"
+"O que é um Grid (matriz 3D) e qual sua principal desvantagem?"
+"	"Voxels armazenados em matriz 3D com acesso O(1). Desvantagem: alto consumo de memória (Grid 20³ = 8.000 voxels, 8× mais que 10³). Espaços homogêneos ocupam mesmo espaço que heterogêneos.
+"
+"O que é uma KD-Tree e qual sua complexidade média?"
+"	"Tipo especial de BSP-tree para organização de pontos. Cada nível divide em uma dimensão diferente (alternando x, y, z). Suporta k dimensões. Complexidade média: busca O(log n), inserção O(log n), remoção O(log n). Pior caso: O(n).
+"
+"O que é uma BVH (Bounding Volume Hierarchy) e para que serve?"
+"	"Organização hierárquica de bounding volumes (esferas, AABB). Nó pai contém todos os objetos dos filhos. Usada para acelerar testes de colisão e ray tracing: se um raio não atinge o BV do nó pai, não precisa testar nenhum filho.
+"
+"Qual a diferença entre BVH e Octree?"
+"	"BVH: agrupa objetos por proximidade espacial, adapta-se à distribuição dos objetos, bounding volumes aninhados. Octree: subdivide o espaço uniformemente, independente dos objetos, células de tamanhos variáveis por subdivisão.
+"
+"O que é LOD (Level of Detail) e por que é usado?"
+"	"Técnica de otimização que usa múltiplos modelos do objeto com diferentes níveis de detalhe. Quanto mais longe o objeto está, menos triângulos são necessários — evita desperdício computacional renderizando triângulos menores que um pixel.
+"
+"Qual o critério para trocar de LOD durante a renderização?"
+"	"Baseado na distância do objeto à câmera e na resolução da tela. Critério: número de triângulos vs. número de pixels ocupados. Ex: tela 640×480, objeto ocupa metade (~150K pixels) → mais que ~300K triângulos é desperdício.
+"
+"O que é o artefato de popping em LOD e como se resolve?"
+"	"O objeto &quot;salta&quot; de aparência quando o sistema troca de um nível para outro. Soluções: transições suaves (morphing entre níveis), LOD contínuo (geomorphs).
+"

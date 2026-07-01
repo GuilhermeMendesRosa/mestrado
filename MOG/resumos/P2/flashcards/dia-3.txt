@@ -1,0 +1,104 @@
+#separator:tab
+#html:true
+"Qual a diferença entre abordagem procedural e abordagem baseada em restrições (constraint-based)?
+"	"Procedural: define &quot;como&quot; construir (sequência fixa de operações, ordem importa). Constraint-Based: declara &quot;o que&quot; se deseja (restrições declarativas, ordem não importa, um solver resolve todas juntas).
+"
+"Mortenson descreve o modelo booleano como procedural (Cap. 11.4). O que isso significa?
+"	"A declaração booleana define um procedimento de combinação de primitivas, não especifica nada quantitativo sobre o novo sólido criado — apenas o procedimento para combinar os constituintes.
+"
+"Em um grafo de restrições, o que são os nós e o que são as arestas?
+"	"Nós: elementos geométricos (pontos, linhas, círculos, planos). Arestas: restrições entre esses elementos (tangente, paralelo, distância, concêntrico, ângulo).
+"
+"Cite 5 utilidades de um grafo de restrições.
+"	"1) Análise de dependências; 2) Detecção de redundância; 3) Detecção de conflitos; 4) Ordenação de resolução; 5) Decomposição (dividir em subgrafos independentes — divide and conquer).
+"
+"O que é um predicado no contexto de restrições?
+"	"Uma condição lógica que deve ser verdadeira para que o modelo seja válido. É a formalização de uma restrição (ex: Parallel(L1, L2), Distance(P1, P2) = d).
+"
+"O que caracteriza um sistema sub-restrito (under-constrained)?
+"	"n (variáveis) > m (equações). Infinitas soluções — a geometria &quot;flutua&quot; (graus de liberdade não restringidos).
+"
+"O que caracteriza um sistema bem-restrito (well-constrained)?
+"	"n (variáveis) = m (equações). Solução finita, idealmente única.
+"
+"O que caracteriza um sistema sobre-restrito (over-constrained)?
+"	"n (variáveis) < m (equações). Pode não ter solução — restrições conflitantes ou redundantes.
+"
+"Dê um exemplo de sistema sub-restrito.
+"	"3 pontos no plano (6 coordenadas); restrições: distância P1-P2 = 10, distância P2-P3 = 10 (2 equações). Como n > m, os pontos podem girar e transladar livremente (infinitas posições).
+"
+"Dê um exemplo de sistema sobre-restrito.
+"	"2 pontos (4 coordenadas); restrições: distância = 10, distância = 20, P1 fixo, P2 fixo em outra posição — impossível satisfazer todas ao mesmo tempo.
+"
+"O que é o método de Newton-Raphson e por que é relevante em CAD?
+"	"Método numérico iterativo que lineariza sistemas não-lineares a cada iteração. Requer chute inicial próximo da solução. É o método mais usado em CAD comercial para resolver restrições.
+"
+"Cite 3 desafios práticos na resolução de sistemas de restrições.
+"	"1) Múltiplas soluções (sistema bem-restrito pode ter várias); 2) Convergência (solver pode divergir com chute inicial ruim); 3) Performance interativa (solver precisa rodar em tempo real enquanto usuário arrasta elementos).
+"
+"O que é uma função implícita? Dê um exemplo.
+"	"Função da forma F(x,y,z,...) = 0, sem isolar uma variável. Exemplo: x² + y² − R² = 0 (círculo), em contraste com a forma explícita y = ±√(R² − x²).
+"
+"Quando se usa função implícita em vez de explícita?
+"	"Quando a relação não pode ser facilmente isolada (ex: interseção de superfícies complexas); quando a forma implícita é mais compacta/expressiva; para representar restrições como F(...) = 0.
+"
+"Como Mortenson (Cap. 11.3) relaciona funções implícitas com modelagem geométrica?
+"	"Para classificar inside/outside/boundary: para esfera de raio R na origem, se x² + y² + z² − R² < 0 → dentro; se > 0 → fora; se = 0 → na superfície.
+"
+"Quais são as quatro deficiências do CAD tradicional?
+"	"1) Dados microscópicos (entidades de baixo nível sem semântica); 2) Sub-especificação geométrica (só geometria, sem engenharia); 3) Construção tediosa (operações booleanas sobre primitivas); 4) Estrutura de dados de um único nível (plana, sem hierarquia funcional).
+"
+"O que significa a deficiência de &quot;dados microscópicos&quot; no CAD tradicional?
+"	"O CAD opera com entidades de baixo nível (pontos, arestas, faces). O engenheiro pensa em furos, rasgos, chanfros — mas o computador vê apenas vértices, arestas, faces. Há um gap semântico.
+"
+"O que significa a deficiência de &quot;sub-especificação geométrica&quot; no CAD tradicional?
+"	"A geometria pode estar matematicamente correta, mas sem informação suficiente para manufatura: um cilindro não informa se é furo passante ou cego, se é roscado, qual material, qual tolerância, como deve ser fabricado.
+"
+"O que significa a deficiência de &quot;construção tediosa&quot; no CAD tradicional?
+"	"Para criar uma peça é preciso definir múltiplas primitivas, posicioná-las, aplicar sequência de operações booleanas — equivalente a &quot;esculpir&quot; a peça. Uma mudança de projeto pode exigir reconstruir toda a árvore CSG.
+"
+"O que significa a deficiência de &quot;estrutura de dados de um único nível&quot; no CAD tradicional?
+"	"A hierarquia B-rep (solid → shell → face → loop → edge → vertex) e a árvore CSG são planas: descrevem geometria mas não agrupam elementos por função, não têm relações funcionais, e o histórico registra operações booleanas, não decisões de projeto.
+"
+"O que é uma feature (feição)?
+"	"FEATURE = GEOMETRIA + SEMÂNTICA + COMPORTAMENTO. Um elemento geométrico que carrega significado de engenharia, diferente de uma face ou aresta (pura geometria).
+"
+"Qual a diferença entre feature física e feature abstrata?
+"	"Física: corresponde a geometria real visível e mensurável no modelo 3D (furo, cavidade, rasgo, chanfro). Abstrata: não tem geometria própria — são informações anexadas ao modelo (tolerância, acabamento superficial, material, tratamento térmico).
+"
+"O que são Form Features? Dê exemplos.
+"	"Features orientadas ao design/projeto. Representam como o projetista concebe a peça. Exemplos: ressalto (boss), nervura (rib), flange, grade de reforço. A geometria é uma adição de material com propósito funcional.
+"
+"O que são Manufacturing Features? Dê exemplos.
+"	"Features orientadas ao processo de fabricação. Representam como a peça será produzida. Exemplos: cavidade (pocket), furo a ser broqueado, face a ser faceada. A geometria é um volume a remover do blank.
+"
+"Por que uma mesma geometria pode ser uma Form Feature diferente de uma Manufacturing Feature?
+"	"Não existe mapeamento 1:1. Ex: no design é um &quot;ressalto para apoio do mancal&quot; (adição); na manufatura é &quot;cavidade a ser fresada ao redor do ressalto&quot; (o que se remove é o material em volta). Uma feature de design pode corresponder a múltiplas operações de manufatura.
+"
+"O que caracteriza uma feature como rotacional?
+"	"Associada a peças torneadas (simetria axial). Geometria gerada por revolução de perfil 2D em torno de um eixo. Usinagem principal: torno. Ex: cilindro externo, cone, faceamento, canal, rosca externa.
+"
+"O que caracteriza uma feature como prismática?
+"	"Associada a peças fresadas (faces planas). Geometria baseada em planos ortogonais ou inclinados. Usinagem principal: fresadora/centro de usinagem. Ex: cavidade (pocket), rasgo (slot), face rebaixada (step), furo não-coaxial.
+"
+"O que é Feature Recognition (FeR)?
+"	"Parte de um modelo geométrico já pronto (B-rep) e tenta identificar features automaticamente via algoritmos. Desafios: features que se intersectam são difíceis de separar; mesma geometria pode ser interpretada como diferentes features.
+"
+"O que é Feature-Based Design (DbF)?
+"	"O projetista constrói o modelo desde o início usando operações de feature com significado. Vantagens: Design Intent é capturado naturalmente, a árvore de features é o histórico de projeto, modificações preservam a intenção original.
+"
+"Compare Feature Recognition com Feature-Based Design."
+"	"FeR: ponto de partida é modelo pronto (legado); tenta recuperar Design Intent depois; sujeito a falhas de interpretação. DbF: construção do zero; captura Design Intent durante; robusto (intenção explícita); requer sistema feature-based.
+"
+"Como as features resolvem a deficiência de &quot;dados microscópicos&quot; do CAD tradicional?
+"	"Features são entidades de alto nível com significado de engenharia (ex: &quot;furo passante M8&quot; em vez de um conjunto de faces cilíndricas).
+"
+"Como as features resolvem a deficiência de &quot;sub-especificação&quot; do CAD tradicional?
+"	"Cada feature carrega parâmetros de manufatura, tolerâncias e especificações (o furo inclui diâmetro, tolerância H7, informação de rosca).
+"
+"Como as features resolvem a deficiência de &quot;construção tediosa&quot; do CAD tradicional?
+"	"Operações de alto nível: &quot;criar furo passante&quot; em vez de modelar cada face cilíndrica e posicionar manualmente.
+"
+"Como as features resolvem a deficiência de &quot;estrutura plana&quot; do CAD tradicional?
+"	"Árvore de features hierárquica com agrupamentos, relações funcionais e histórico de design com significado (não apenas operações booleanas).
+"

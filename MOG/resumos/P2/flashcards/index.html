@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Flashcards — MOG P2</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0b1121;
+  --surface:#111827;
+  --border:#1f2d3d;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --accent:#38bdf8;
+  --accent2:#818cf8;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100dvh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:12px;
+  -webkit-tap-highlight-color:transparent;
+  overflow-x:hidden;
+}
+
+header{text-align:center;margin-bottom:8px;width:100%;max-width:720px}
+header h1{font-size:.95rem;font-weight:600;color:var(--muted);letter-spacing:.03em}
+
+/* ── Tabs ── */
+.tabs{
+  display:flex;gap:5px;flex-wrap:wrap;justify-content:center;
+  margin-bottom:6px;width:100%;max-width:720px;
+}
+.tabs button{
+  all:unset;cursor:pointer;
+  padding:6px 11px;border-radius:99px;
+  font-size:.7rem;font-weight:500;color:var(--muted);
+  background:var(--surface);border:1px solid var(--border);
+  transition:all .2s;white-space:nowrap;
+}
+.tabs button.on{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+
+/* ── Progresso ── */
+.progress{
+  width:100%;max-width:720px;height:3px;
+  background:var(--border);border-radius:99px;
+  margin-bottom:10px;overflow:hidden;
+}
+.progress-bar{
+  height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));
+  border-radius:99px;transition:width .3s;
+}
+
+.info{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;max-width:720px;margin-bottom:8px;
+  font-size:.7rem;color:var(--muted);
+}
+.info .counter{font-weight:700;color:var(--text);font-size:.85rem}
+.info .tag{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:99px;padding:2px 10px;font-size:.65rem;font-weight:500;
+}
+
+/* ── Card ── */
+.card-stage{
+  width:100%;max-width:720px;
+  height:calc(100dvh - 240px);
+  min-height:320px;max-height:550px;
+  position:relative;
+  margin-bottom:8px;
+}
+.card{
+  width:100%;height:100%;
+  position:relative;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 4px 30px rgba(0,0,0,.35);
+  border:1px solid var(--border);
+}
+
+/* As duas faces empilhadas com position absolute */
+.face{
+  position:absolute;inset:0;
+  padding:24px 20px;
+  display:flex;flex-direction:column;
+  overflow-y:auto;
+  transition:opacity .35s,visibility .35s;
+  border-radius:18px;
+}
+
+/* FRONT */
+.front{
+  background:#111b2e;
+  justify-content:center;align-items:center;
+  text-align:center;
+  opacity:1;visibility:visible;z-index:2;
+}
+.card.flipped .front{opacity:0;visibility:hidden;z-index:1}
+
+.front .q-text{
+  font-size:1.05rem;font-weight:500;line-height:1.6;
+  color:#f1f5f9;max-width:560px;
+}
+.front .meta{
+  position:absolute;top:12px;left:14px;right:14px;
+  display:flex;justify-content:space-between;
+  font-size:.62rem;color:var(--muted);
+}
+.front .meta .badge{
+  background:rgba(56,189,248,.12);color:var(--accent);
+  padding:2px 9px;border-radius:99px;
+}
+
+/* BACK */
+.back{
+  background:#0a2744;
+  justify-content:center;
+  opacity:0;visibility:hidden;z-index:1;
+}
+.card.flipped .back{opacity:1;visibility:visible;z-index:2}
+
+.back .label{
+  font-size:.6rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.14em;color:var(--accent);margin-bottom:8px;
+}
+.back .a-text{
+  font-size:.98rem;font-weight:400;
+  line-height:1.65;color:#f1f5f9;
+}
+
+/* ── Nav ── */
+.nav{
+  display:flex;align-items:center;gap:6px;
+  width:100%;max-width:720px;
+}
+.nav button{
+  all:unset;cursor:pointer;
+  border-radius:14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-size:.82rem;font-weight:500;
+  transition:all .2s;
+  text-align:center;
+}
+.nav button:active{transform:scale(.97)}
+.nav .prev,.nav .next{flex:1;padding:13px 6px;font-size:.9rem}
+.nav .flip-btn{flex:2;padding:13px 6px;font-weight:600}
+.nav .flip-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.nav .shuffle{flex:.5;padding:13px 6px;font-size:.85rem}
+.nav button[disabled]{opacity:.2;pointer-events:none}
+
+.hint{
+  font-size:.6rem;color:var(--muted);
+  text-align:center;margin-top:6px;
+  width:100%;max-width:720px;
+}
+
+@media(max-width:400px){
+  .card-stage{min-height:280px;max-height:440px}
+  .front .q-text{font-size:.95rem}
+  .back .a-text{font-size:.88rem}
+  .face{padding:18px 14px}
+}
+@media(min-height:900px){.card-stage{max-height:640px}}
+</style>
+</head>
+<body>
+
+<header><h1>MOG · Prova 2</h1></header>
+
+<div class="tabs" id="tabs"></div>
+<div class="progress"><div class="progress-bar" id="bar"></div></div>
+<div class="info">
+  <span class="counter" id="counter">0 / 0</span>
+  <span class="tag" id="tag"></span>
+</div>
+
+<div class="card-stage" id="stage">
+  <div class="card" id="card" onclick="flip()">
+    <div class="face front">
+      <div class="meta"><span class="badge"></span><span class="num"></span></div>
+      <div class="q-text"></div>
+    </div>
+    <div class="face back">
+      <div class="label">Resposta</div>
+      <div class="a-text"></div>
+    </div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="prev" onclick="prev()" id="prevBtn">←</button>
+  <button class="flip-btn" onclick="flip()" id="flipBtn">Ver resposta</button>
+  <button class="next" onclick="next()" id="nextBtn">→</button>
+  <button class="shuffle" onclick="shuffle()">🔀</button>
+</div>
+<div class="hint">toque no cartão · ← → navegar</div>
+
+<script>
+// ═══════════ DADOS (tudo embutido, funciona offline) ═══════════
+const DATA={};
+
+DATA["Interoperabilidade"]=[
+{q:"Por que diferentes departamentos de uma empresa industrial usam softwares CAD/CAM diferentes?",a:"Porque cada área (Projeto, Análise/CAE, Manufatura/CAM, Inspeção, Gestão/PLM) usa ferramentas especializadas (ex: CATIA, ANSYS, Mastercam, Teamcenter), cada uma com formato interno proprietário."},
+{q:"Qual é o problema fundamental que os padrões de troca de dados CAD tentam resolver?",a:"Permitir que informação de produto transite entre sistemas heterogêneos sem perda de significado."},
+{q:"Na estratégia Point-to-Point (tradutor direto), quantos tradutores são necessários para N sistemas?",a:"N × (N−1) tradutores."},
+{q:"Com 10 sistemas, quantos tradutores diretos seriam necessários na estratégia Point-to-Point?",a:"90 tradutores."},
+{q:"Na estratégia de Arquivo Neutro, quantos conversores são necessários para N sistemas?",a:"2N conversores (N exportadores + N importadores)."},
+{q:"Com 10 sistemas, quantos conversores seriam necessários na estratégia de Arquivo Neutro?",a:"20 conversores."},
+{q:"Cite as principais vantagens do tradutor direto (point-to-point).",a:"Tradução otimizada para cada par, potencialmente mais rápida e precisa, e arquivo de menor tamanho."},
+{q:"Cite as principais desvantagens do tradutor direto (point-to-point).",a:"Explosão combinatória (cresce com N²) e manutenção insustentável quando os softwares evoluem."},
+{q:"Cite as principais vantagens do arquivo neutro.",a:"Escalável (cresce linearmente com N), fácil de manter, e garante independência de fornecedor."},
+{q:"Cite as principais desvantagens do arquivo neutro.",a:"Arquivo maior e possível perda de informação específica do sistema na ida e volta."},
+{q:"Por que o arquivo neutro costuma ser maior que um tradutor direto?",a:"Porque precisa ser \"generoso\": inclui redundâncias e metadados para que qualquer sistema consiga interpretar a informação."},
+{q:"Qual estratégia (point-to-point ou arquivo neutro) a indústria escolheu para troca de dados CAD?",a:"A estratégia do arquivo neutro (neutral file)."},
+{q:"O que foi o programa ICAM e quando surgiu?",a:"Integrated Computer-Aided Manufacturing; programa da Força Aérea dos EUA (US Air Force) nos anos 1970."},
+{q:"Qual foi o legado do ICAM para os padrões de troca de dados?",a:"Evidenciou que, sem formato padronizado, cada contratante precisaria de tradutores diferentes; essa necessidade levou à criação do IGES."},
+{q:"O que significa a sigla IGES?",a:"Initial Graphics Exchange Specification (Especificação Inicial de Troca Gráfica)."},
+{q:"Em que ano o IGES foi padronizado e qual sua designação ANSI original?",a:"1980, como padrão ANSI Y14.26M (depois renomeado US PRO/IPO-100)."},
+{q:"Qual é o escopo principal do IGES?",a:"Geometria: curvas (linhas, arcos, splines), superfícies (planos, cilindros, NURBS), wireframe e anotações/dimensões 2D."},
+{q:"Cite quatro tipos de informação que o IGES NÃO troca.",a:"Materiais, tolerâncias dimensionais/geométricas, estrutura de montagem (assembly), histórico de construção."},
+{q:"Qual é a principal limitação semântica do IGES?",a:"Só troca geometria, sem semântica — ex: um furo é trocado como um conjunto de superfícies cilíndricas, não como \"furo passante M8\"."},
+{q:"Qual a analogia clássica usada para explicar a limitação do IGES?",a:"É como enviar uma foto de uma peça: você vê a forma, mas não sabe o material, a tolerância nem como ela foi projetada para ser fabricada."},
+{q:"Cite duas outras limitações do IGES além da falta de semântica.",a:"Arquivos muito grandes (representação verbosa) e interpretação ambígua entre sistemas diferentes."},
+{q:"O que é o SET e de onde se originou?",a:"Standard d'Échange et de Transfert; padrão francês (norma AFNOR Z68-300), concorrente e precursor do STEP."},
+{q:"Em qual indústria o SET foi adotado principalmente?",a:"Indústria aeroespacial francesa (Airbus, Dassault)."},
+{q:"O que significa a sigla VDA-FS?",a:"Verband der Automobilindustrie – Flächenschnittstelle."},
+{q:"Qual o foco específico do VDA-FS?",a:"Troca de dados de superfícies de forma livre (freeform surfaces), usado pela indústria automotiva alemã (BMW, Mercedes, VW, Audi) para superfícies de classe A."},
+{q:"Por que surgiram tantos padrões setoriais (IGES, SET, VDA-FS) antes do STEP?",a:"Porque o IGES era genérico demais; cada indústria/país tinha necessidades específicas, até convergirem para o STEP."},
+{q:"O que significa a sigla STEP?",a:"STandard for the Exchange of Product model data."},
+{q:"Qual é a norma ISO correspondente ao STEP?",a:"ISO 10303."},
+{q:"A partir de que ano o STEP começou a ser publicado?",a:"Publicado a partir de 1994, desenvolvido desde os anos 1980."},
+{q:"Qual a diferença fundamental entre STEP e IGES, em uma frase?",a:"IGES é um formato de desenho eletrônico; STEP é um modelo de produto computável."},
+{q:"O que o STEP troca que o IGES não troca?",a:"Informação completa de produto: material, processo, tolerância, estrutura de montagem e ciclo de vida completo (design, análise, manufatura, inspeção, suporte)."},
+{q:"Como é feita a validação de dados no IGES em comparação ao STEP?",a:"IGES: apenas validação sintática. STEP: validação sintática e semântica (via EXPRESS)."},
+{q:"O STEP cobre manufatura (CNC)? Como?",a:"Sim, por meio do STEP-NC (ISO 14649)."},
+{q:"Quais são as três camadas da arquitetura do STEP?",a:"1) Description Methods; 2) Integrated Resources; 3) Application Protocols (APs)."},
+{q:"O que a camada Description Methods do STEP define?",a:"Como descrever os dados (a \"linguagem\" do STEP): EXPRESS, EXPRESS-G e EXPRESS-X."},
+{q:"O que é a EXPRESS-G?",a:"Notação gráfica da linguagem EXPRESS, usada para visualizar schemas em diagramas."},
+{q:"O que é a EXPRESS-X?",a:"Extensão da linguagem EXPRESS para mapeamento entre schemas diferentes."},
+{q:"EXPRESS é uma linguagem de programação?",a:"Não. É uma linguagem de especificação/modelagem de dados: descreve a estrutura que os dados devem ter, não como processá-los."},
+{q:"O que são as Integrated Resources (camada 2 do STEP)?",a:"Bibliotecas reutilizáveis de definições, os \"blocos de construção\" do STEP, usadas pelos Application Protocols para evitar duplicação."},
+{q:"Cite três Integrated Resources (Parts) do STEP.",a:"Part 42: geometria e topologia. Part 45: materiais. Part 47: tolerâncias."},
+{q:"O que a camada Application Protocols (AP) do STEP define?",a:"Quais partes do modelo STEP completo são necessárias para um domínio específico — cada AP é uma \"fatia\" do modelo STEP."},
+{q:"O que é o AP203?",a:"Configuration Controlled 3D Design: design mecânico 3D com controle de configuração (versões, aprovação)."},
+{q:"O que é o AP214?",a:"Core Data for Automotive Mechanical Design: dados de design automotivo."},
+{q:"O que é o AP224?",a:"Feature-Based Process Planning: planejamento de processo baseado em features, usado em usinagem."},
+{q:"O que é o AP238?",a:"STEP-NC (Application Interpreted Model for CNC): integração CAD-CAM-CNC."},
+{q:"O que é o AP242 e o que ele unifica?",a:"Managed Model-Based 3D Engineering (MBE); unifica/sucede o AP203 e o AP214."},
+{q:"O que é o AP239?",a:"Product Life Cycle Support (PLCS): suporte ao ciclo de vida do produto."},
+{q:"Qual a analogia usada para explicar o que é um Application Protocol?",a:"É como um \"contrato\" entre sistemas: define exatamente o que será trocado para um determinado propósito, evitando ambiguidade."},
+{q:"O que é EXPRESS (ISO 10303-11)?",a:"Linguagem formal de modelagem de dados, orientada a objetos e baseada em schemas, que define entidades, atributos, relações e restrições."},
+{q:"O que é uma ENTITY em EXPRESS?",a:"Define um tipo de objeto com atributos."},
+{q:"O que são as regras WHERE em EXPRESS?",a:"Regras de validação: restrições que os dados devem satisfazer (ex: radius > 0.0)."},
+{q:"O que é UNIQUE em EXPRESS?",a:"Restrições de unicidade entre atributos ou entidades."},
+{q:"O que é INVERSE em EXPRESS?",a:"Relações inversas entre entidades."},
+{q:"O que é SUBTYPE/SUPERTYPE em EXPRESS?",a:"Mecanismo de herança entre entidades, similar à herança em POO."},
+{q:"Por que o STEP usa EXPRESS em vez de UML ou SQL?",a:"Porque foi projetada especificamente para dados de produto de engenharia, suporta restrições complexas (WHERE rules) e é independente de implementação de armazenamento."},
+{q:"O que significa a sigla SDAI e qual a norma ISO?",a:"Standard Data Access Interface; ISO 10303-22."},
+{q:"Qual problema o SDAI resolve?",a:"Sem ele, cada aplicação precisaria implementar seu próprio parser de arquivos STEP, o que é complexo e propenso a erros."},
+{q:"Cite três funcionalidades que o SDAI provê.",a:"Operações de consulta e navegação sobre modelos STEP, CRUD de entidades, e gerenciamento de sessões/transações."},
+{q:"Qual a analogia que relaciona EXPRESS e SDAI?",a:"EXPRESS é o \"dicionário\" (define as palavras/conceitos que existem); SDAI é o \"manual de conversação\" (define como usar essas palavras entre sistemas)."},
+{q:"Qual é o formato físico do STEP mais comum e sua extensão?",a:"ISO 10303-21 (Clear Text Encoding), com extensão .step ou .stp."},
+{q:"Coloque em ordem cronológica: ICAM, STEP, IGES.",a:"ICAM (anos 1970) → IGES (1980) → STEP/ISO 10303 (a partir de 1994)."},
+];
+
+DATA["Modelo de Produto + STEP-NC + Paramétrico"]=[
+{q:"Quais são os três domínios do modelo de produto integrado?",a:"Estrutural (montagem, BOM, relações, versões), Geométrico (forma, dimensões, posição, CSG/B-rep) e de Conhecimento (regras, restrições, tolerâncias, intenção de projeto)."},
+{q:"O que o domínio Estrutural do product model responde?",a:"\"Do que esta peça faz parte?\" — BOM, estrutura de montagem, relações entre componentes, versionamento e configuração."},
+{q:"O que o domínio Geométrico do product model responde?",a:"\"Qual é a forma e onde está?\" — forma, dimensões, posição, CSG/B-rep. Condição necessária mas não suficiente para um modelo completo."},
+{q:"O que o domínio de Conhecimento do product model responde?",a:"\"Por que esta peça é assim e como deve ser julgada?\" — regras de projeto, restrições funcionais, tolerâncias, especificações, intenção de projeto."},
+{q:"O que é o Integrated Product Model?",a:"A combinação dos três domínios em uma única representação coerente e computável. O STEP foi construído sobre este paradigma."},
+{q:"Quais as 4 limitações do código G tradicional (ISO 6983)?",a:"1) Descreve movimentos de eixos, não features; 2) Não sabe o que está usinando (só coordenadas); 3) Dependente da máquina; 4) Não contém tolerâncias, material ou estratégia."},
+{q:"O que é o STEP-NC e qual sua norma ISO?",a:"Extensão do STEP para comando numérico (ISO 14649). Envia features e operações de usinagem em vez de movimentos de eixo."},
+{q:"Qual a diferença fundamental entre código G e STEP-NC?",a:"Código G: baixo nível, descreve \"como\" usinar, dependente de máquina. STEP-NC: alto nível, descreve \"o quê\" usinar, independente de máquina."},
+{q:"O que é Design Intent?",a:"Conjunto de regras, relações e restrições que capturam o raciocínio do projetista e ficam embutidas no modelo paramétrico. Transforma o modelo de desenho passivo em \"máquina\" que gera geometria correta sob variação."},
+{q:"Dê um exemplo de Design Intent em uma peça mecânica.",a:"Flange com 6 furos: com Design Intent, os furos são definidos como \"círculo concêntrico, igualmente espaçados, diâmetro proporcional\". Mudando o diâmetro do flange, tudo se ajusta automaticamente."},
+{q:"O que é group technology segundo Mortenson (Cap. 10)?",a:"Esquema que agrupa peças em famílias de formas similares, onde membros são distinguidos por poucos parâmetros (key dimensions). Incentiva padronização no design e produção."},
+{q:"O que são generic primitive e primitive instance segundo Mortenson?",a:"Generic primitive: família inteira de formas similares. Primitive instance: membro individual da família, definido por valores específicos das key dimensions."},
+{q:"O que são key dimensions segundo Mortenson?",a:"Os parâmetros (dimensões-chave) que distinguem os membros de uma família de peças."},
+{q:"Qual a principal limitação dos sistemas baseados em primitivas parametrizadas, segundo Mortenson?",a:"O repertório de primitivas genéricas é limitado. Sistemas puramente baseados nisso são altamente especializados."},
+{q:"Como Mortenson define uma instance de primitiva (Cap. 10.5)?",a:"Como uma transformação linear de uma primitiva existente (escala, translação, rotação)."},
+{q:"Qual a diferença entre modelagem paramétrica e variacional quanto à direção das dependências?",a:"Paramétrica: dependências unidirecionais (definidas). Variacional: bidirecionais (simultâneas, resolvidas por solver)."},
+{q:"Como funciona a resolução na modelagem paramétrica?",a:"Em ordem sequencial, seguindo o histórico de construção. Cada parâmetro é calculado a partir dos anteriores (como uma planilha Excel)."},
+{q:"Como funciona a resolução na modelagem variacional?",a:"Restrições tratadas como equações simultâneas, sem direção preferencial. Um solver encontra valores que satisfazem todas ao mesmo tempo."},
+{q:"Compare custo computacional e flexibilidade entre paramétrico e variacional.",a:"Paramétrico: menor custo, menor flexibilidade, alta previsibilidade. Variacional: maior custo (solver numérico), maior flexibilidade, previsibilidade média."},
+{q:"Qual abordagem é usada por SolidWorks, Inventor e Creo?",a:"Modelagem paramétrica com histórico, mas incorporam elementos variacionais (equações simultâneas, restrições de sketch 2D). São híbridos."},
+{q:"O que são restrições geométricas? Dê exemplos.",a:"Definem relações espaciais. Ex: orientação (paralelo, perpendicular, tangente), posição (coincidente, concêntrico), dimensional (distância, ângulo, raio), simetria, padrão (igual, circular)."},
+{q:"O que são restrições funcionais (ou de engenharia)? Dê um exemplo.",a:"Restrições baseadas em requisitos de desempenho. Ex: tensão máxima ≤ 200 MPa, deflexão máxima ≤ 0.05 mm, massa total ≤ 5 kg."},
+{q:"Por que restrições funcionais são mais complexas que geométricas?",a:"Exigem integração com FEA/CFD, dependem de propriedades de material, podem exigir simulação numérica, e o vínculo geometria-desempenho é indireto."},
+{q:"O que são restrições variacionais?",a:"Restrições que permitem intervalos (desigualdades), definindo um espaço de soluções viáveis. Ex: 50 ≤ L ≤ 100 em vez de L = 100."},
+{q:"Para que servem as restrições variacionais?",a:"Projeto preliminar (valores ainda não decididos), otimização (espaço de busca) e design robusto (faixa de variação)."},
+];
+
+DATA["Resolução + CAD Tradicional + Features"]=[
+{q:"Qual a diferença entre abordagem procedural e constraint-based?",a:"Procedural: define \"como\" construir (sequência fixa, ordem importa). Constraint-Based: declara \"o que\" se deseja (ordem não importa, solver resolve tudo junto)."},
+{q:"Mortenson descreve o modelo booleano como procedural (Cap. 11.4). O que isso significa?",a:"A declaração booleana define um procedimento de combinação de primitivas, não especifica nada quantitativo sobre o novo sólido."},
+{q:"Em um grafo de restrições, o que são os nós e as arestas?",a:"Nós: elementos geométricos (pontos, linhas, círculos, planos). Arestas: restrições entre esses elementos (tangente, paralelo, distância, concêntrico, ângulo)."},
+{q:"Cite 5 utilidades de um grafo de restrições.",a:"1) Análise de dependências; 2) Detecção de redundância; 3) Detecção de conflitos; 4) Ordenação de resolução; 5) Decomposição (divide and conquer)."},
+{q:"O que é um predicado no contexto de restrições?",a:"Uma condição lógica que deve ser verdadeira para o modelo ser válido. Formalização de uma restrição (ex: Parallel(L1, L2))."},
+{q:"O que caracteriza um sistema sub-restrito (under-constrained)?",a:"n (variáveis) > m (equações). Infinitas soluções — geometria \"flutua\"."},
+{q:"O que caracteriza um sistema bem-restrito (well-constrained)?",a:"n = m. Solução finita, idealmente única."},
+{q:"O que caracteriza um sistema sobre-restrito (over-constrained)?",a:"n < m. Pode não ter solução — restrições conflitantes ou redundantes."},
+{q:"Dê um exemplo de sistema sub-restrito.",a:"3 pontos no plano (6 coordenadas); restrições: distância P1-P2 = 10, P2-P3 = 10 (2 equações). n > m → pontos podem girar e transladar livremente."},
+{q:"Dê um exemplo de sistema sobre-restrito.",a:"2 pontos (4 coordenadas); restrições: distância = 10, distância = 20, P1 fixo, P2 fixo — impossível satisfazer todas."},
+{q:"O que é o método de Newton-Raphson e por que é relevante em CAD?",a:"Método numérico iterativo que lineariza sistemas não-lineares. Requer chute inicial próximo da solução. É o mais usado em CAD comercial."},
+{q:"Cite 3 desafios práticos na resolução de sistemas de restrições.",a:"1) Múltiplas soluções; 2) Convergência (pode divergir com chute ruim); 3) Performance interativa (precisa rodar em tempo real)."},
+{q:"O que é uma função implícita? Dê um exemplo.",a:"Função F(x,y,z,...)=0, sem isolar variável. Ex: x² + y² − R² = 0 (círculo), vs. explícita y = ±√(R² − x²)."},
+{q:"Quando se usa função implícita em vez de explícita?",a:"Quando a relação não pode ser facilmente isolada; quando a forma implícita é mais compacta; para representar restrições como F(...) = 0."},
+{q:"Como Mortenson (Cap. 11.3) relaciona funções implícitas com modelagem?",a:"Para classificar inside/outside/boundary: esfera na origem → x²+y²+z²−R² < 0 (dentro), > 0 (fora), = 0 (superfície)."},
+{q:"Quais são as quatro deficiências do CAD tradicional?",a:"1) Dados microscópicos (baixo nível, sem semântica); 2) Sub-especificação geométrica (só geometria); 3) Construção tediosa (booleanas sobre primitivas); 4) Estrutura plana (sem hierarquia funcional)."},
+{q:"O que significa \"dados microscópicos\" no CAD tradicional?",a:"O CAD opera com pontos, arestas, faces. O engenheiro pensa em furos e rasgos. Há um gap semântico."},
+{q:"O que significa \"sub-especificação geométrica\" no CAD tradicional?",a:"Geometria correta mas sem informação de manufatura: um cilindro não diz se é furo passante, roscado, material, tolerância."},
+{q:"O que significa \"construção tediosa\" no CAD tradicional?",a:"Criar peça = definir primitivas + posicionar + booleanas — \"esculpir\". Mudança de projeto pode exigir reconstruir toda a árvore CSG."},
+{q:"O que significa \"estrutura de dados de um único nível\" no CAD tradicional?",a:"B-rep (solid→shell→face→loop→edge→vertex) e árvore CSG são planas: não agrupam por função, histórico registra booleanas, não decisões de projeto."},
+{q:"O que é uma feature (feição)?",a:"FEATURE = GEOMETRIA + SEMÂNTICA + COMPORTAMENTO. Elemento geométrico com significado de engenharia."},
+{q:"Qual a diferença entre feature física e feature abstrata?",a:"Física: geometria visível no modelo 3D (furo, cavidade, rasgo). Abstrata: sem geometria própria — informações anexadas (tolerância, material, acabamento)."},
+{q:"O que são Form Features? Dê exemplos.",a:"Orientadas ao design. Ex: ressalto (boss), nervura (rib), flange. Adição de material com propósito funcional."},
+{q:"O que são Manufacturing Features? Dê exemplos.",a:"Orientadas à fabricação. Ex: cavidade (pocket), furo a ser broqueado. Volume a remover do blank."},
+{q:"Por que mesma geometria pode ser Form Feature ≠ Manufacturing Feature?",a:"Não há mapeamento 1:1. Ex: no design é \"ressalto para mancal\" (adição); na manufatura é \"cavidade ao redor do ressalto\" (remoção)."},
+{q:"O que caracteriza uma feature rotacional?",a:"Simetria axial, gerada por revolução. Usinagem: torno. Ex: cilindro externo, cone, faceamento, canal, rosca externa."},
+{q:"O que caracteriza uma feature prismática?",a:"Faces planas, ortogonais ou inclinadas. Usinagem: fresadora. Ex: pocket, slot, step, furo não-coaxial."},
+{q:"O que é Feature Recognition (FeR)?",a:"Parte de modelo B-rep pronto e identifica features via algoritmos. Desafio: features intersectadas, mesma geometria = múltiplas interpretações."},
+{q:"O que é Feature-Based Design (DbF)?",a:"Construção do zero com operações de feature. Vantagem: Design Intent capturado durante a construção, árvore de features = histórico de projeto."},
+{q:"Compare Feature Recognition com Feature-Based Design.",a:"FeR: modelo pronto (legado), recupera Design Intent depois, sujeito a falhas. DbF: do zero, captura Design Intent durante, robusto, requer sistema feature-based."},
+{q:"Como as features resolvem as 4 deficiências do CAD tradicional?",a:"Dados microscópicos → entidades de alto nível. Sub-especificação → carregam tolerâncias e parâmetros. Construção tediosa → operações de alto nível. Estrutura plana → árvore hierárquica com agrupamentos."},
+];
+
+DATA["Decomposição + Estruturas Espaciais + LOD"]=[
+{q:"O que é representação por decomposição?",a:"Subdivide o espaço em células volumétricas e representa o objeto enumerando quais células o intersectam. Opõe-se às representações construtivas (CSG/B-rep)."},
+{q:"Quais as duas formas principais de decomposição?",a:"1) Uniforme (voxels): reticulado regular. 2) Não-uniforme: variação de tamanho (Quadtree, Octree, BSP) ou variação de forma (células quaisquer, Voronoi)."},
+{q:"O que é um voxel?",a:"Volume element — extensão 3D do pixel. Célula de reticulado 3D regular que armazena dentro/fora do sólido + atributos."},
+{q:"Quais as características dos voxels?",a:"Unicidade: sim. Ambiguidade: não. Validação: fácil. Precisão: depende do tamanho. Concisão: NÃO é concisa. Domínio: qualquer sólido."},
+{q:"Por que voxels não são concisos?",a:"Boa precisão exige muitos voxels; regiões homogêneas ocupam mesmo espaço que fronteiras. Memória cresce com o cubo da resolução."},
+{q:"Como funcionam operações booleanas em voxels?",a:"Operações lógicas bit a bit (1=ocupado, 0=vazio). União: OR. Interseção: AND. Diferença: AND NOT. Extremamente simples."},
+{q:"Como funciona uma Quadtree (2D)?",a:"Começa com região quadrada. Vazia → Empty (E). Ocupada → Full (F). Parcial → Partial (P), subdivide em 4 (NW, NE, SW, SE). Recursivo até critério de parada."},
+{q:"Como funciona uma Octree (3D)?",a:"Mesmo princípio da Quadtree, mas cada nó parcial subdivide em 8 octantes. Acesso O(log n). Estática: transformações exigem recriação."},
+{q:"Quais os três estados de um nó em Quadtree/Octree?",a:"Empty (E): vazio. Full (F): ocupado. Partial (P): parcial → subdivide."},
+{q:"O que é o problema do padrão xadrez em Quadtree?",a:"Em casos heterogêneos extremos, a Quadtree pode consumir MAIS memória que o grid. Ex: xadrez 4×4 = 16 elementos no grid vs. 21 nós."},
+{q:"MX Quadtree vs. PR Quadtree?",a:"MX: índices discretos, posição implícita, limitação de precisão custa 2²× ou 2³×. PR: armazena coordenadas nas folhas, máx. 1 ponto/folha."},
+{q:"O que é uma Extended Octree?",a:"Folhas armazenam polígonos representando a superfície. Resolve aproximação grosseira de voxels binários. Octree como acelerador."},
+{q:"O que é uma Graftree?",a:"Folhas armazenam raiz de árvore CSG. Estados: FULL, EMPTY, BOUNDARY. Permite CSG local — útil para booleanas em regiões pequenas."},
+{q:"O que é uma BSP-tree?",a:"Binary Space Partitioning: árvore binária dividindo espaço por plano de corte. Esquerda = \"dentro\", direita = \"fora\". Representa côncavos e convexos."},
+{q:"Quais os dois tipos de BSP-tree?",a:"Axis-Aligned: planos paralelos aos eixos (mais simples). Polygon-Aligned: polígono 3D como splitting plane (trade-off balanceamento vs. splits)."},
+{q:"Quais conversões entre representações são simples? E complicadas?",a:"Simples: CSG→B-rep, CSG→Células, B-rep→Células, Células→B-rep (marching cubes). Complicadas: B-rep→CSG, Células→CSG."},
+{q:"O que é uma malha manifold?",a:"Superfície onde vizinhança de qualquer ponto é achatável. Verificação: arestas compartilhadas por exatamente 2 triângulos; vértices com círculo completo."},
+{q:"Qual a diferença entre Winged-Edge e Half-Edge?",a:"Winged-Edge: armazena conectividade nas arestas, precisa verificar orientação. Half-Edge: divide aresta em duas metades opostas — elimina testes de orientação."},
+{q:"O que cada half-edge armazena?",a:"Vértice de origem, half-edge oposta (pair), face, próxima half-edge (next), half-edge anterior (prev)."},
+{q:"O que é um Grid 3D e sua desvantagem?",a:"Voxels em matriz 3D, acesso O(1). Desvantagem: alto consumo de memória (20³ = 8× 10³). Espaços homogêneos = mesmo custo."},
+{q:"O que é uma KD-Tree? Complexidade?",a:"BSP-tree para pontos, alternando dimensão por nível. Média: O(log n). Pior caso: O(n)."},
+{q:"O que é uma BVH e para que serve?",a:"Bounding Volume Hierarchy: árvore de bounding volumes aninhados. Acelera colisão e ray tracing: se raio não atinge BV pai, ignora filhos."},
+{q:"BVH vs. Octree?",a:"BVH: agrupa objetos por proximidade, adapta-se à distribuição. Octree: subdivide espaço uniformemente, independente dos objetos."},
+{q:"O que é LOD e por que é usado?",a:"Level of Detail: múltiplos modelos com diferentes níveis de detalhe. Evita desperdício renderizando triângulos menores que um pixel."},
+{q:"Qual o critério para trocar de LOD?",a:"Distância + resolução da tela. Triângulos vs. pixels ocupados. Ex: tela 640×480, objeto ~150K pixels → >300K triângulos é desperdício."},
+{q:"O que é popping em LOD? Como resolver?",a:"Objeto \"salta\" de aparência na troca de nível. Soluções: morphing entre níveis, LOD contínuo (geomorphs)."},
+];
+
+DATA["Validação + Complementos"]=[
+{q:"Qual % das tarefas de design são variacionais?",a:"80% (Shah95/Chung90c) — o objetivo é adaptar um projeto básico a novos requisitos."},
+{q:"Defina variáveis, dimensões e parâmetros do modelo.",a:"Variáveis: descrevem forma e tamanho. Dimensões: valores nominais de propriedades geométricas. Parâmetros: controle indireto (podem não ter significado geométrico direto)."},
+{q:"Quais os 4 passos do processo de projeto a restrições (Shah95)?",a:"1) Criar geometria sem dimensões; 2) Especificar restrições; 3) Sistema resolve gerando modelo válido; 4) Usuário cria variações."},
+{q:"Por que \"paramétrico\" e \"variacional\" são usados indistintamente?",a:"Do ponto de vista do usuário é difícil identificar a técnica. Sistemas comerciais são híbridos. A diferença conceitual importa mais que o rótulo."},
+{q:"O que acontece quando restrições funcionais viram geométricas?",a:"A conexão com o requisito original se perde (Suzuki90). Ex: \"suportar 500 N\" → \"espessura ≥ 5 mm\" — perde-se a rastreabilidade."},
+{q:"Método de solução paramétrico vs. variacional?",a:"Paramétrico: procedural (sequencial), reavalia a sequência. Variacional: declarativo (simultâneo), grafos + predicados, resolve sistema não-linear com métodos numéricos."},
+{q:"Tipo de função: paramétrico vs. variacional?",a:"Paramétrico: explícitas (x = f(p1, p2, ...)). Variacional: implícitas (F(x, y, ...) = 0)."},
+{q:"Restrições geométricas + engenharia: paramétrico vs. variacional?",a:"Paramétrico: não podem ser acopladas (biblioteca fixa). Variacional: permite acoplamento."},
+{q:"Velocidade e flexibilidade: paramétrico vs. variacional?",a:"Paramétrico: rápido (reavaliação simples), flexibilidade limitada. Variacional: lento (resolve sistema), alta flexibilidade."},
+{q:"Modelos sub e sobre-restringidos: paramétrico vs. variacional?",a:"Paramétrico: melhor com sub-restringidos, fácil detectar sobre. Variacional: difícil com sub-restringidos, difícil detectar sobre."},
+{q:"Limitações dos métodos procedurais (paramétrico)?",a:"Gama modesta de variações; difícil incluir novas dependências; dependência topologia-restrições; ambiente rígido (não what-if); algoritmos específicos por restrição."},
+{q:"Limitações dos métodos declarativos (variacional)?",a:"Relação pouco clara equação-geometria; lentos; dificuldade com modelos incompletos; projetista foca mais no processo que no método."},
+{q:"Qual a primeira definição de feature (Grayer, 1976)?",a:"\"Uma feature é uma característica geométrica que corresponde a uma operação de usinagem.\""},
+{q:"Definições de Pratt (1985) e Henderson (1990)?",a:"Pratt: \"região de interesse na superfície da peça\". Henderson: \"padrões geométrico/topológicos interessantes, entidades de alto nível úteis para análise\"."},
+{q:"Por que não há definição única de feature (Pratt93)?",a:"Features são usadas de modos diversos por organizações com grande variedade de produtos, métodos, manufatura e filosofias."},
+{q:"O que são features abstratas estruturais?",a:"Não-geométricas, especificam relacionamentos entre features geométricas. Ex: precedência, conectividade, paralelismo, perpendicularismo, concentricidade."},
+{q:"O que são features de precisão?",a:"Tratamento de superfícies, dimensões, restrições dimensionais, tolerâncias. Inclui circularidade, retilineidade, planicidade."},
+{q:"Como a taxonomia de Gindy classifica features?",a:"Por EAD's (External Access Directions): 0 a 5 direções de acesso da ferramenta. Depressões e Protrusões, subdivididas em Quadrangular e Cylindrical."},
+{q:"Por que EAD's são importantes?",a:"Conectam geometria com manufaturabilidade — o número de direções de acesso determina quais operações de usinagem são possíveis."},
+{q:"O que é DSG?",a:"Destructive Solid Geometry: CSG apenas com operador Diferença. Representa features como volumes removidos do blank."},
+{q:"Quais as 4 formas de representar features?",a:"1) B-rep/CSG puros; 2) Simplificações (DSG); 3) Híbrido B-rep+CSG (com redundância); 4) Melhoramentos para informações específicas."},
+{q:"4 formas de integrar FeR em DbF?",a:"1) Converter legados; 2) Ajudar na validação; 3) Solucionar interações entre features; 4) Conversão para espaços de aplicação."},
+{q:"Por que boss e slot têm mesma topologia? Problema?",a:"Compartilham estrutura topológica mas têm significados opostos (adição vs. remoção). Torna FeR ambíguo."},
+{q:"Quais os 4 tipos de interação entre features?",a:"1) Adjacência (encostadas); 2) Compartilhamento (dividem face/aresta); 3) Cruzamento (se interceptam); 4) Sobreposição (mesmo volume)."},
+{q:"O que são Thin Walls? 4 casos?",a:"Paredes finas entre features próximas. Casos: Feature-to-Feature, Feature-to-STOCK, Adjoint (encostadas), Disjoint (separadas mas próximas)."},
+{q:"Problemas de edição 1-2?",a:"1) Remoção ≠ Reinserção (cicatrizes topológicas). 2) Desconexão (feature se desconecta do modelo)."},
+{q:"Problemas de edição 3-4?",a:"3) Colisão/Redundância (colidem ou engolem). 4) Cobertura/Fechamento (feature coberta perde significado)."},
+{q:"Problemas de edição 5-6?",a:"5) Absorção de Intenções. 6) Apagamento de Intenções."},
+{q:"Problemas de edição 7-8?",a:"7) Alterações Implícitas (mudança afeta outras). 8) Invalidação por Inserção (modelo válido → inválido após inserir feature)."},
+{q:"Validação geométrica vs. semântica?",a:"Geométrica: modelo geometricamente válido (fronteiras, sem auto-interseções). Semântica: intenções de projeto preservadas."},
+{q:"Operações Split, Delete, Merge, Label?",a:"Split: dividir feature. Delete: remover feature sem significado. Merge: unir duas em uma. Label: reclassificar feature."},
+{q:"Essência das features segundo Case92a?",a:"A descrição do produto diz o que é E contém informações sobre como transformá-lo entre estados do ciclo de vida."},
+{q:"DbF vs. FeR: orientação?",a:"DbF → projeto (biblioteca, linguagem natural). FeR → aplicações (pós-processamento, legado). Um não substitui o outro."},
+];
+
+// ═══════════ LÓGICA ═══════════
+let current = "Tudo";
+let cards = [];
+let idx = 0;
+let flipped = false;
+
+// elementos
+const el = {
+  card: document.getElementById('card'),
+  q: document.querySelector('.q-text'),
+  a: document.querySelector('.a-text'),
+  badge: document.querySelector('.badge'),
+  num: document.querySelector('.num'),
+  counter: document.getElementById('counter'),
+  tag: document.getElementById('tag'),
+  bar: document.getElementById('bar'),
+  prevBtn: document.getElementById('prevBtn'),
+  nextBtn: document.getElementById('nextBtn'),
+  flipBtn: document.getElementById('flipBtn'),
+};
+
+function build(){
+  cards = current === "Tudo" ? Object.values(DATA).flat() : (DATA[current] || []);
+  idx = 0; flipped = false;
+  if(!cards.length){ empty(); return; }
+  show();
+}
+
+function empty(){
+  el.q.innerHTML = '<span style="color:var(--muted)">Nenhum flashcard aqui.</span>';
+  el.a.textContent = '';
+  el.badge.textContent = '';
+  el.num.textContent = '';
+  el.counter.textContent = '0 / 0';
+  el.tag.textContent = '';
+  el.bar.style.width = '0%';
+  el.prevBtn.disabled = el.nextBtn.disabled = el.flipBtn.disabled = true;
+}
+
+function show(){
+  var c = cards[idx];
+  var day = Object.keys(DATA).find(function(k){ return DATA[k].indexOf(c) !== -1; }) || '';
+  el.q.textContent = c.q;
+  el.a.textContent = c.a;
+  el.badge.textContent = current === 'Tudo' ? day : '';
+  el.num.textContent = (idx+1) + '/' + cards.length;
+  el.counter.textContent = (idx+1) + ' / ' + cards.length;
+  el.tag.textContent = current === 'Tudo' ? day : '';
+  el.bar.style.width = ((idx+1)/cards.length*100) + '%';
+  el.prevBtn.disabled = idx === 0;
+  el.nextBtn.disabled = idx === cards.length - 1;
+  unflip();
+}
+
+function flip(){
+  if(!cards.length) return;
+  flipped = !flipped;
+  if(flipped){
+    el.card.classList.add('flipped');
+    el.flipBtn.textContent = 'Esconder';
+    el.flipBtn.classList.add('on');
+  } else {
+    el.card.classList.remove('flipped');
+    el.flipBtn.textContent = 'Ver resposta';
+    el.flipBtn.classList.remove('on');
+  }
+}
+
+function unflip(){
+  flipped = false;
+  el.card.classList.remove('flipped');
+  el.flipBtn.textContent = 'Ver resposta';
+  el.flipBtn.classList.remove('on');
+}
+
+function next(){ if(idx < cards.length-1){ idx++; show(); } }
+function prev(){ if(idx > 0){ idx--; show(); } }
+
+function shuffle(){
+  if(!cards.length) return;
+  var cur = cards[idx];
+  for(var i = cards.length-1; i > 0; i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t = cards[i]; cards[i] = cards[j]; cards[j] = t;
+  }
+  idx = cards.indexOf(cur);
+  if(idx < 0) idx = 0;
+  show();
+}
+
+// ── Tabs ──
+var tabsEl = document.getElementById('tabs');
+["Tudo"].concat(Object.keys(DATA)).forEach(function(d){
+  var b = document.createElement('button');
+  b.textContent = d;
+  if(d === "Tudo") b.className = 'on';
+  b.onclick = function(){
+    tabsEl.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
+    b.classList.add('on');
+    current = d;
+    build();
+  };
+  tabsEl.appendChild(b);
+});
+
+// ── Keyboard ──
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowLeft'){ e.preventDefault(); prev(); }
+  else if(e.key === 'ArrowRight'){ e.preventDefault(); next(); }
+  else if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); flip(); }
+});
+
+// ── Swipe ──
+var touchX = 0;
+document.getElementById('stage').addEventListener('touchstart', function(e){ touchX = e.touches[0].clientX; }, {passive: true});
+document.getElementById('stage').addEventListener('touchend', function(e){
+  var dx = e.changedTouches[0].clientX - touchX;
+  if(Math.abs(dx) > 50){ dx > 0 ? prev() : next(); }
+});
+
+build();
+</script>
+</body>
+</html>
